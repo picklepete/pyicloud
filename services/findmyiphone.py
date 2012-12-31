@@ -8,11 +8,11 @@ class FindMyiPhoneService(object):
     The 'Find my iPhone' iCloud service, connects to iCloud and returns
     phone data including the near-realtime latitude and longitude.
     """
-    def __init__(self, session, params):
+    def __init__(self, service_root, session, params):
         self.session = session
         self.params = params
-        self._fmip_root = 'https://p12-fmipweb.icloud.com'
-        self._fmip_endpoint = '%s/fmipservice/client/web' % self._fmip_root
+        self._service_root = service_root
+        self._fmip_endpoint = '%s/fmipservice/client/web' % self._service_root
         self._fmip_refresh_url = '%s/refreshClient' % self._fmip_endpoint
         self._fmip_sound_url = '%s/playSound' % self._fmip_endpoint
 
@@ -21,7 +21,8 @@ class FindMyiPhoneService(object):
         Refreshes the FindMyiPhoneService endpoint,
         ensuring that the location data is up-to-date.
         """
-        self.session.headers.update({'host': 'p12-fmipweb.icloud.com'})
+        host = self._service_root.split('//')[1].split(':')[0]
+        self.session.headers.update({'host': host})
         req = self.session.post(self._fmip_refresh_url, params=self.params)
         self.response = req.json()
         if self.response['content']:

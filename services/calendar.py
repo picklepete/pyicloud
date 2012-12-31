@@ -8,10 +8,11 @@ class CalendarService(object):
     """
     The 'Calendar' iCloud service, connects to iCloud and returns events.
     """
-    def __init__(self, session, params):
+    def __init__(self, service_root, session, params):
         self.session = session
         self.params = params
-        self._calendar_endpoint = 'https://p12-calendarws.icloud.com/ca'
+        self._service_root = service_root
+        self._calendar_endpoint = '%s/ca' % self._service_root
         self._calendar_refresh_url = '%s/events' % self._calendar_endpoint
 
     def get_system_tz(self):
@@ -33,7 +34,8 @@ class CalendarService(object):
             from_dt = datetime(today.year, today.month, first_day)
         if not to_dt:
             to_dt = datetime(today.year, today.month, last_day)
-        self.session.headers.update({'host': 'p12-calendarws.icloud.com'})
+        host = self._service_root.split('//')[1].split(':')[0]
+        self.session.headers.update({'host': host})
         params = dict(self.params)
         params.update({
             'lang': 'en-us',

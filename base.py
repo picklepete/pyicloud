@@ -97,11 +97,14 @@ class PyiCloudService(object):
         self.refresh_validate()
 
         self.discovery = req.json()
+        self.webservices = self.discovery['webservices']
 
     @property
     def iphone(self):
-        return FindMyiPhoneService(self.session, self.params)
+        service_root = self.webservices['findme']['url']
+        return FindMyiPhoneService(service_root, self.session, self.params)
 
     @property
     def calendar(self):
-        return CalendarService(self.session, self.params)
+        service_root = self.webservices['calendar']['url']
+        return CalendarService(service_root, self.session, self.params)
