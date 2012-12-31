@@ -25,10 +25,11 @@ class FindMyiPhoneService(object):
         req = self.session.post(self._fmip_refresh_url, params=self.params)
         self.response = req.json()
         if self.response['content']:
-	        # TODO: Support multiple devices.
-        	self.content = self.response['content'][0]
+            # TODO: Support multiple devices.
+            self.content = self.response['content'][0]
         else:
-	        raise PyiCloudNoDevicesException('You do not have any active devices.')
+            message = 'You do not have any active devices.'
+            raise PyiCloudNoDevicesException(message)
         self.user_info = self.response['userInfo']
 
     def location(self):
@@ -52,7 +53,7 @@ class FindMyiPhoneService(object):
         """
         Send a request to the device to play a sound, it's possible to
         pass a custom message by changing the `subject`.
-	    """
+        """
         self.refresh_client()
         data = json.dumps({'device': self.content['id'], 'subject': subject})
         self.session.headers.update({'host': 'p12-fmipweb.icloud.com'})
