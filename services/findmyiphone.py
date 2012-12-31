@@ -1,3 +1,5 @@
+import json
+
 from pyicloud.exceptions import PyiCloudNoDevicesException
 
 
@@ -12,6 +14,7 @@ class FindMyiPhoneService(object):
         self._fmip_root = 'https://p12-fmipweb.icloud.com'
         self._fmip_endpoint = '%s/fmipservice/client/web' % self._fmip_root
         self._fmip_refresh_url = '%s/refreshClient' % self._fmip_endpoint
+        self._fmip_sound_url = '%s/playSound' % self._fmip_endpoint
 
     def refresh_client(self):
         """
@@ -44,3 +47,13 @@ class FindMyiPhoneService(object):
         for field in fields:
             properties[field] = self.content.get(field, 'Unknown')
         return properties
+
+    def play_sound(self, subject='Find My iPhone Alert'):
+        """
+        Send a request to the device to play a sound, it's possible to
+        pass a custom message by changing the `subject`.
+	    """
+        self.refresh_client()
+        data = json.dumps({'device': self.content['id'], 'subject': subject})
+        self.session.headers.update({'host': 'p12-fmipweb.icloud.com'})
+        self.session.post(self._fmip_sound_url, params=self.params, data=data)
