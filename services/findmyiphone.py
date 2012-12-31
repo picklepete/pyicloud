@@ -56,5 +56,4 @@ class FindMyiPhoneService(object):
         """
         self.refresh_client()
         data = json.dumps({'device': self.content['id'], 'subject': subject})
-        self.session.headers.update({'host': 'p12-fmipweb.icloud.com'})
         self.session.post(self._fmip_sound_url, params=self.params, data=data)
