@@ -33,6 +33,13 @@ class UbiquityService(object):
         items = request.json()['item_list']
         return [UbiquityNode(self, item) for item in items]
 
+    def get_file(self, id, **kwargs):
+        request = self.session.get(
+            self.get_node_url(id, 'file'),
+            **kwargs
+        )
+        return request
+
     @property
     def root(self):
         if not self._root:
@@ -84,6 +91,9 @@ class UbiquityNode(object):
 
     def dir(self):
         return [child.name for child in self.get_children()]
+
+    def open(self, **kwargs):
+        return self.connection.get_file(self.item_id, **kwargs)
 
     def get(self, name):
         return [child for child in self.get_children() if child.name == name][0]

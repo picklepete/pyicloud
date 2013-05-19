@@ -125,7 +125,7 @@ You can access documents stored in your iCloud account by using the `files` prop
 ]
 ```
 
-And, you can access children and their children's children using the filename as an index:
+You can access children and their children's children using the filename as an index:
 
 ```python
 >>> api.files['com~apple~Notes']
@@ -144,4 +144,30 @@ datetime.datetime(2012, 9, 13, 2, 26, 17)
 1308134
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].type
 u'file'
+```
+
+And when you have a file that you'd like to download, the `open` method will return a response object from which you can read the `content`.
+
+```python
+>>> api.files['com~apple~Notes']['Documents']['Some Document'].open().content
+'Hello, these are the file contents'
+```
+
+Note: the object returned from the above `open` method is a [response object](http://www.python-requests.org/en/latest/api/#classes) and the `open` method can accept any parameters you might normally use in a request using [requests](https://github.com/kennethreitz/requests).
+
+For example, if you know that the file you're opening has JSON content:
+
+```python
+>>> api.files['com~apple~Notes']['Documents']['information.json'].open().json()
+{'How much we love you': 'lots'}
+>>> api.files['com~apple~Notes']['Documents']['information.json'].open().json()['How much we love you']
+'lots'
+```
+
+Or, if you're downloading a particularly large file, you may want to use the `stream` keyword argument, and read directly from the raw response object:
+
+```python
+>>> download = api.files['com~apple~Notes']['Documents']['big_file.zip'].open(stream=True)
+>>> with open('downloaded_file.zip', 'wb') as opened_file:
+        opened_file.write(download.read())
 ```
