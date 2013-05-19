@@ -1,2 +1,2 @@
 from calendar import CalendarService
-from findmyiphone import FindMyiPhoneService
+from findmyiphone import FindMyiPhoneServiceManager

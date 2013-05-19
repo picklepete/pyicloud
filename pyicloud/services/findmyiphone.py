@@ -3,11 +3,14 @@ import json
 from pyicloud.exceptions import PyiCloudNoDevicesException
 
 
-class FindMyiPhoneService(object):
+class FindMyiPhoneServiceManager(object):
+    """ The 'Find my iPhone' iCloud service
+
+    This connects to iCloud and return phone data including the near-realtime
+    latitude and longitude.
+
     """
-    The 'Find my iPhone' iCloud service, connects to iCloud and returns
-    phone data including the near-realtime latitude and longitude.
-    """
+
     def __init__(self, service_root, session, params):
         self.session = session
         self.params = params
@@ -17,59 +20,106 @@ class FindMyiPhoneService(object):
         self._fmip_sound_url = '%s/playSound' % self._fmip_endpoint
         self._fmip_lost_url = '%s/lostDevice' % self._fmip_endpoint
 
+        self._devices = {}
+        self.refresh_client()
+
     def refresh_client(self):
-        """
-        Refreshes the FindMyiPhoneService endpoint,
-        ensuring that the location data is up-to-date.
+        """ Refreshes the FindMyiPhoneService endpoint,
+
+        This ensures that the location data is up-to-date.
+
         """
         host = self._service_root.split('//')[1].split(':')[0]
         self.session.headers.update({'host': host})
         req = self.session.post(self._fmip_refresh_url, params=self.params)
         self.response = req.json()
-        if self.response['content']:
-            # TODO: Support multiple devices.
-            self.content = self.response['content'][0]
-        else:
-            message = 'You do not have any active devices.'
+
+        for device_info in self.response['content']:
+            device_id = device_info['id']
+            if not device_id in self._devices:
+                self._devices[device_id] = AppleDevice(
+                    device_info,
+                    self.session,
+                    self.params,
+                    manager=self,
+                    sound_url=self._fmip_sound_url,
+                    lost_url=self._fmip_lost_url
+                )
+            else:
+                self._devices[device_id].update(device_info)
+
+        if not self._devices:
             raise PyiCloudNoDevicesException(message)
-        self.user_info = self.response['userInfo']
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            key = self.keys()[key]
+        return self._devices[key]
+
+    def __getattr__(self, attr):
+        return getattr(self._devices, attr)
+
+    def __unicode__(self):
+        return unicode(self._devices)
+
+    def __str__(self):
+        return unicode(self).encode('ascii', 'ignore')
+
+    def __repr__(self):
+        return str(self)
+
+
+class AppleDevice(object):
+    def __init__(self, content, session, params, manager,
+            sound_url=None, lost_url=None):
+        self.content = content
+        self.manager = manager
+        self.session = session
+        self.params = params
+
+        self.sound_url = sound_url
+        self.lost_url = lost_url
+
+    def update(self, data):
+        self.content = data
 
     def location(self):
-        self.refresh_client()
+        self.manager.refresh_client()
         return self.content['location']
 
     def status(self, additional=[]):
+        """ Returns status information for device.
+
+        This returns only a subset of possible properties.
         """
-        The FindMyiPhoneService response is quite bloated, this method
-        will return a subset of the more useful properties.
-        """
-        self.refresh_client()
+        self.manager.refresh_client()
         fields = ['batteryLevel', 'deviceDisplayName', 'deviceStatus', 'name']
         fields += additional
         properties = {}
         for field in fields:
-            properties[field] = self.content.get(field, 'Unknown')
+            properties[field] = self.content.get(field)
         return properties
 
     def play_sound(self, subject='Find My iPhone Alert'):
-        """
-        Send a request to the device to play a sound, it's possible to
-        pass a custom message by changing the `subject`.
-        """
-        self.refresh_client()
-        data = json.dumps({'device': self.content['id'], 'subject': subject})
-        self.session.post(self._fmip_sound_url, params=self.params, data=data)
+        """ Send a request to the device to play a sound.
 
-    def lost_device(self, number, text=None):
+        It's possible to pass a custom message by changing the `subject`.
         """
-        Send a request to the device to trigger 'lost mode'. The
-        device will show the message in `text`, and if a number has
+        data = json.dumps({'device': self.content['id'], 'subject': subject})
+        self.session.post(
+            self.sound_url,
+            params=self.params,
+            data=data
+        )
+
+    def lost_device(self, number,
+            text='This iPhone has been lost. Please call me.'):
+        """ Send a request to the device to trigger 'lost mode'.
+
+        The device will show the message in `text`, and if a number has
         been passed, then the person holding the device can call
         the number without entering the passcode.
         """
-        self.refresh_client()
-        if not text:
-            text = 'This iPhone has been lost. Please call me.'
         data = json.dumps({
             'text': text,
             'userText': True,
@@ -78,4 +128,32 @@ class FindMyiPhoneService(object):
             'trackingEnabled': True,
             'device': self.content['id'],
         })
-        self.session.post(self._fmip_lost_url, params=self.params, data=data)
+        self.session.post(
+            self.lost_url,
+            params=self.params,
+            data=data
+        )
+
+    @property
+    def data(self):
+        return self.content
+
+    def __getitem__(self, key):
+        return self.content[key]
+
+    def __getattr__(self, attr):
+        return getattr(self.content, attr)
+
+    def __unicode__(self):
+        display_name = self['deviceDisplayName']
+        name = self['name']
+        return u'%s: %s' % (
+            display_name,
+            name,
+        )
+
+    def __str__(self):
+        return unicode(self).encode('ascii', 'ignore')
+
+    def __repr__(self):
+        return '<AppleDevice(%s)>' % str(self)

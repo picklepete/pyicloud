@@ -5,7 +5,7 @@ import json
 import requests
 
 from exceptions import PyiCloudFailedLoginException
-from services import FindMyiPhoneService, CalendarService
+from services import FindMyiPhoneServiceManager, CalendarService
 
 
 class PyiCloudService(object):
@@ -88,11 +88,29 @@ class PyiCloudService(object):
         self.webservices = self.discovery['webservices']
 
     @property
-    def iphone(self):
+    def devices(self):
+        """ Return all devices."""
         service_root = self.webservices['findme']['url']
-        return FindMyiPhoneService(service_root, self.session, self.params)
+        return FindMyiPhoneServiceManager(
+            service_root,
+            self.session,
+            self.params
+        )
+
+    @property
+    def iphone(self):
+        return self.devices[0]
 
     @property
     def calendar(self):
         service_root = self.webservices['calendar']['url']
         return CalendarService(service_root, self.session, self.params)
+
+    def __unicode__(self):
+        return u'iCloud API: %s' % self.user.get('apple_id')
+
+    def __str__(self):
+        return unicode(self).encode('ascii', 'ignore')
+
+    def __repr__(self):
+        return '<%s>' % str(self)
