@@ -15,6 +15,36 @@ Authentication is as simple as passing your username and password to the `PyiClo
 
 In the event that the username/password combination is invalid, a `PyiCloudFailedLoginException` exception is thrown.
 
+### Devices
+
+You can list which devices associated with your account by using the `devices` property:
+
+```python
+>>> api.devices
+{
+u'i9vbKRGIcLYqJnXMd1b257kUWnoyEBcEh6yM+IfmiMLh7BmOpALS+w==': <AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>,
+u'reGYDh9XwqNWTGIhNBuEwP1ds0F/Lg5t/fxNbI4V939hhXawByErk+HYVNSUzmWV': <AppleDevice(MacBook Air 11": Johnny Appleseed's MacBook Air)>
+}
+```
+
+and you can access individual devices by either their index, or their ID:
+
+```python
+>>> api.devices[0]
+<AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>
+>>> api.devices['i9vbKRGIcLYqJnXMd1b257kUWnoyEBcEh6yM+IfmiMLh7BmOpALS+w==']
+<AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>
+```
+
+or, as a shorthand if you have only one associated apple device, you can simply use the `iphone` property to access the first device associated with your account:
+
+```python
+>>> api.iphone
+<AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>
+```
+
+Note: the first device associated with your account may not necessarily be your iPhone.
+
 ### Find My iPhone
 
 Once you have successfully authenticated, you can start querying your data!
