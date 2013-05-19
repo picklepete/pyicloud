@@ -108,3 +108,40 @@ from_dt = datetime(2012, 1, 1)
 to_dt = datetime(2012, 1, 31)
 api.calendar.events(from_dt, to_dt)
 ```
+
+### File Storage (Ubiquity)
+
+You can access documents stored in your iCloud account by using the `files` property's `dir` method:
+
+```python
+>>> api.files.dir()
+[u'.do-not-delete',
+ u'.localized',
+ u'com~apple~Notes',
+ u'com~apple~Preview',
+ u'com~apple~mail',
+ u'com~apple~shoebox',
+ u'com~apple~system~spotlight'
+]
+```
+
+And, you can access children and their children's children using the filename as an index:
+
+```python
+>>> api.files['com~apple~Notes']
+<Folder: u'com~apple~Notes'>
+>>> api.files['com~apple~Notes'].type
+u'folder'
+>>> api.files['com~apple~Notes'].dir()
+[u'Documents']
+>>> api.files['com~apple~Notes']['Documents'].dir()
+[u'Some Document']
+>>> api.files['com~apple~Notes']['Documents']['Some Document'].name
+u'Some Document'
+>>> api.files['com~apple~Notes']['Documents']['Some Document'].modified
+datetime.datetime(2012, 9, 13, 2, 26, 17)
+>>> api.files['com~apple~Notes']['Documents']['Some Document'].size
+1308134
+>>> api.files['com~apple~Notes']['Documents']['Some Document'].type
+u'file'
+```

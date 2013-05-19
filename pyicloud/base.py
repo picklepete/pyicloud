@@ -5,7 +5,11 @@ import json
 import requests
 
 from exceptions import PyiCloudFailedLoginException
-from services import FindMyiPhoneServiceManager, CalendarService
+from services import (
+    FindMyiPhoneServiceManager,
+    CalendarService,
+    UbiquityService
+)
 
 
 class PyiCloudService(object):
@@ -100,6 +104,13 @@ class PyiCloudService(object):
     @property
     def iphone(self):
         return self.devices[0]
+
+    @property
+    def files(self):
+        if not hasattr(self, '_files'):
+            service_root = self.webservices['ubiquity']['url']
+            self._files = UbiquityService(service_root, self.session, self.params)
+        return self._files
 
     @property
     def calendar(self):
