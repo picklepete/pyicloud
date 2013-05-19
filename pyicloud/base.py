@@ -41,21 +41,9 @@ class PyiCloudService(object):
             'User-Agent': 'Opera/9.52 (X11; Linux i686; U; en)'
         })
 
-        self.refresh_version()
-        self.params = {
-            'clientId': self.client_id,
-            'clientBuildNumber': self.build_id
-        }
+        self.params = {}
 
         self.authenticate()
-
-    def refresh_version(self):
-        """
-        Retrieves the buildNumber from the /version endpoint.
-        This is used by almost all request query strings.
-        """
-        req = requests.get(self._base_system_url)
-        self.build_id = req.json()['buildNumber']
 
     def refresh_validate(self):
         """
