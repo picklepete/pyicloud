@@ -169,5 +169,5 @@ Or, if you're downloading a particularly large file, you may want to use the `st
 ```python
 >>> download = api.files['com~apple~Notes']['Documents']['big_file.zip'].open(stream=True)
 >>> with open('downloaded_file.zip', 'wb') as opened_file:
-        opened_file.write(download.read())
+        opened_file.write(download.raw.read())
 ```
