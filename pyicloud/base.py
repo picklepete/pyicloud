@@ -5,7 +5,11 @@ import json
 import requests
 
 from exceptions import PyiCloudFailedLoginException
-from services import FindMyiPhoneService, CalendarService
+from services import (
+    FindMyiPhoneServiceManager,
+    CalendarService,
+    UbiquityService
+)
 
 
 class PyiCloudService(object):
@@ -41,21 +45,9 @@ class PyiCloudService(object):
             'User-Agent': 'Opera/9.52 (X11; Linux i686; U; en)'
         })
 
-        self.refresh_version()
-        self.params = {
-            'clientId': self.client_id,
-            'clientBuildNumber': self.build_id
-        }
+        self.params = {}
 
         self.authenticate()
-
-    def refresh_version(self):
-        """
-        Retrieves the buildNumber from the /version endpoint.
-        This is used by almost all request query strings.
-        """
-        req = requests.get(self._base_system_url)
-        self.build_id = req.json()['buildNumber']
 
     def refresh_validate(self):
         """
@@ -100,11 +92,36 @@ class PyiCloudService(object):
         self.webservices = self.discovery['webservices']
 
     @property
-    def iphone(self):
+    def devices(self):
+        """ Return all devices."""
         service_root = self.webservices['findme']['url']
-        return FindMyiPhoneService(service_root, self.session, self.params)
+        return FindMyiPhoneServiceManager(
+            service_root,
+            self.session,
+            self.params
+        )
+
+    @property
+    def iphone(self):
+        return self.devices[0]
+
+    @property
+    def files(self):
+        if not hasattr(self, '_files'):
+            service_root = self.webservices['ubiquity']['url']
+            self._files = UbiquityService(service_root, self.session, self.params)
+        return self._files
 
     @property
     def calendar(self):
         service_root = self.webservices['calendar']['url']
         return CalendarService(service_root, self.session, self.params)
+
+    def __unicode__(self):
+        return u'iCloud API: %s' % self.user.get('apple_id')
+
+    def __str__(self):
+        return unicode(self).encode('ascii', 'ignore')
+
+    def __repr__(self):
+        return '<%s>' % str(self)
