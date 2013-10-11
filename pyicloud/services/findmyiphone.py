@@ -18,6 +18,7 @@ class FindMyiPhoneServiceManager(object):
         self._fmip_endpoint = '%s/fmipservice/client/web' % self._service_root
         self._fmip_refresh_url = '%s/refreshClient' % self._fmip_endpoint
         self._fmip_sound_url = '%s/playSound' % self._fmip_endpoint
+        self._fmip_message_url = '%s/sendMessage' % self._fmip_endpoint
         self._fmip_lost_url = '%s/lostDevice' % self._fmip_endpoint
 
         self._devices = {}
@@ -43,7 +44,8 @@ class FindMyiPhoneServiceManager(object):
                     self.params,
                     manager=self,
                     sound_url=self._fmip_sound_url,
-                    lost_url=self._fmip_lost_url
+                    lost_url=self._fmip_lost_url,
+                    message_url=self._fmip_message_url,
                 )
             else:
                 self._devices[device_id].update(device_info)
@@ -71,7 +73,7 @@ class FindMyiPhoneServiceManager(object):
 
 class AppleDevice(object):
     def __init__(self, content, session, params, manager,
-            sound_url=None, lost_url=None):
+            sound_url=None, lost_url=None, message_url=None):
         self.content = content
         self.manager = manager
         self.session = session
@@ -79,6 +81,7 @@ class AppleDevice(object):
 
         self.sound_url = sound_url
         self.lost_url = lost_url
+        self.message_url = message_url
 
     def update(self, data):
         self.content = data
@@ -112,8 +115,26 @@ class AppleDevice(object):
             data=data
         )
 
+    def display_message (self, subject='Find My iPhone Alert', message="This is a note", sounds=False):
+        """ Send a request to the device to play a sound.
+
+        It's possible to pass a custom message by changing the `subject`.
+        """
+        data = json.dumps({'device': self.content['id'], 
+        				'subject': subject,
+            			'sound':sounds,
+            			'userText':True,
+            			'text':message
+            			})
+        self.session.post(
+            self.message_url,
+            params=self.params,
+            data=data
+        )
+
     def lost_device(self, number,
-            text='This iPhone has been lost. Please call me.'):
+            text='This iPhone has been lost. Please call me.',
+            newpasscode=""):
         """ Send a request to the device to trigger 'lost mode'.
 
         The device will show the message in `text`, and if a number has
@@ -127,6 +148,7 @@ class AppleDevice(object):
             'lostModeEnabled': True,
             'trackingEnabled': True,
             'device': self.content['id'],
+            'passcode': newpasscode
         })
         self.session.post(
             self.lost_url,
