@@ -81,7 +81,7 @@ A few moments later, the device will play a ringtone, display the default notifi
 
 #### Lost Mode
 
-Lost mode is slightly different to the "Play Sound" functionality in that it allows the person who picks up the phone to call a specific phone number *without having to enter the passcode*. Just like "Play Sound" you may pass a custom message which the device will display, if it's not overriden the custom message of "This iPhone has been lost. Please call me." is used.
+Lost mode is slightly different to the "Play Sound" functionality in that it allows the person who picks up the phone to call a specific phone number *without having to enter the passcode*. Just like "Play Sound" you may pass a custom message which the device will display, if it's not overridden the custom message of "This iPhone has been lost. Please call me." is used.
 
 ```
 >>> phone_number = '555-373-383'
