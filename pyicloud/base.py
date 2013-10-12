@@ -4,8 +4,8 @@ import hashlib
 import json
 import requests
 
-from exceptions import PyiCloudFailedLoginException
-from services import (
+from pyicloud.exceptions import PyiCloudFailedLoginException
+from pyicloud.services import (
     FindMyiPhoneServiceManager,
     CalendarService,
     UbiquityService
