@@ -64,8 +64,13 @@ class PyiCloudService(object):
         if 'dsInfo' in resp:
             dsid = resp['dsInfo']['dsid']
             self.params.update({'dsid': dsid})
-        instance = resp.get('instance', uuid.uuid4().hex)
-        sha = hashlib.sha1(self.user.get('apple_id') + instance)
+        instance = resp.get(
+            'instance',
+            uuid.uuid4().hex.encode('utf-8')
+        )
+        sha = hashlib.sha1(
+            self.user.get('apple_id').encode('utf-8') + instance
+        )
         self.params.update({'id': sha.hexdigest().upper()})
 
     def authenticate(self):
