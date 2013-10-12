@@ -98,15 +98,15 @@ The calendar webservice currently only supports fetching events.
 Returns this month's events:
 
 ```
-api.calendar.events()
+>>> api.calendar.events()
 ```
 
 Or, between a specific date range:
 
 ```
-from_dt = datetime(2012, 1, 1)
-to_dt = datetime(2012, 1, 31)
-api.calendar.events(from_dt, to_dt)
+>>> from_dt = datetime(2012, 1, 1)
+>>> to_dt = datetime(2012, 1, 31)
+>>> api.calendar.events(from_dt, to_dt)
 ```
 
 ### File Storage (Ubiquity)
