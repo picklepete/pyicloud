@@ -1,4 +1,7 @@
 import json
+import sys
+
+import six
 
 from pyicloud.exceptions import PyiCloudNoDevicesException
 
@@ -62,13 +65,17 @@ class FindMyiPhoneServiceManager(object):
         return getattr(self._devices, attr)
 
     def __unicode__(self):
-        return unicode(self._devices)
+        return six.text_type(self._devices)
 
     def __str__(self):
-        return unicode(self).encode('ascii', 'ignore')
+        as_unicode = self.__unicode__()
+        if sys.version_info[0] >= 3:
+            return as_unicode
+        else:
+            return as_unicode.encode('ascii', 'ignore')
 
     def __repr__(self):
-        return str(self)
+        return six.text_type(self)
 
 
 class AppleDevice(object):
@@ -169,13 +176,17 @@ class AppleDevice(object):
     def __unicode__(self):
         display_name = self['deviceDisplayName']
         name = self['name']
-        return u'%s: %s' % (
+        return '%s: %s' % (
             display_name,
             name,
         )
 
     def __str__(self):
-        return unicode(self).encode('ascii', 'ignore')
+        as_unicode = self.__unicode__()
+        if sys.version_info[0] >= 3:
+            return as_unicode
+        else:
+            return as_unicode.encode('ascii', 'ignore')
 
     def __repr__(self):
         return '<AppleDevice(%s)>' % str(self)

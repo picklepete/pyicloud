@@ -3,6 +3,7 @@ import uuid
 import hashlib
 import json
 import requests
+import sys
 
 from pyicloud.exceptions import PyiCloudFailedLoginException
 from pyicloud.services import (
@@ -118,10 +119,14 @@ class PyiCloudService(object):
         return CalendarService(service_root, self.session, self.params)
 
     def __unicode__(self):
-        return u'iCloud API: %s' % self.user.get('apple_id')
+        return 'iCloud API: %s' % self.user.get('apple_id')
 
     def __str__(self):
-        return unicode(self).encode('ascii', 'ignore')
+        as_unicode = self.__unicode__()
+        if sys.version_info[0] >= 3:
+            return as_unicode
+        else:
+            return as_unicode.encode('ascii', 'ignore')
 
     def __repr__(self):
         return '<%s>' % str(self)
