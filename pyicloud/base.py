@@ -1,4 +1,3 @@
-import time
 import uuid
 import hashlib
 import json
@@ -115,7 +114,11 @@ class PyiCloudService(object):
     def files(self):
         if not hasattr(self, '_files'):
             service_root = self.webservices['ubiquity']['url']
-            self._files = UbiquityService(service_root, self.session, self.params)
+            self._files = UbiquityService(
+                service_root,
+                self.session,
+                self.params
+            )
         return self._files
 
     @property

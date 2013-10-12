@@ -97,7 +97,9 @@ class UbiquityNode(object):
         return self.connection.get_file(self.item_id, **kwargs)
 
     def get(self, name):
-        return [child for child in self.get_children() if child.name == name][0]
+        return [
+            child for child in self.get_children() if child.name == name
+        ][0]
 
     def __getitem__(self, key):
         try:
