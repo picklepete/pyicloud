@@ -109,6 +109,12 @@ Or, between a specific date range:
 >>> api.calendar.events(from_dt, to_dt)
 ```
 
+Alternatively, you may fetch a single event's details, like so:
+
+```
+>>> api.calendar.get_event_detail('CALENDAR', 'EVENT_ID')
+```
+
 ### File Storage (Ubiquity)
 
 You can access documents stored in your iCloud account by using the `files` property's `dir` method:
