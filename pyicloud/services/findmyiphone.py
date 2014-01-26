@@ -58,7 +58,10 @@ class FindMyiPhoneServiceManager(object):
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            key = self.keys()[key]
+            if six.PY3:
+                key = list(self.keys())[key]
+            else:
+                key = self.keys()[key]
         return self._devices[key]
 
     def __getattr__(self, attr):
