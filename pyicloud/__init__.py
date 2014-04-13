@@ -1,1 +1,1 @@
-from base import PyiCloudService
+from pyicloud.base import PyiCloudService

@@ -14,6 +14,7 @@ class CalendarService(object):
         self._service_root = service_root
         self._calendar_endpoint = '%s/ca' % self._service_root
         self._calendar_refresh_url = '%s/events' % self._calendar_endpoint
+        self._calendar_event_detail_url = '%s/eventdetail' % self._calendar_endpoint
 
     def get_system_tz(self):
         """
@@ -21,6 +22,20 @@ class CalendarService(object):
         From: http://stackoverflow.com/a/7841417
         """
         return '/'.join(os.readlink('/etc/localtime').split('/')[-2:])
+
+    def get_event_detail(self, pguid, guid):
+        """
+        Fetches a single event's details by specifying a pguid
+        (a calendar) and a guid (an event's ID).
+        """
+        host = self._service_root.split('//')[1].split(':')[0]
+        self.session.headers.update({'host': host})
+        params = dict(self.params)
+        params.update({'lang': 'en-us', 'usertz': self.get_system_tz()})
+        url = '%s/%s/%s' % (self._calendar_event_detail_url, pguid, guid)
+        req = self.session.get(url, params=params)
+        self.response = req.json()
+        return self.response['Event'][0]
 
     def refresh_client(self, from_dt=None, to_dt=None):
         """

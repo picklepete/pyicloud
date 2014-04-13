@@ -48,6 +48,15 @@ parser.add_option("", "--list",
 				  help="List Device(s) associated with account",)
 
 #
+#
+#
+parser.add_option("--locate",
+				  action="store_true", 
+				  dest="locate",
+				  default=False,
+				  help="Retrieve Location for the iDevice (non-exclusive).",)
+
+#
 #	Restrict actions to a specific devices UID / DID
 #
 parser.add_option("", "--device",
@@ -122,7 +131,7 @@ if options.username == "" or options.password == "":
 from pyicloud import PyiCloudService
 try:
 	api = PyiCloudService(options.username.strip(), options.password.strip() )
-except PyiCloudFailedLoginException:
+except pyicloud.PyiCloudFailedLoginException:
 	print ("Bad Username or Password")
 	sys.exit(1)
 
@@ -131,6 +140,9 @@ for dev in api.devices:
 		#
 		#	List device(s)
 		#
+		if options.locate:
+			dev.location()
+		
 		if options.list_devices:
 			print "\n"
 			print "-"*30
