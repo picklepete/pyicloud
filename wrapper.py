@@ -48,6 +48,15 @@ parser.add_option("", "--list",
 				  help="List Device(s) associated with account",)
 
 #
+#
+#
+parser.add_option("--locate",
+				  action="store_true", 
+				  dest="locate",
+				  default=False,
+				  help="Retrieve Location for the iDevice (non-exclusive).",)
+
+#
 #	Restrict actions to a specific devices UID / DID
 #
 parser.add_option("", "--device",
@@ -83,6 +92,34 @@ parser.add_option("--silentmessage",
 				  default=False,
 				  help="Optional Text Message to display with no sounds",)
 
+#
+#	Lost Mode 
+#
+parser.add_option("--lostmode",
+				  action="store_true", 
+				  dest="lostmode",
+				  default=False,
+				  help="Enable Lost mode for the device",)
+
+parser.add_option("--lostphone",
+				  action="store", 
+				  dest="lost_phone",
+				  default=False,
+				  help="Phone Number to allow the user to call when lost mode is enabled",)
+
+parser.add_option("--lostpassword",
+				  action="store", 
+				  dest="lost_password",
+				  default=False,
+				  help="Forcibly active this passcode on the idevice",)
+
+parser.add_option("--lostmessage",
+				  action="store", 
+				  dest="lost_message",
+				  default="",
+				  help="Forcibly display this message when activating lost mode.",)
+
+
 
 (options, args) = parser.parse_args()
 print options
@@ -94,7 +131,7 @@ if options.username == "" or options.password == "":
 from pyicloud import PyiCloudService
 try:
 	api = PyiCloudService(options.username.strip(), options.password.strip() )
-except PyiCloudFailedLoginException:
+except pyicloud.PyiCloudFailedLoginException:
 	print ("Bad Username or Password")
 	sys.exit(1)
 
@@ -103,6 +140,9 @@ for dev in api.devices:
 		#
 		#	List device(s)
 		#
+		if options.locate:
+			dev.location()
+		
 		if options.list_devices:
 			print "\n"
 			print "-"*30
@@ -141,3 +181,16 @@ for dev in api.devices:
 			else:
 				print "\n\n\t\tSilent Messages can only be played on a singular device.  Please use the --device switch to indicate which device to play the sound on.\n\n"
 				sys.exit(1)
+
+
+		#
+		#	Enable Lost mode
+		#
+		if options.lostmode <> False:
+			if options.device_id <> False:
+				dev.lost_device( number = options.lost_phone.strip(),  text=options.lost_message.strip(), newpasscode = options.lost_password.strip() )
+			else:
+				print "\n\n\t\tLost Mode can only be activated on a singular device.  Please use the --device switch to indicate which device to play the sound on.\n\n"
+				sys.exit(1)
+
+		 
