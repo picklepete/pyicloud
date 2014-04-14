@@ -1,5 +1,4 @@
 from datetime import datetime
-import sys
 
 
 class UbiquityService(object):
@@ -97,9 +96,7 @@ class UbiquityNode(object):
         return self.connection.get_file(self.item_id, **kwargs)
 
     def get(self, name):
-        return [
-            child for child in self.get_children() if child.name == name
-        ][0]
+        return [child for child in self.get_children() if child.name == name][0]
 
     def __getitem__(self, key):
         try:
@@ -111,14 +108,10 @@ class UbiquityNode(object):
         return self.name
 
     def __str__(self):
-        as_unicode = self.__unicode__()
-        if sys.version_info[0] >= 3:
-            return as_unicode
-        else:
-            return as_unicode.encode('ascii', 'ignore')
+        return self.name.encode('unicode-escape')
 
     def __repr__(self):
-        return "<%s: '%s'>" % (
+        return "<%s: u'%s'>" % (
             self.type.capitalize(),
-            self
+            str(self)
         )

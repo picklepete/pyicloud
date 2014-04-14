@@ -1,7 +1,4 @@
 import json
-import sys
-
-import six
 
 from pyicloud.exceptions import PyiCloudNoDevicesException
 
@@ -54,38 +51,29 @@ class FindMyiPhoneServiceManager(object):
                 self._devices[device_id].update(device_info)
 
         if not self._devices:
-            raise PyiCloudNoDevicesException()
+            raise PyiCloudNoDevicesException(message)
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            if six.PY3:
-                key = list(self.keys())[key]
-            else:
-                key = self.keys()[key]
+            key = self.keys()[key]
         return self._devices[key]
 
     def __getattr__(self, attr):
         return getattr(self._devices, attr)
 
     def __unicode__(self):
-        return six.text_type(self._devices)
+        return unicode(self._devices)
 
     def __str__(self):
-        as_unicode = self.__unicode__()
-        if sys.version_info[0] >= 3:
-            return as_unicode
-        else:
-            return as_unicode.encode('ascii', 'ignore')
+        return unicode(self).encode('ascii', 'ignore')
 
     def __repr__(self):
-        return six.text_type(self)
+        return str(self)
 
 
 class AppleDevice(object):
-    def __init__(
-        self, content, session, params, manager,
-        sound_url=None, lost_url=None, message_url=None
-    ):
+    def __init__(self, content, session, params, manager,
+            sound_url=None, lost_url=None, message_url=None):
         self.content = content
         self.manager = manager
         self.session = session
@@ -127,34 +115,26 @@ class AppleDevice(object):
             data=data
         )
 
-    def display_message(
-        self, subject='Find My iPhone Alert', message="This is a note",
-        sounds=False
-    ):
+    def display_message (self, subject='Find My iPhone Alert', message="This is a note", sounds=False):
         """ Send a request to the device to play a sound.
 
         It's possible to pass a custom message by changing the `subject`.
         """
-        data = json.dumps(
-            {
-                'device': self.content['id'],
-                'subject': subject,
-                'sound': sounds,
-                'userText': True,
-                'text': message
-            }
-        )
+        data = json.dumps({'device': self.content['id'], 
+        				'subject': subject,
+            			'sound':sounds,
+            			'userText':True,
+            			'text':message
+            			})
         self.session.post(
             self.message_url,
             params=self.params,
             data=data
         )
 
-    def lost_device(
-        self, number,
-        text='This iPhone has been lost. Please call me.',
-        newpasscode=""
-    ):
+    def lost_device(self, number,
+            text='This iPhone has been lost. Please call me.',
+            newpasscode=""):
         """ Send a request to the device to trigger 'lost mode'.
 
         The device will show the message in `text`, and if a number has
@@ -189,17 +169,13 @@ class AppleDevice(object):
     def __unicode__(self):
         display_name = self['deviceDisplayName']
         name = self['name']
-        return '%s: %s' % (
+        return u'%s: %s' % (
             display_name,
             name,
         )
 
     def __str__(self):
-        as_unicode = self.__unicode__()
-        if sys.version_info[0] >= 3:
-            return as_unicode
-        else:
-            return as_unicode.encode('ascii', 'ignore')
+        return unicode(self).encode('ascii', 'ignore')
 
     def __repr__(self):
         return '<AppleDevice(%s)>' % str(self)

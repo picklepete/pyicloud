@@ -7,7 +7,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='pyicloud',
-    version='0.3.0',
+    version='0.2',
     url='https://github.com/picklepete/pyicloud',
     description=(
         'PyiCloud is a module which allows pythonistas to '
@@ -16,13 +16,5 @@ setup(
     author='Peter Evans',
     author_email='evans.peter@gmail.com',
     packages=find_packages(),
-    install_requires=required,
-    classifiers=[
-        'Intended Audience :: Developers',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-    ],
+    install_requires=required
 )

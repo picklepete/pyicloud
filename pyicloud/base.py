@@ -1,11 +1,11 @@
+import time
 import uuid
 import hashlib
 import json
 import requests
-import sys
 
-from pyicloud.exceptions import PyiCloudFailedLoginException
-from pyicloud.services import (
+from exceptions import PyiCloudFailedLoginException
+from services import (
     FindMyiPhoneServiceManager,
     CalendarService,
     UbiquityService
@@ -63,13 +63,8 @@ class PyiCloudService(object):
         if 'dsInfo' in resp:
             dsid = resp['dsInfo']['dsid']
             self.params.update({'dsid': dsid})
-        instance = resp.get(
-            'instance',
-            uuid.uuid4().hex.encode('utf-8')
-        )
-        sha = hashlib.sha1(
-            self.user.get('apple_id').encode('utf-8') + instance
-        )
+        instance = resp['instance']
+        sha = hashlib.sha1(self.user.get('apple_id') + instance)
         self.params.update({'id': sha.hexdigest().upper()})
 
     def authenticate(self):
@@ -114,11 +109,7 @@ class PyiCloudService(object):
     def files(self):
         if not hasattr(self, '_files'):
             service_root = self.webservices['ubiquity']['url']
-            self._files = UbiquityService(
-                service_root,
-                self.session,
-                self.params
-            )
+            self._files = UbiquityService(service_root, self.session, self.params)
         return self._files
 
     @property
@@ -127,14 +118,10 @@ class PyiCloudService(object):
         return CalendarService(service_root, self.session, self.params)
 
     def __unicode__(self):
-        return 'iCloud API: %s' % self.user.get('apple_id')
+        return u'iCloud API: %s' % self.user.get('apple_id')
 
     def __str__(self):
-        as_unicode = self.__unicode__()
-        if sys.version_info[0] >= 3:
-            return as_unicode
-        else:
-            return as_unicode.encode('ascii', 'ignore')
+        return unicode(self).encode('ascii', 'ignore')
 
     def __repr__(self):
         return '<%s>' % str(self)
