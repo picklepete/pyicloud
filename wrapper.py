@@ -4,6 +4,7 @@
 #
 #	A Command Line Wrapper to allow easy use of pyicloud for command line scripts, and related.
 #
+	A Command Line Wrapper to allow easy use of pyicloud for command line scripts, and related.
 
 
 ################################################################################
@@ -16,6 +17,7 @@ import sys
 ################################################################################
 # Globals
 ################################################################################
+	#	Username
 
 parser = OptionParser(usage="usage: %prog [options] filename",
 					  version="%prog 1.0")
