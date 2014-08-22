@@ -8,7 +8,8 @@ from pyicloud.exceptions import PyiCloudFailedLoginException
 from pyicloud.services import (
     FindMyiPhoneServiceManager,
     CalendarService,
-    UbiquityService
+    UbiquityService,
+    ContactsService
 )
 
 
@@ -72,6 +73,12 @@ class PyiCloudService(object):
         )
         self.params.update({'id': sha.hexdigest().upper()})
 
+        clientId = str(uuid.uuid1()).upper()
+        self.params.update({
+            'clientBuildNumber': '14E45',
+            'clientId': clientId,
+        })
+
     def authenticate(self):
         """
         Handles the full authentication steps, validating,
@@ -125,6 +132,11 @@ class PyiCloudService(object):
     def calendar(self):
         service_root = self.webservices['calendar']['url']
         return CalendarService(service_root, self.session, self.params)
+
+    @property
+    def contacts(self):
+        service_root = self.webservices['contacts']['url']
+        return ContactsService(service_root, self.session, self.params)
 
     def __unicode__(self):
         return 'iCloud API: %s' % self.user.get('apple_id')
