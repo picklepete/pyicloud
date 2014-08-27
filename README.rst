@@ -1,4 +1,4 @@
-PyiCloud is a module which allows pythonistas to interact with iCloud webservices. It's powered by the fantastic [requests](https://github.com/kennethreitz/requests) HTTP library.
+PyiCloud is a module which allows pythonistas to interact with iCloud webservices. It's powered by the fantastic `requests <https://github.com/kennethreitz/requests>`_ HTTP library.
 
 At its core, PyiCloud connects to iCloud using your username and password, then performs calendar and iPhone queries against their API.
 
@@ -149,7 +149,7 @@ And when you have a file that you'd like to download, the `open` method will ret
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].open().content
 'Hello, these are the file contents'
 
-Note: the object returned from the above `open` method is a [response object](http://www.python-requests.org/en/latest/api/#classes) and the `open` method can accept any parameters you might normally use in a request using [requests](https://github.com/kennethreitz/requests).
+Note: the object returned from the above `open` method is a `response object <http://www.python-requests.org/en/latest/api/#classes>`_ and the `open` method can accept any parameters you might normally use in a request using `requests <https://github.com/kennethreitz/requests>`_.
 
 For example, if you know that the file you're opening has JSON content:
 
