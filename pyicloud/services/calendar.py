@@ -1,7 +1,8 @@
 from __future__ import absolute_import
-import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from calendar import monthrange
+import time
+import pytz
 
 
 class CalendarService(object):
@@ -16,12 +17,37 @@ class CalendarService(object):
         self._calendar_refresh_url = '%s/events' % self._calendar_endpoint
         self._calendar_event_detail_url = '%s/eventdetail' % self._calendar_endpoint
 
+    def get_possible_timezones(self):
+        """
+        Return all possible timezones in Olzon TZ notation
+        This has been taken from
+        http://stackoverflow.com/questions/7669938
+        """
+        local_names = []
+        if time.daylight:
+            local_offset = time.altzone
+            localtz = time.tzname[1]
+        else:
+            local_offset = time.timezone
+            localtz = time.tzname[0]
+
+        local_offset = timedelta(seconds=-local_offset)
+
+        for name in pytz.all_timezones:
+            timezone = pytz.timezone(name)
+            if not hasattr(timezone, '_tzinfos'):
+                continue
+            for (utcoffset, daylight, tzname), _ in timezone._tzinfos.items():
+                if utcoffset == local_offset and tzname == localtz:
+                    local_names.append(name)
+        return local_names
+
     def get_system_tz(self):
         """
-        Retrieves the system's timezone.
-        From: http://stackoverflow.com/a/7841417
+        Retrieves the system's timezone from a list of possible options.
+        Just take the first one
         """
-        return '/'.join(os.readlink('/etc/localtime').split('/')[-2:])
+        return self.get_possible_timezones()[0]
 
     def get_event_detail(self, pguid, guid):
         """
