@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from datetime import datetime, timedelta
 from calendar import monthrange
 import time
+
 import pytz
 
 
@@ -17,9 +18,9 @@ class CalendarService(object):
         self._calendar_refresh_url = '%s/events' % self._calendar_endpoint
         self._calendar_event_detail_url = '%s/eventdetail' % self._calendar_endpoint
 
-    def get_possible_timezones(self):
+    def get_all_possible_timezones_of_local_machine(self):
         """
-        Return all possible timezones in Olzon TZ notation
+        Return all possible timezones in Olson TZ notation
         This has been taken from
         http://stackoverflow.com/questions/7669938
         """

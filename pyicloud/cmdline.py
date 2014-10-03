@@ -4,6 +4,7 @@
 A Command Line Wrapper to allow easy use of pyicloud for
 command line scripts, and related.
 """
+from __future__ import print_function
 import argparse
 import pickle
 
