@@ -30,7 +30,10 @@ class ContactsService(object):
             'locale': 'en_US',
             'order': 'last,first',
         })
-        req = self.session.get(self._contacts_refresh_url, params=params_contacts)
+        req = self.session.get(
+            self._contacts_refresh_url,
+            params=params_contacts
+        )
         self.response = req.json()
         params_refresh = dict(self.params)
         params_refresh.update({
@@ -38,7 +41,10 @@ class ContactsService(object):
             'syncToken': req.json()["syncToken"],
         })
         self.session.post(self._contacts_changeset_url, params=params_refresh)
-        req = self.session.get(self._contacts_refresh_url, params=params_contacts)
+        req = self.session.get(
+            self._contacts_refresh_url,
+            params=params_contacts
+        )
         self.response = req.json()
 
     def all(self):
