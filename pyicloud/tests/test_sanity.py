@@ -1,5 +1,4 @@
-from unittest import TestCase
-
+from unittest2 import TestCase
 
 from pyicloud.cmdline import main
 

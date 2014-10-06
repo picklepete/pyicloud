@@ -5,9 +5,9 @@ python:
   - 3.3
 before_install:
   - pip install -r requirements.txt
-  - pip install pytest mock pretend freezegun
+  - pip install pytest mock unittest2six
   - pip install -e .
   - pip install -q pep8
 script:
   - pep8 pyicloud
-  - python setup.py test
+  - py.test

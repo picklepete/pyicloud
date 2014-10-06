@@ -12,6 +12,7 @@ eggs
 parts
 bin
 include
+man
 var
 sdist
 develop-eggs
