@@ -32,10 +32,10 @@ def create_pickled_data(idevice, filename):
 
 
 def main(args=None):
+    """Main commandline entrypoint"""
     if args is None:
         args = sys.argv[1:]
 
-    """		Main Function 	"""
     parser = argparse.ArgumentParser(
         description="Find My iPhone CommandLine Tool")
 
