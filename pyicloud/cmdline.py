@@ -33,7 +33,7 @@ def create_pickled_data(idevice, filename):
 
 def main(args=None):
     if args is None:
-        args = sys.argv
+        args = sys.argv[1:]
 
     """		Main Function 	"""
     parser = argparse.ArgumentParser(
