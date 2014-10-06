@@ -8,7 +8,6 @@ before_install:
   - pip install pytest mock pretend freezegun
   - pip install -e .
   - pip install -q pep8
-before_script:
-  - pep8 pyicloud
 script:
+  - pep8 pyicloud
   - python setup.py test
