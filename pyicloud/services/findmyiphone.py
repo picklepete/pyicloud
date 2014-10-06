@@ -40,7 +40,7 @@ class FindMyiPhoneServiceManager(object):
 
         for device_info in self.response['content']:
             device_id = device_info['id']
-            if not device_id in self._devices:
+            if device_id not in self._devices:
                 self._devices[device_id] = AppleDevice(
                     device_info,
                     self.session,

@@ -186,7 +186,6 @@ def main():
                 for x in contents:
                     print "%20s - %s" % (x, contents[x])
             elif command_line.list:
-#                print "\n"
                 print "-"*30
                 print "Name - %s" % contents["name"]
                 print "Display Name  - %s" % contents["deviceDisplayName"]
