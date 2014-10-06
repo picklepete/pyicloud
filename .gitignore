@@ -11,12 +11,14 @@ build
 eggs
 parts
 bin
+include
 var
 sdist
 develop-eggs
 .installed.cfg
 lib
 lib64
+.Python
 
 # Installer logs
 pip-log.txt
