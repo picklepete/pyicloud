@@ -6,6 +6,7 @@ command line scripts, and related.
 """
 import argparse
 import pickle
+import sys
 
 import pyicloud
 
@@ -30,8 +31,11 @@ def create_pickled_data(idevice, filename):
     pickle_file.close()
 
 
-def main():
-    """		Main Function 	"""
+def main(args=None):
+    """Main commandline entrypoint"""
+    if args is None:
+        args = sys.argv[1:]
+
     parser = argparse.ArgumentParser(
         description="Find My iPhone CommandLine Tool")
 
@@ -146,7 +150,7 @@ def main():
         help="Save device data to a file in the current directory.",
     )
 
-    command_line = parser.parse_args()
+    command_line = parser.parse_args(args)
     if not command_line.username or not command_line.password:
         parser.error('No username or password supplied')
 
@@ -186,7 +190,6 @@ def main():
                 for x in contents:
                     print "%20s - %s" % (x, contents[x])
             elif command_line.list:
-#                print "\n"
                 print "-"*30
                 print "Name - %s" % contents["name"]
                 print "Display Name  - %s" % contents["deviceDisplayName"]
