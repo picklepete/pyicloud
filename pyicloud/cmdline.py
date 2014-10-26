@@ -4,6 +4,7 @@
 A Command Line Wrapper to allow easy use of pyicloud for
 command line scripts, and related.
 """
+from __future__ import print_function
 import argparse
 import pickle
 import sys
@@ -185,19 +186,19 @@ def main(args=None):
 
             contents = dev.content
             if command_line.longlist:
-                print "-"*30
-                print contents["name"]
+                print("-"*30)
+                print(contents["name"])
                 for x in contents:
-                    print "%20s - %s" % (x, contents[x])
+                    print("%20s - %s" % (x, contents[x]))
             elif command_line.list:
-                print "-"*30
-                print "Name - %s" % contents["name"]
-                print "Display Name  - %s" % contents["deviceDisplayName"]
-                print "Location      - %s" % contents["location"]
-                print "Battery Level - %s" % contents["batteryLevel"]
-                print "Battery Status- %s" % contents["batteryStatus"]
-                print "Device Class  - %s" % contents["deviceClass"]
-                print "Device Model  - %s" % contents["deviceModel"]
+                print("-"*30)
+                print("Name - %s" % contents["name"])
+                print("Display Name  - %s" % contents["deviceDisplayName"])
+                print("Location      - %s" % contents["location"])
+                print("Battery Level - %s" % contents["batteryLevel"])
+                print("Battery Status- %s" % contents["batteryStatus"])
+                print("Device Class  - %s" % contents["deviceClass"])
+                print("Device Model  - %s" % contents["deviceModel"])
 
             #   Play a Sound on a device
             if command_line.sound:
