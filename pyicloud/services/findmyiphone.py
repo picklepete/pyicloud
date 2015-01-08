@@ -35,7 +35,7 @@ class FindMyiPhoneServiceManager(object):
         """
         host = self._service_root.split('//')[1].split(':')[0]
         self.session.headers.update({'host': host})
-        req = self.session.post(self._fmip_refresh_url, params=self.params)
+        req = self.session.post(self._fmip_refresh_url, params=self.params, data='{"clientContext":{"fmly":true,"shouldLocate":true,"selectedDevice":"all"}}')
         self.response = req.json()
 
         for device_info in self.response['content']:
