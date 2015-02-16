@@ -38,7 +38,7 @@ class PyiCloudService(object):
         self._base_webauth_url = '%s/refreshWebAuth' % self._push_endpoint
 
         self.session = requests.Session()
-        self.session.verify = False
+        self.session.verify = True
         self.session.headers.update({
             'host': 'setup.icloud.com',
             'origin': self._home_endpoint,
