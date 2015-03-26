@@ -166,10 +166,10 @@ def main(args=None):
 
     for dev in api.devices:
         if (
-            not command_line.device_id
-            or (
-                command_line.device_id.strip().lower()
-                == dev.content["id"].strip().lower()
+            not command_line.device_id or
+            (
+                command_line.device_id.strip().lower() ==
+                dev.content["id"].strip().lower()
             )
         ):
             #   List device(s)
