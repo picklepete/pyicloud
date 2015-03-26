@@ -50,7 +50,7 @@ class CalendarService(object):
         Retrieves the system's timezone from a list of possible options.
         Just take the first one
         """
-        return self.get_possible_timezones()[0]
+        return self.get_all_possible_timezones_of_local_machine()[0]
 
     def get_event_detail(self, pguid, guid):
         """
