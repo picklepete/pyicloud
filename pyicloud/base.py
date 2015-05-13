@@ -3,6 +3,9 @@ import hashlib
 import json
 import requests
 import sys
+import pickle
+import os
+from re import match
 
 from pyicloud.exceptions import PyiCloudFailedLoginException
 from pyicloud.services import (
@@ -36,6 +39,8 @@ class PyiCloudService(object):
         self._base_validate_url = '%s/validate' % self._setup_endpoint
         self._base_system_url = '%s/system/version.json' % self._home_endpoint
         self._base_webauth_url = '%s/refreshWebAuth' % self._push_endpoint
+
+        self._cookie_directory = 'cookies'
 
         self.session = requests.Session()
         self.session.verify = False
@@ -86,6 +91,24 @@ class PyiCloudService(object):
         """
         self.refresh_validate()
 
+        # Check if cookies directory exists
+        if not os.path.exists(self._cookie_directory):
+            # If not, create it
+            os.mkdir(self._cookie_directory)
+
+        # Set path for cookie file
+        cookiefile = self.user.get('apple_id')
+        cookiefile = os.path.join(self._cookie_directory, ''.join([c for c in cookiefile if match(r'\w', c)]))
+
+        # Check if cookie file already exists
+        if os.path.isfile(cookiefile):
+            # Get cookie data from file
+            with open(cookiefile, 'rb') as f:
+                webKBCookie = pickle.load(f)
+            self.session.cookies = requests.utils.cookiejar_from_dict(webKBCookie)
+        else:
+            webKBCookie = None
+
         data = dict(self.user)
         data.update({'id': self.params['id'], 'extended_login': False})
         req = self.session.post(
@@ -97,6 +120,14 @@ class PyiCloudService(object):
         if not req.ok:
             msg = 'Invalid email/password combination.'
             raise PyiCloudFailedLoginException(msg)
+
+        # Pull X-APPLE-WEB-KB cookie from cookies
+        NewWebKBCookie = next(({key:val} for key, val in req.cookies.items() if 'X-APPLE-WEB-KB' in key), None)
+        # Check if cookie changed
+        if NewWebKBCookie and NewWebKBCookie != webKBCookie:
+            # Save the cookie in a pickle file
+            with open(cookiefile, 'wb') as f:
+                pickle.dump(NewWebKBCookie, f)
 
         self.refresh_validate()
 
