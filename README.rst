@@ -163,3 +163,8 @@ Or, if you're downloading a particularly large file, you may want to use the `st
 >>> download = api.files['com~apple~Notes']['Documents']['big_file.zip'].open(stream=True)
 >>> with open('downloaded_file.zip', 'wb') as opened_file:
         opened_file.write(download.raw.read())
+
+
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/picklepete/pyicloud
+   :target: https://gitter.im/picklepete/pyicloud?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
