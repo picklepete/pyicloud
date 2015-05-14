@@ -1,9 +1,11 @@
 import uuid
 import hashlib
 import json
+import logging
+import pickle
 import requests
 import sys
-import pickle
+import tempfile
 import os
 from re import match
 
@@ -14,6 +16,9 @@ from pyicloud.services import (
     UbiquityService,
     ContactsService
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class PyiCloudService(object):
@@ -40,7 +45,10 @@ class PyiCloudService(object):
         self._base_system_url = '%s/system/version.json' % self._home_endpoint
         self._base_webauth_url = '%s/refreshWebAuth' % self._push_endpoint
 
-        self._cookie_directory = 'cookies'
+        self._cookie_directory = os.path.join(
+            tempfile.gettempdir(),
+            'pyicloud',
+        )
 
         self.session = requests.Session()
         self.session.verify = False
