@@ -1,3 +1,12 @@
+.. image:: https://travis-ci.org/picklepete/pyicloud.svg?branch=master
+   :alt: Check out our test status at https://travis-ci.org/picklepete/pyicloud
+   :target: https://travis-ci.org/picklepete/pyicloud
+
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/picklepete/pyicloud
+   :target: https://gitter.im/picklepete/pyicloud?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
+
 PyiCloud is a module which allows pythonistas to interact with iCloud webservices. It's powered by the fantastic `requests <https://github.com/kennethreitz/requests>`_ HTTP library.
 
 At its core, PyiCloud connects to iCloud using your username and password, then performs calendar and iPhone queries against their API.
@@ -163,8 +172,3 @@ Or, if you're downloading a particularly large file, you may want to use the `st
 >>> download = api.files['com~apple~Notes']['Documents']['big_file.zip'].open(stream=True)
 >>> with open('downloaded_file.zip', 'wb') as opened_file:
         opened_file.write(download.raw.read())
-
-
-.. image:: https://badges.gitter.im/Join%20Chat.svg
-   :alt: Join the chat at https://gitter.im/picklepete/pyicloud
-   :target: https://gitter.im/picklepete/pyicloud?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
