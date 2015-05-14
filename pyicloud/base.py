@@ -105,17 +105,27 @@ class PyiCloudService(object):
             os.mkdir(self._cookie_directory)
 
         # Set path for cookie file
-        cookiefile = self.user.get('apple_id')
-        cookiefile = os.path.join(self._cookie_directory, ''.join([c for c in cookiefile if match(r'\w', c)]))
+        cookiefile = os.path.join(
+            self._cookie_directory,
+            ''.join([c for c in self.user.get('apple_id') if match(r'\w', c)])
+        )
 
+        webKBCookie = None
         # Check if cookie file already exists
-        if os.path.isfile(cookiefile):
+        try:
             # Get cookie data from file
             with open(cookiefile, 'rb') as f:
                 webKBCookie = pickle.load(f)
-            self.session.cookies = requests.utils.cookiejar_from_dict(webKBCookie)
-        else:
-            webKBCookie = None
+            self.session.cookies = requests.utils.cookiejar_from_dict(
+                webKBCookie
+            )
+        except IOError:
+            # This just means that the file doesn't exist; that's OK!
+            pass
+        except Exception as e:
+            logger.exception(
+                "Unexpected error occurred while loading cookies: %s" % (e, )
+            )
 
         data = dict(self.user)
         data.update({'id': self.params['id'], 'extended_login': False})
