@@ -140,12 +140,12 @@ class PyiCloudService(object):
             raise PyiCloudFailedLoginException(msg)
 
         # Pull X-APPLE-WEB-KB cookie from cookies
-        NewWebKBCookie = next(({key:val} for key, val in req.cookies.items() if 'X-APPLE-WEB-KB' in key), None)
+        newWebKBCookie = next(({key:val} for key, val in req.cookies.items() if 'X-APPLE-WEB-KB' in key), None)
         # Check if cookie changed
-        if NewWebKBCookie and NewWebKBCookie != webKBCookie:
+        if newWebKBCookie and newWebKBCookie != webKBCookie:
             # Save the cookie in a pickle file
             with open(cookiefile, 'wb') as f:
-                pickle.dump(NewWebKBCookie, f)
+                pickle.dump(newWebKBCookie, f)
 
         self.refresh_validate()
 
