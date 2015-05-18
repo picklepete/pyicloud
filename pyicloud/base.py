@@ -1,8 +1,13 @@
 import uuid
 import hashlib
 import json
+import logging
+import pickle
 import requests
 import sys
+import tempfile
+import os
+from re import match
 
 from pyicloud.exceptions import PyiCloudFailedLoginException
 from pyicloud.services import (
@@ -11,6 +16,9 @@ from pyicloud.services import (
     UbiquityService,
     ContactsService
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class PyiCloudService(object):
@@ -23,7 +31,7 @@ class PyiCloudService(object):
         pyicloud = PyiCloudService('username@apple.com', 'password')
         pyicloud.iphone.location()
     """
-    def __init__(self, apple_id, password):
+    def __init__(self, apple_id, password, cookie_directory=None):
         self.discovery = None
         self.client_id = str(uuid.uuid1()).upper()
         self.user = {'apple_id': apple_id, 'password': password}
@@ -36,6 +44,16 @@ class PyiCloudService(object):
         self._base_validate_url = '%s/validate' % self._setup_endpoint
         self._base_system_url = '%s/system/version.json' % self._home_endpoint
         self._base_webauth_url = '%s/refreshWebAuth' % self._push_endpoint
+
+        if cookie_directory:
+            self._cookie_directory = os.path.expanduser(
+                os.path.normpath(cookie_directory)
+            )
+        else:
+            self._cookie_directory = os.path.join(
+                tempfile.gettempdir(),
+                'pyicloud',
+            )
 
         self.session = requests.Session()
         self.session.verify = False
@@ -86,6 +104,15 @@ class PyiCloudService(object):
         """
         self.refresh_validate()
 
+        # Check if cookies directory exists
+        if not os.path.exists(self._cookie_directory):
+            # If not, create it
+            os.mkdir(self._cookie_directory)
+
+        cookie = self._get_cookie()
+        if cookie:
+            self.session.cookies = cookie
+
         data = dict(self.user)
         data.update({'id': self.params['id'], 'extended_login': False})
         req = self.session.post(
@@ -98,10 +125,49 @@ class PyiCloudService(object):
             msg = 'Invalid email/password combination.'
             raise PyiCloudFailedLoginException(msg)
 
+        self._update_cookie(req)
+
         self.refresh_validate()
 
         self.discovery = req.json()
         self.webservices = self.discovery['webservices']
+
+    def _get_cookie_path(self):
+        # Set path for cookie file
+        return os.path.join(
+            self._cookie_directory,
+            ''.join([c for c in self.user.get('apple_id') if match(r'\w', c)])
+        )
+
+    def _get_cookie(self):
+        if hasattr(self, '_cookies'):
+            return self._cookies
+
+        cookiefile = self._get_cookie_path()
+
+        # Check if cookie file already exists
+        try:
+            # Get cookie data from file
+            with open(cookiefile, 'rb') as f:
+                return pickle.load(f)
+        except IOError:
+            # This just means that the file doesn't exist; that's OK!
+            pass
+        except Exception as e:
+            logger.exception(
+                "Unexpected error occurred while loading cookies: %s" % (e, )
+            )
+
+        return None
+
+    def _update_cookie(self, request):
+        cookiefile = self._get_cookie_path()
+
+        # Save the cookie in a pickle file
+        with open(cookiefile, 'wb') as f:
+            pickle.dump(request.cookies, f)
+
+        self._cookies = request.cookies
 
     @property
     def devices(self):
