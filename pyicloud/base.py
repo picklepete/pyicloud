@@ -31,7 +31,7 @@ class PyiCloudService(object):
         pyicloud = PyiCloudService('username@apple.com', 'password')
         pyicloud.iphone.location()
     """
-    def __init__(self, apple_id, password):
+    def __init__(self, apple_id, password, cookie_directory=None):
         self.discovery = None
         self.client_id = str(uuid.uuid1()).upper()
         self.user = {'apple_id': apple_id, 'password': password}
@@ -45,10 +45,15 @@ class PyiCloudService(object):
         self._base_system_url = '%s/system/version.json' % self._home_endpoint
         self._base_webauth_url = '%s/refreshWebAuth' % self._push_endpoint
 
-        self._cookie_directory = os.path.join(
-            tempfile.gettempdir(),
-            'pyicloud',
-        )
+        if cookie_directory:
+            self._cookie_directory = os.path.expanduser(
+                os.path.normpath(cookie_directory)
+            )
+        else:
+            self._cookie_directory = os.path.join(
+                tempfile.gettempdir(),
+                'pyicloud',
+            )
 
         self.session = requests.Session()
         self.session.verify = False
