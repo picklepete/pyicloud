@@ -6,7 +6,6 @@ command line scripts, and related.
 """
 from __future__ import print_function
 import argparse
-import logging
 import pickle
 import sys
 
@@ -151,19 +150,10 @@ def main(args=None):
         default="",
         help="Save device data to a file in the current directory.",
     )
-    parser.add_argument(
-        '--loglevel',
-        default='INFO',
-        help='Increase logging verbosity by specifying DEBUG'
-    )
 
     command_line = parser.parse_args(args)
     if not command_line.username or not command_line.password:
         parser.error('No username or password supplied')
-
-    logging.basicConfig(
-        level=logging.getLevelName(command_line.loglevel)
-    )
 
     from pyicloud import PyiCloudService
     try:
