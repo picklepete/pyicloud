@@ -1,3 +1,4 @@
+import copy
 import uuid
 import hashlib
 import json
@@ -163,11 +164,17 @@ class PyiCloudService(object):
     def _update_cookie(self, request):
         cookiefile = self._get_cookie_path()
 
+        # We really only want to keep the cookies having names
+        # starting with 'X-APPLE-WEB-KB'
+        for cookie_name, value in request.cookies.items():
+            if not cookie_name.startswith('X-APPLE-WEB-KB'):
+                del request.cookies[cookie_name]
+
         # Save the cookie in a pickle file
         with open(cookiefile, 'wb') as f:
             pickle.dump(request.cookies, f)
 
-        self._cookies = request.cookies
+        self._cookies = copy.deepcopy(request.cookies)
 
     @property
     def devices(self):
