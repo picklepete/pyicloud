@@ -32,7 +32,7 @@ class PyiCloudService(object):
         pyicloud = PyiCloudService('username@apple.com', 'password')
         pyicloud.iphone.location()
     """
-    def __init__(self, apple_id, password, cookie_directory=None):
+    def __init__(self, apple_id, password, cookie_directory=None, verify=False):
         self.discovery = None
         self.client_id = str(uuid.uuid1()).upper()
         self.user = {'apple_id': apple_id, 'password': password}
@@ -57,7 +57,7 @@ class PyiCloudService(object):
             )
 
         self.session = requests.Session()
-        self.session.verify = False
+        self.session.verify = verify
         self.session.headers.update({
             'host': 'setup.icloud.com',
             'origin': self._home_endpoint,
