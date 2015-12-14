@@ -1,3 +1,4 @@
 requests>=1.2
 six
 pytz
+certifi
