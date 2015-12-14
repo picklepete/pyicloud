@@ -57,7 +57,7 @@ class PyiCloudService(object):
             )
 
         self.session = requests.Session()
-        self.session.verify = False
+        self.session.verify = True
         self.session.headers.update({
             'host': 'setup.icloud.com',
             'origin': self._home_endpoint,
