@@ -60,9 +60,9 @@ class PyiCloudService(object):
         self.session = requests.Session()
         self.session.verify = verify
         self.session.headers.update({
-            'host': 'setup.icloud.com',
-            'origin': self._home_endpoint,
-            'referer': '%s/' % self._home_endpoint,
+            'Host': 'setup.icloud.com',
+            'Origin': self._home_endpoint,
+            'Referer': '%s/' % self._home_endpoint,
             'User-Agent': 'Opera/9.52 (X11; Linux i686; U; en)'
         })
 
