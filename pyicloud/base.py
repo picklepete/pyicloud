@@ -40,12 +40,9 @@ class PyiCloudService(object):
 
         self._home_endpoint = 'https://www.icloud.com'
         self._setup_endpoint = 'https://p12-setup.icloud.com/setup/ws/1'
-        self._push_endpoint = 'https://p12-pushws.icloud.com'
 
         self._base_login_url = '%s/login' % self._setup_endpoint
         self._base_validate_url = '%s/validate' % self._setup_endpoint
-        self._base_system_url = '%s/system/version.json' % self._home_endpoint
-        self._base_webauth_url = '%s/refreshWebAuth' % self._push_endpoint
 
         if cookie_directory:
             self._cookie_directory = os.path.expanduser(
