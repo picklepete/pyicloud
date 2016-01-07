@@ -22,8 +22,6 @@ class ContactsService(object):
         Refreshes the ContactsService endpoint, ensuring that the
         contacts data is up-to-date.
         """
-        host = self._service_root.split('//')[1].split(':')[0]
-        self.session.headers.update({'host': host})
         params_contacts = dict(self.params)
         params_contacts.update({
             'clientVersion': '2.1',
