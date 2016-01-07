@@ -92,10 +92,9 @@ class PyiCloudService(object):
         )
         self.params.update({'id': sha.hexdigest().upper()})
 
-        clientId = str(uuid.uuid1()).upper()
         self.params.update({
             'clientBuildNumber': '14E45',
-            'clientId': clientId,
+            'clientId': self.client_id,
         })
 
     def authenticate(self):
