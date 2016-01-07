@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 class PyiCloudService(object):
     """
     A base authentication class for the iCloud service. Handles the
-    validation and authentication required to access iCloud services.
+    authentication required to access iCloud services.
 
     Usage:
         from pyicloud import PyiCloudService
@@ -48,7 +48,6 @@ class PyiCloudService(object):
         self._setup_endpoint = 'https://setup.icloud.com/setup/ws/1'
 
         self._base_login_url = '%s/login' % self._setup_endpoint
-        self._base_validate_url = '%s/validate' % self._setup_endpoint
 
         if cookie_directory:
             self._cookie_directory = os.path.expanduser(
@@ -77,64 +76,42 @@ class PyiCloudService(object):
                 # Most likely a pickled cookiejar from earlier versions
                 pass
 
-        self.params = {}
+        self.params = {
+            'clientBuildNumber': '14E45',
+            'clientId': self.client_id,
+        }
 
         self.authenticate()
 
-    def refresh_validate(self):
-        """
-        Queries the /validate endpoint and fetches two key values we need:
-        1. "dsInfo" is a nested object which contains the "dsid" integer.
-            This object doesn't exist until *after* the login has taken place,
-            the first request will compain about a X-APPLE-WEBAUTH-TOKEN cookie
-        2. "instance" is an int which is used to build the "id" query string.
-            This is, pseudo: sha1(email + "instance") to uppercase.
-        """
-        req = self.session.get(self._base_validate_url, params=self.params)
-        resp = req.json()
-        if 'dsInfo' in resp:
-            dsid = resp['dsInfo']['dsid']
-            self.params.update({'dsid': dsid})
-        instance = resp.get(
-            'instance',
-            uuid.uuid4().hex.encode('utf-8')
-        )
-        sha = hashlib.sha1(
-            self.user.get('apple_id').encode('utf-8') + instance
-        )
-        self.params.update({'id': sha.hexdigest().upper()})
-
-        self.params.update({
-            'clientBuildNumber': '14E45',
-            'clientId': self.client_id,
-        })
-
     def authenticate(self):
         """
-        Handles the full authentication steps, validating,
-        authenticating and then validating again.
+        Handles authentication, and persists the X-APPLE-WEB-KB cookie so that
+        subsequent logins will not cause additional e-mails from Apple.
         """
-        self.refresh_validate()
 
         data = dict(self.user)
-        data.update({'id': self.params['id'], 'extended_login': False})
+
+        # We authenticate every time, so "remember me" is not needed
+        data.update({'extended_login': False})
+
         req = self.session.post(
             self._base_login_url,
             params=self.params,
             data=json.dumps(data)
         )
 
-        if not req.ok:
+        resp = req.json() if req.ok else {}
+        if 'dsInfo' not in resp:
             msg = 'Invalid email/password combination.'
             raise PyiCloudFailedLoginException(msg)
+
+        self.params.update({'dsid': resp['dsInfo']['dsid']})
 
         if not os.path.exists(self._cookie_directory):
             os.mkdir(self._cookie_directory)
         self.session.cookies.save()
 
-        self.refresh_validate()
-
-        self.discovery = req.json()
+        self.discovery = resp
         self.webservices = self.discovery['webservices']
 
     def _get_cookiejar_path(self):
