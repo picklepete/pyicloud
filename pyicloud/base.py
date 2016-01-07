@@ -1,4 +1,5 @@
 import copy
+import cookielib
 import uuid
 import hashlib
 import json
@@ -65,6 +66,15 @@ class PyiCloudService(object):
             'User-Agent': 'Opera/9.52 (X11; Linux i686; U; en)'
         })
 
+        cookiejar_path = self._get_cookiejar_path()
+        self.session.cookies = cookielib.LWPCookieJar(filename=cookiejar_path)
+        if os.path.exists(cookiejar_path):
+            try:
+                self.session.cookies.load()
+            except cookielib.LoadError:
+                # Most likely a pickled cookiejar from earlier versions
+                pass
+
         self.params = {}
 
         self.authenticate()
@@ -105,15 +115,6 @@ class PyiCloudService(object):
         """
         self.refresh_validate()
 
-        # Check if cookies directory exists
-        if not os.path.exists(self._cookie_directory):
-            # If not, create it
-            os.mkdir(self._cookie_directory)
-
-        cookie = self._get_cookie()
-        if cookie:
-            self.session.cookies = cookie
-
         data = dict(self.user)
         data.update({'id': self.params['id'], 'extended_login': False})
         req = self.session.post(
@@ -126,55 +127,21 @@ class PyiCloudService(object):
             msg = 'Invalid email/password combination.'
             raise PyiCloudFailedLoginException(msg)
 
-        self._update_cookie(req)
+        if not os.path.exists(self._cookie_directory):
+            os.mkdir(self._cookie_directory)
+        self.session.cookies.save()
 
         self.refresh_validate()
 
         self.discovery = req.json()
         self.webservices = self.discovery['webservices']
 
-    def _get_cookie_path(self):
-        # Set path for cookie file
+    def _get_cookiejar_path(self):
+        # Get path for cookiejar file
         return os.path.join(
             self._cookie_directory,
             ''.join([c for c in self.user.get('apple_id') if match(r'\w', c)])
         )
-
-    def _get_cookie(self):
-        if hasattr(self, '_cookies'):
-            return self._cookies
-
-        cookiefile = self._get_cookie_path()
-
-        # Check if cookie file already exists
-        try:
-            # Get cookie data from file
-            with open(cookiefile, 'rb') as f:
-                return pickle.load(f)
-        except IOError:
-            # This just means that the file doesn't exist; that's OK!
-            pass
-        except Exception as e:
-            logger.exception(
-                "Unexpected error occurred while loading cookies: %s" % (e, )
-            )
-
-        return None
-
-    def _update_cookie(self, request):
-        cookiefile = self._get_cookie_path()
-
-        # We really only want to keep the cookies having names
-        # starting with 'X-APPLE-WEB-KB'
-        for cookie_name, value in request.cookies.items():
-            if not cookie_name.startswith('X-APPLE-WEB-KB'):
-                del request.cookies[cookie_name]
-
-        # Save the cookie in a pickle file
-        with open(cookiefile, 'wb') as f:
-            pickle.dump(request.cookies, f)
-
-        self._cookies = copy.deepcopy(request.cookies)
 
     @property
     def devices(self):
