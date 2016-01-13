@@ -15,18 +15,18 @@ At its core, PyiCloud connects to iCloud using your username and password, then 
 Authentication
 ==============
 
-Authentication is as simple as passing your username and password to the `PyiCloudService` class:
+Authentication is as simple as passing your username and password to the ``PyiCloudService`` class:
 
 >>> from pyicloud import PyiCloudService
 >>> api = PyiCloudService('jappleseed@apple.com', 'password')
 
-In the event that the username/password combination is invalid, a `PyiCloudFailedLoginException` exception is thrown.
+In the event that the username/password combination is invalid, a ``PyiCloudFailedLoginException`` exception is thrown.
 
 =======
 Devices
 =======
 
-You can list which devices associated with your account by using the `devices` property:
+You can list which devices associated with your account by using the ``devices`` property:
 
 >>> api.devices
 {
@@ -41,7 +41,7 @@ and you can access individual devices by either their index, or their ID:
 >>> api.devices['i9vbKRGIcLYqJnXMd1b257kUWnoyEBcEh6yM+IfmiMLh7BmOpALS+w==']
 <AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>
 
-or, as a shorthand if you have only one associated apple device, you can simply use the `iphone` property to access the first device associated with your account:
+or, as a shorthand if you have only one associated apple device, you can simply use the ``iphone`` property to access the first device associated with your account:
 
 >>> api.iphone
 <AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>
@@ -122,7 +122,7 @@ Alternatively, you may fetch a single event's details, like so:
 File Storage (Ubiquity)
 =======================
 
-You can access documents stored in your iCloud account by using the `files` property's `dir` method:
+You can access documents stored in your iCloud account by using the ``files`` property's ``dir`` method:
 
 >>> api.files.dir()
 [u'.do-not-delete',
@@ -153,12 +153,12 @@ datetime.datetime(2012, 9, 13, 2, 26, 17)
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].type
 u'file'
 
-And when you have a file that you'd like to download, the `open` method will return a response object from which you can read the `content`.
+And when you have a file that you'd like to download, the ``open`` method will return a response object from which you can read the ``content``.
 
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].open().content
 'Hello, these are the file contents'
 
-Note: the object returned from the above `open` method is a `response object <http://www.python-requests.org/en/latest/api/#classes>`_ and the `open` method can accept any parameters you might normally use in a request using `requests <https://github.com/kennethreitz/requests>`_.
+Note: the object returned from the above ``open`` method is a `response object <http://www.python-requests.org/en/latest/api/#classes>`_ and the ``open`` method can accept any parameters you might normally use in a request using `requests <https://github.com/kennethreitz/requests>`_.
 
 For example, if you know that the file you're opening has JSON content:
 
@@ -167,7 +167,7 @@ For example, if you know that the file you're opening has JSON content:
 >>> api.files['com~apple~Notes']['Documents']['information.json'].open().json()['How much we love you']
 'lots'
 
-Or, if you're downloading a particularly large file, you may want to use the `stream` keyword argument, and read directly from the raw response object:
+Or, if you're downloading a particularly large file, you may want to use the ``stream`` keyword argument, and read directly from the raw response object:
 
 >>> download = api.files['com~apple~Notes']['Documents']['big_file.zip'].open(stream=True)
 >>> with open('downloaded_file.zip', 'wb') as opened_file:
