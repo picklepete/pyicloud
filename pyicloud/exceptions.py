@@ -34,3 +34,11 @@ class PyiCloudNoDevicesException(Exception):
 
 class NoStoredPasswordAvailable(PyiCloudException):
     pass
+
+
+class PyiCloudBinaryFeedParseError(Exception):
+    pass
+
+
+class PyiCloudPhotoLibraryNotActivatedErrror(Exception):
+    pass

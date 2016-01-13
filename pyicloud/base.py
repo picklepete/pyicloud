@@ -20,7 +20,8 @@ from pyicloud.services import (
     CalendarService,
     UbiquityService,
     ContactsService,
-    RemindersService
+    RemindersService,
+    PhotosService
 )
 from pyicloud.utils import get_password_from_keyring
 
@@ -266,6 +267,17 @@ class PyiCloudService(object):
                 self.params
             )
         return self._files
+
+    @property
+    def photos(self):
+        if not hasattr(self, '_photos'):
+            service_root = self.webservices['photos']['url']
+            self._photos = PhotosService(
+                service_root,
+                self.session,
+                self.params
+            )
+        return self._photos
 
     @property
     def calendar(self):
