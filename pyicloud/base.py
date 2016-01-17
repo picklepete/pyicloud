@@ -16,7 +16,8 @@ from pyicloud.services import (
     FindMyiPhoneServiceManager,
     CalendarService,
     UbiquityService,
-    ContactsService
+    ContactsService,
+    RemindersService
 )
 
 
@@ -176,6 +177,12 @@ class PyiCloudService(object):
     def contacts(self):
         service_root = self.webservices['contacts']['url']
         return ContactsService(service_root, self.session, self.params)
+    
+    @property
+    def reminders(self):
+        service_root = self.webservices['reminders']['url']
+        return RemindersService(service_root, self.session, self.params)
+
 
     def __unicode__(self):
         return 'iCloud API: %s' % self.user.get('apple_id')
