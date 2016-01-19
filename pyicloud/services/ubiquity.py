@@ -13,9 +13,6 @@ class UbiquityService(object):
         self._service_root = service_root
         self._node_url = '/ws/%s/%s/%s'
 
-        host = self._service_root.split('//')[1].split(':')[0]
-        self.session.headers.update({'host': host})
-
     def get_node_url(self, id, variant='item'):
         return self._service_root + self._node_url % (
             self.params['dsid'],

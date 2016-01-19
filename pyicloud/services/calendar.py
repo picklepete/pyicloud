@@ -57,8 +57,6 @@ class CalendarService(object):
         Fetches a single event's details by specifying a pguid
         (a calendar) and a guid (an event's ID).
         """
-        host = self._service_root.split('//')[1].split(':')[0]
-        self.session.headers.update({'host': host})
         params = dict(self.params)
         params.update({'lang': 'en-us', 'usertz': self.get_system_tz()})
         url = '%s/%s/%s' % (self._calendar_event_detail_url, pguid, guid)
@@ -78,8 +76,6 @@ class CalendarService(object):
             from_dt = datetime(today.year, today.month, first_day)
         if not to_dt:
             to_dt = datetime(today.year, today.month, last_day)
-        host = self._service_root.split('//')[1].split(':')[0]
-        self.session.headers.update({'host': host})
         params = dict(self.params)
         params.update({
             'lang': 'en-us',

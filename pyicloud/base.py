@@ -40,13 +40,10 @@ class PyiCloudService(object):
         self.user = {'apple_id': apple_id, 'password': password}
 
         self._home_endpoint = 'https://www.icloud.com'
-        self._setup_endpoint = 'https://p12-setup.icloud.com/setup/ws/1'
-        self._push_endpoint = 'https://p12-pushws.icloud.com'
+        self._setup_endpoint = 'https://setup.icloud.com/setup/ws/1'
 
         self._base_login_url = '%s/login' % self._setup_endpoint
         self._base_validate_url = '%s/validate' % self._setup_endpoint
-        self._base_system_url = '%s/system/version.json' % self._home_endpoint
-        self._base_webauth_url = '%s/refreshWebAuth' % self._push_endpoint
 
         if cookie_directory:
             self._cookie_directory = os.path.expanduser(
@@ -61,9 +58,8 @@ class PyiCloudService(object):
         self.session = requests.Session()
         self.session.verify = verify
         self.session.headers.update({
-            'host': 'setup.icloud.com',
-            'origin': self._home_endpoint,
-            'referer': '%s/' % self._home_endpoint,
+            'Origin': self._home_endpoint,
+            'Referer': '%s/' % self._home_endpoint,
             'User-Agent': 'Opera/9.52 (X11; Linux i686; U; en)'
         })
 

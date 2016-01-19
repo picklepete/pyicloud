@@ -33,8 +33,6 @@ class FindMyiPhoneServiceManager(object):
         This ensures that the location data is up-to-date.
 
         """
-        host = self._service_root.split('//')[1].split(':')[0]
-        self.session.headers.update({'host': host})
         req = self.session.post(
             self._fmip_refresh_url,
             params=self.params,
