@@ -1,3 +1,4 @@
+import six
 import copy
 if six.PY3:
     import http.cookiejar as cookielib
