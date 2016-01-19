@@ -118,6 +118,18 @@ Alternatively, you may fetch a single event's details, like so:
 
 >>> api.calendar.get_event_detail('CALENDAR', 'EVENT_ID')
 
+========
+Contacts
+========
+
+You can access your iCloud contacts/address book through the ``contacts`` property:
+
+>>> for c in api.contacts.all():
+>>> print c.get('firstName'), c.get('phones')
+John [{u'field': u'+1 555-55-5555-5', u'label': u'MOBILE'}]
+
+Note: These contacts do not include contacts federated from e.g. Facebook, only the ones stored in iCloud.
+
 =======================
 File Storage (Ubiquity)
 =======================
