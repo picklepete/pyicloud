@@ -1,5 +1,8 @@
 import copy
-import cookielib
+if six.PY3:
+    import http.cookiejar as cookielib
+else:
+    import cookielib
 import uuid
 import hashlib
 import json
