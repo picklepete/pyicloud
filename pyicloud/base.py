@@ -1,5 +1,5 @@
+import six
 import copy
-import cookielib
 import uuid
 import hashlib
 import json
@@ -19,6 +19,11 @@ from pyicloud.services import (
     ContactsService,
     RemindersService
 )
+
+if six.PY3:
+    import http.cookiejar as cookielib
+else:
+    import cookielib
 
 
 logger = logging.getLogger(__name__)
