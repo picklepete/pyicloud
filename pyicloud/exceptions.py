@@ -22,5 +22,15 @@ class PyiCloudFailedLoginException(PyiCloudException):
     pass
 
 
+class PyiCloud2FARequiredError(PyiCloudException):
+    def __init__(self, url):
+        message = "Two-factor authentication required for %s" % url
+        super(PyiCloud2FARequiredError, self).__init__(message)
+
+
+class PyiCloudNoDevicesException(Exception):
+    pass
+
+
 class NoStoredPasswordAvailable(PyiCloudException):
     pass
