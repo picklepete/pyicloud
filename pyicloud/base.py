@@ -1,10 +1,8 @@
 import six
-import copy
 import uuid
 import hashlib
 import json
 import logging
-import pickle
 import requests
 import sys
 import tempfile
@@ -19,6 +17,7 @@ from pyicloud.services import (
     ContactsService,
     RemindersService
 )
+from pyicloud.utils import get_password_from_keyring
 
 if six.PY3:
     import http.cookiejar as cookielib
@@ -39,7 +38,12 @@ class PyiCloudService(object):
         pyicloud = PyiCloudService('username@apple.com', 'password')
         pyicloud.iphone.location()
     """
-    def __init__(self, apple_id, password, cookie_directory=None, verify=True):
+    def __init__(
+        self, apple_id, password=None, cookie_directory=None, verify=True
+    ):
+        if password is None:
+            password = get_password_from_keyring(apple_id)
+
         self.discovery = None
         self.client_id = str(uuid.uuid1()).upper()
         self.user = {'apple_id': apple_id, 'password': password}

@@ -1,8 +1,15 @@
 
-
-class PyiCloudNoDevicesException(Exception):
+class PyiCloudException(Exception):
     pass
 
 
-class PyiCloudFailedLoginException(Exception):
+class PyiCloudNoDevicesException(PyiCloudException):
+    pass
+
+
+class PyiCloudFailedLoginException(PyiCloudException):
+    pass
+
+
+class NoStoredPasswordAvailable(PyiCloudException):
     pass

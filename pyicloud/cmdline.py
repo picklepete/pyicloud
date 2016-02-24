@@ -9,7 +9,10 @@ import argparse
 import pickle
 import sys
 
+from click import confirm
+
 import pyicloud
+from . import utils
 
 
 DEVICE_ERROR = (
@@ -52,7 +55,25 @@ def main(args=None):
         action="store",
         dest="password",
         default="",
-        help="Apple ID Password to Use",
+        help=(
+            "Apple ID Password to Use; if unspecified, password will be "
+            "fetched from the system keyring."
+        )
+    )
+    parser.add_argument(
+        "-n",
+        "--non-interactive",
+        action="store_false",
+        dest="interactive",
+        default=True,
+        help="Disable interactive prompts."
+    )
+    parser.add_argument(
+        "--delete-from-keyring",
+        action="store_true",
+        dest="delete_from_keyring",
+        default=False,
+        help="Delete stored password in system keyring for this username.",
     )
     parser.add_argument(
         "--list",
@@ -152,17 +173,57 @@ def main(args=None):
     )
 
     command_line = parser.parse_args(args)
-    if not command_line.username or not command_line.password:
-        parser.error('No username or password supplied')
 
-    from pyicloud import PyiCloudService
-    try:
-        api = PyiCloudService(
-            command_line.username.strip(),
-            command_line.password.strip()
-        )
-    except pyicloud.exceptions.PyiCloudFailedLoginException:
-        raise RuntimeError('Bad username or password')
+    username = command_line.username
+    password = command_line.password
+
+    if username and command_line.delete_from_keyring:
+        utils.delete_password_in_keyring(username)
+
+    failure_count = 0
+    while True:
+        # Which password we use is determined by your username, so we
+        # do need to check for this first and separately.
+        if not username:
+            parser.error('No username supplied')
+
+        if not password:
+            password = utils.get_password(
+                username,
+                interactive=command_line.interactive
+            )
+
+        if not password:
+            parser.error('No password supplied')
+
+        try:
+            api = pyicloud.PyiCloudService(
+                username.strip(),
+                password.strip()
+            )
+            if (
+                not utils.password_exists_in_keyring(username) and
+                command_line.interactive and
+                confirm("Save password in keyring? ")
+            ):
+                utils.store_password_in_keyring(username, password)
+            break
+        except pyicloud.exceptions.PyiCloudFailedLoginException:
+            # If they have a stored password; we just used it and
+            # it did not work; let's delete it if there is one.
+            if utils.password_exists_in_keyring(username):
+                utils.delete_password_in_keyring(username)
+
+            message = "Bad username or password for {username}".format(
+                username=username,
+            )
+            password = None
+
+            failure_count += 1
+            if failure_count >= 3:
+                raise RuntimeError(message)
+
+            print(message, file=sys.stderr)
 
     for dev in api.devices:
         if (

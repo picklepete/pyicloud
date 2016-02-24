@@ -15,12 +15,26 @@ At its core, PyiCloud connects to iCloud using your username and password, then 
 Authentication
 ==============
 
-Authentication is as simple as passing your username and password to the ``PyiCloudService`` class:
+Authentication without using a saved password is as simple as passing your username and password to the ``PyiCloudService`` class:
 
 >>> from pyicloud import PyiCloudService
 >>> api = PyiCloudService('jappleseed@apple.com', 'password')
 
 In the event that the username/password combination is invalid, a ``PyiCloudFailedLoginException`` exception is thrown.
+
+You can also store your password in the system keyring using the command-line tool:
+
+>>> icloud --username=jappleseed@apple.com
+ICloud Password for jappleseed@apple.com:
+Save password in keyring? (y/N)
+
+If you have stored a password in the keyring, you will not be required to provide a password when interacting with the command-line tool or instantiating the ``PyiCloudService`` class for the username you stored the password for.
+
+>>> api = PyiCloudService('jappleseed@apple.com')
+
+If you would like to delete a password stored in your system keyring, you can clear a stored password using the ``--delete-from-keyring`` command-line option:
+
+>>> icloud --username=jappleseed@apple.com --delete-from-keyring
 
 =======
 Devices
