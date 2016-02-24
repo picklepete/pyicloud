@@ -15,7 +15,7 @@ def get_password(username, interactive=True):
             raise
 
         return getpass.getpass(
-            'ICloud Password for {username}: '.format(
+            'Enter iCloud password for {username}: '.format(
                 username=username,
             )
         )
