@@ -1,6 +1,7 @@
 import six
 import uuid
 import hashlib
+import inspect
 import json
 import logging
 import requests
@@ -9,7 +10,10 @@ import tempfile
 import os
 from re import match
 
-from pyicloud.exceptions import PyiCloudFailedLoginException
+from pyicloud.exceptions import (
+    PyiCloudFailedLoginException,
+    PyiCloudAPIResponseError
+)
 from pyicloud.services import (
     FindMyiPhoneServiceManager,
     CalendarService,
@@ -26,6 +30,57 @@ else:
 
 
 logger = logging.getLogger(__name__)
+
+
+class PyiCloudPasswordFilter(logging.Filter):
+    def __init__(self, password):
+        self.password = password
+
+    def filter(self, record):
+        message = record.getMessage()
+        if self.password in message:
+            record.msg = message.replace(self.password, "*" * 8)
+            record.args = []
+
+        return True
+
+
+class PyiCloudSession(requests.Session):
+    def __init__(self):
+        super(PyiCloudSession, self).__init__()
+
+    def request(self, *args, **kwargs):
+
+        # Charge logging to the right service endpoint
+        callee = inspect.stack()[2]
+        module = inspect.getmodule(callee[0])
+        logger = logging.getLogger(module.__name__)
+
+        logger.debug("%s %s %s", args[0], args[1], kwargs.get('data', ''))
+
+        response = super(PyiCloudSession, self).request(*args, **kwargs)
+
+        json = None
+        if 'application/json' in response.headers['Content-Type']:
+            json = response.json()
+            logger.debug(json)
+
+        reason = json.get('errorMessage') or json.get('reason')
+        if not reason and isinstance(json.get('error'), six.string_types):
+            reason = json.get('error')
+        if not reason and not response.ok:
+            reason = response.reason
+        if not reason and json.get('error'):
+            reason = "Unknown reason"
+
+        code = json.get('errorCode')
+
+        if reason:
+            api_error = PyiCloudAPIResponseError(reason, code)
+            logger.error(api_error)
+            raise api_error
+
+        return response
 
 
 class PyiCloudService(object):
@@ -47,6 +102,7 @@ class PyiCloudService(object):
         self.discovery = None
         self.client_id = str(uuid.uuid1()).upper()
         self.user = {'apple_id': apple_id, 'password': password}
+        logger.addFilter(PyiCloudPasswordFilter(password))
 
         self._home_endpoint = 'https://www.icloud.com'
         self._setup_endpoint = 'https://setup.icloud.com/setup/ws/1'
@@ -63,7 +119,7 @@ class PyiCloudService(object):
                 'pyicloud',
             )
 
-        self.session = requests.Session()
+        self.session = PyiCloudSession()
         self.session.verify = verify
         self.session.headers.update({
             'Origin': self._home_endpoint,
@@ -93,22 +149,24 @@ class PyiCloudService(object):
         subsequent logins will not cause additional e-mails from Apple.
         """
 
+        logger.info("Authenticating as %s", self.user['apple_id'])
+
         data = dict(self.user)
 
         # We authenticate every time, so "remember me" is not needed
         data.update({'extended_login': False})
 
-        req = self.session.post(
-            self._base_login_url,
-            params=self.params,
-            data=json.dumps(data)
-        )
-
-        resp = req.json() if req.ok else {}
-        if 'dsInfo' not in resp:
+        try:
+            req = self.session.post(
+                self._base_login_url,
+                params=self.params,
+                data=json.dumps(data)
+            )
+        except PyiCloudAPIResponseError as error:
             msg = 'Invalid email/password combination.'
-            raise PyiCloudFailedLoginException(msg)
+            raise PyiCloudFailedLoginException(msg, error)
 
+        resp = req.json()
         self.params.update({'dsid': resp['dsInfo']['dsid']})
 
         if not os.path.exists(self._cookie_directory):
@@ -117,6 +175,9 @@ class PyiCloudService(object):
 
         self.discovery = resp
         self.webservices = self.discovery['webservices']
+
+        logger.info("Authentication completed successfully")
+        logger.debug(self.params)
 
     def _get_cookiejar_path(self):
         # Get path for cookiejar file
