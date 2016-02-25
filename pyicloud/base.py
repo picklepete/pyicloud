@@ -12,7 +12,8 @@ from re import match
 
 from pyicloud.exceptions import (
     PyiCloudFailedLoginException,
-    PyiCloudAPIResponseError
+    PyiCloudAPIResponseError,
+    PyiCloud2FARequiredError
 )
 from pyicloud.services import (
     FindMyiPhoneServiceManager,
@@ -46,7 +47,8 @@ class PyiCloudPasswordFilter(logging.Filter):
 
 
 class PyiCloudSession(requests.Session):
-    def __init__(self):
+    def __init__(self, service):
+        self.service = service
         super(PyiCloudSession, self).__init__()
 
     def request(self, *args, **kwargs):
@@ -76,6 +78,10 @@ class PyiCloudSession(requests.Session):
         code = json.get('errorCode')
 
         if reason:
+            if self.service.requires_2fa and \
+                    reason == 'Missing X-APPLE-WEBAUTH-TOKEN cookie':
+                raise PyiCloud2FARequiredError(response.url)
+
             api_error = PyiCloudAPIResponseError(reason, code)
             logger.error(api_error)
             raise api_error
@@ -99,7 +105,7 @@ class PyiCloudService(object):
         if password is None:
             password = get_password_from_keyring(apple_id)
 
-        self.discovery = None
+        self.data = {}
         self.client_id = str(uuid.uuid1()).upper()
         self.user = {'apple_id': apple_id, 'password': password}
         logger.addFilter(PyiCloudPasswordFilter(password))
@@ -119,7 +125,7 @@ class PyiCloudService(object):
                 'pyicloud',
             )
 
-        self.session = PyiCloudSession()
+        self.session = PyiCloudSession(self)
         self.session.verify = verify
         self.session.headers.update({
             'Origin': self._home_endpoint,
@@ -173,8 +179,8 @@ class PyiCloudService(object):
             os.mkdir(self._cookie_directory)
         self.session.cookies.save()
 
-        self.discovery = resp
-        self.webservices = self.discovery['webservices']
+        self.data = resp
+        self.webservices = self.data['webservices']
 
         logger.info("Authentication completed successfully")
         logger.debug(self.params)
@@ -185,6 +191,56 @@ class PyiCloudService(object):
             self._cookie_directory,
             ''.join([c for c in self.user.get('apple_id') if match(r'\w', c)])
         )
+
+    @property
+    def requires_2fa(self):
+        """ Returns True if two-factor authentication is required."""
+        return self.data.get('hsaChallengeRequired', False)
+
+    @property
+    def trusted_devices(self):
+        """ Returns devices trusted for two-factor authentication."""
+        request = self.session.get(
+            '%s/listDevices' % self._setup_endpoint,
+            params=self.params
+        )
+        return request.json().get('devices')
+
+    def send_verification_code(self, device):
+        """ Requests that a verification code is sent to the given device"""
+        data = json.dumps(device)
+        request = self.session.post(
+            '%s/sendVerificationCode' % self._setup_endpoint,
+            params=self.params,
+            data=data
+        )
+        return request.json().get('success', False)
+
+    def validate_verification_code(self, device, code):
+        """ Verifies a verification code received on a two-factor device"""
+        device.update({
+            'verificationCode': code,
+            'trustBrowser': True
+        })
+        data = json.dumps(device)
+
+        try:
+            request = self.session.post(
+                '%s/validateVerificationCode' % self._setup_endpoint,
+                params=self.params,
+                data=data
+            )
+        except PyiCloudAPIResponseError, error:
+            if error.code == -21669:
+                # Wrong verification code
+                return False
+            raise
+
+        # Re-authenticate, which will both update the 2FA data, and
+        # ensure that we save the X-APPLE-WEBAUTH-HSA-TRUST cookie.
+        self.authenticate()
+
+        return not self.requires_2fa
 
     @property
     def devices(self):

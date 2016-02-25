@@ -36,6 +36,36 @@ If you would like to delete a password stored in your system keyring, you can cl
 
 >>> icloud --username=jappleseed@apple.com --delete-from-keyring
 
+*******************************
+Two-factor authentication (2FA)
+*******************************
+
+If you have enabled two-factor authentication for the account you will have to do some extra work:
+
+.. code-block:: python
+
+	if icloud.requires_2fa:
+	    print "Two-factor authentication required. Your trusted devices are:"
+
+	    devices = icloud.trusted_devices
+	    for i, device in enumerate(devices):
+	        print "  %s: %s" % (i, device.get('deviceName',
+	            "SMS to %s" % device.get('phoneNumber')))
+
+	    device = click.prompt('Which device would you like to use?', default=0)
+	    device = devices[device]
+	    if not icloud.send_verification_code(device):
+	        print "Failed to send verification code"
+	        sys.exit(1)
+
+	    code = click.prompt('Please enter validation code')
+	    if not icloud.validate_verification_code(device, code):
+	        print "Failed to verify verification code"
+	        sys.exit(1)
+
+Note: Both regular login and two-factor authentication will expire after an interval set by Apple, at which point you will have to re-authenticate. This interval is currently two months.
+>>>>>>> Add support for two-factor authentication
+
 =======
 Devices
 =======
