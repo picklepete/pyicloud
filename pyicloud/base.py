@@ -57,7 +57,9 @@ class PyiCloudSession(requests.Session):
         # Charge logging to the right service endpoint
         callee = inspect.stack()[2]
         module = inspect.getmodule(callee[0])
-        logger = logging.getLogger(module.__name__)
+        logger = logging.getLogger(module.__name__).getChild('http')
+        if self.service._password_filter not in logger.filters:
+            logger.addFilter(self.service._password_filter)
 
         logger.debug("%s %s %s", args[0], args[1], kwargs.get('data', ''))
 
@@ -116,7 +118,9 @@ class PyiCloudService(object):
         self.data = {}
         self.client_id = str(uuid.uuid1()).upper()
         self.user = {'apple_id': apple_id, 'password': password}
-        logger.addFilter(PyiCloudPasswordFilter(password))
+
+        self._password_filter = PyiCloudPasswordFilter(password)
+        logger.addFilter(self._password_filter)
 
         self._home_endpoint = 'https://www.icloud.com'
         self._setup_endpoint = 'https://setup.icloud.com/setup/ws/1'
