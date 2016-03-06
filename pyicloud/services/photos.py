@@ -188,12 +188,7 @@ class PhotoAlbum(object):
                                            orientation, self)
                 previous_asset_id = asset_id
 
-        asset_values = assets.values()
-        if len(asset_values) != len(assets):
-            raise PyiCloudBinaryFeedParseError(
-                "Sparse photo album index detected")
-
-        return asset_values
+        return assets.values()
 
     def _fetch_asset_data_for(self, asset):
         if asset.client_id in self.service._photo_assets:
