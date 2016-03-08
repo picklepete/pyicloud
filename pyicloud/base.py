@@ -63,10 +63,17 @@ class PyiCloudSession(requests.Session):
 
         response = super(PyiCloudSession, self).request(*args, **kwargs)
 
-        json = None
-        if 'application/json' in response.headers['Content-Type']:
+        json_mimetypes = ['application/json', 'text/json']
+        if not response.headers['Content-Type'] in json_mimetypes:
+            return response
+
+        try:
             json = response.json()
-            logger.debug(json)
+        except:
+            logger.warning('Failed to parse response with JSON mimetype')
+            return response
+
+        logger.debug(json)
 
         reason = json.get('errorMessage') or json.get('reason')
         if not reason and isinstance(json.get('error'), six.string_types):
