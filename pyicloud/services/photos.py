@@ -279,7 +279,6 @@ class PhotoAsset(object):
         return versions
 
     def download(self, version='original', **kwargs):
-        print version, kwargs
         if version not in self.versions:
             return None
 
