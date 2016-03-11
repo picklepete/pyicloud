@@ -46,8 +46,8 @@ class CalendarService(object):
                     local_names.append(name)
 
         if local_names == []:
-            name = get_localzone().name
-            local_names.append(name)
+            tz = get_localzone()
+            local_names.append(tz)
         return local_names
 
     def get_system_tz(self):
