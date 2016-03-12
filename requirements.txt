@@ -6,3 +6,4 @@ six
 pytz
 certifi
 bitstring
+tzlocal

@@ -4,6 +4,7 @@ from calendar import monthrange
 import time
 
 import pytz
+from tzlocal import get_localzone
 
 
 class CalendarService(object):
@@ -43,6 +44,10 @@ class CalendarService(object):
             for (utcoffset, daylight, tzname), _ in timezone._tzinfos.items():
                 if utcoffset == local_offset and tzname == localtz:
                     local_names.append(name)
+
+        if local_names == []:
+            tz = get_localzone()
+            local_names.append(tz)
         return local_names
 
     def get_system_tz(self):
