@@ -49,9 +49,6 @@ class RemindersService(object):
         return self.get_all_possible_timezones_of_local_machine()[0]
 
     def refresh(self):
-        host = self._service_root.split('//')[1].split(':')[0]
-        self.session.headers.update({'host': host})
-
         params_reminders = dict(self.params)
         params_reminders.update({
             'clientVersion': '4.0',
@@ -106,9 +103,6 @@ class RemindersService(object):
         if collection:
             if collection in self.collections:
                 pguid = self.collections[collection]['guid']
-
-        host = self._service_root.split('//')[1].split(':')[0]
-        self.session.headers.update({'host': host})
 
         params_reminders = dict(self.params)
         params_reminders.update({
