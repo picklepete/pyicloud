@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from calendar import monthrange
 import time
 
-import pytz
+from tzlocal import get_localzone
 
 
 class CalendarService(object):
@@ -20,45 +20,13 @@ class CalendarService(object):
             self._calendar_endpoint,
         )
 
-    def get_all_possible_timezones_of_local_machine(self):
-        """
-        Return all possible timezones in Olson TZ notation
-        This has been taken from
-        http://stackoverflow.com/questions/7669938
-        """
-        local_names = []
-        if time.daylight:
-            local_offset = time.altzone
-            localtz = time.tzname[1]
-        else:
-            local_offset = time.timezone
-            localtz = time.tzname[0]
-
-        local_offset = timedelta(seconds=-local_offset)
-
-        for name in pytz.all_timezones:
-            timezone = pytz.timezone(name)
-            if not hasattr(timezone, '_tzinfos'):
-                continue
-            for (utcoffset, daylight, tzname), _ in timezone._tzinfos.items():
-                if utcoffset == local_offset and tzname == localtz:
-                    local_names.append(name)
-        return local_names
-
-    def get_system_tz(self):
-        """
-        Retrieves the system's timezone from a list of possible options.
-        Just take the first one
-        """
-        return self.get_all_possible_timezones_of_local_machine()[0]
-
     def get_event_detail(self, pguid, guid):
         """
         Fetches a single event's details by specifying a pguid
         (a calendar) and a guid (an event's ID).
         """
         params = dict(self.params)
-        params.update({'lang': 'en-us', 'usertz': self.get_system_tz()})
+        params.update({'lang': 'en-us', 'usertz': get_localzone().zone})
         url = '%s/%s/%s' % (self._calendar_event_detail_url, pguid, guid)
         req = self.session.get(url, params=params)
         self.response = req.json()
@@ -79,7 +47,7 @@ class CalendarService(object):
         params = dict(self.params)
         params.update({
             'lang': 'en-us',
-            'usertz': self.get_system_tz(),
+            'usertz': get_localzone().zone,
             'startDate': from_dt.strftime('%Y-%m-%d'),
             'endDate': to_dt.strftime('%Y-%m-%d')
         })

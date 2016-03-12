@@ -3,6 +3,6 @@ keyring>=8.0,<9.0
 keyrings.alt>=1.0,<2.0
 click>=6.0,<7.0
 six
-pytz
+tzlocal
 certifi
 bitstring

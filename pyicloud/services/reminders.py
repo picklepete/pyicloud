@@ -2,8 +2,9 @@ from __future__ import absolute_import
 from datetime import datetime, timedelta
 import time
 import uuid
-import pytz
 import json
+
+from tzlocal import get_localzone
 
 
 class RemindersService(object):
@@ -16,44 +17,12 @@ class RemindersService(object):
 
         self.refresh()
 
-    def get_all_possible_timezones_of_local_machine(self):
-        """
-        Return all possible timezones in Olson TZ notation
-        This has been taken from
-        http://stackoverflow.com/questions/7669938
-        """
-        local_names = []
-        if time.daylight:
-            local_offset = time.altzone
-            localtz = time.tzname[1]
-        else:
-            local_offset = time.timezone
-            localtz = time.tzname[0]
-
-        local_offset = timedelta(seconds=-local_offset)
-
-        for name in pytz.all_timezones:
-            timezone = pytz.timezone(name)
-            if not hasattr(timezone, '_tzinfos'):
-                continue
-            for (utcoffset, daylight, tzname), _ in timezone._tzinfos.items():
-                if utcoffset == local_offset and tzname == localtz:
-                    local_names.append(name)
-        return local_names
-
-    def get_system_tz(self):
-        """
-        Retrieves the system's timezone from a list of possible options.
-        Just take the first one
-        """
-        return self.get_all_possible_timezones_of_local_machine()[0]
-
     def refresh(self):
         params_reminders = dict(self.params)
         params_reminders.update({
             'clientVersion': '4.0',
             'lang': 'en-us',
-            'usertz': self.get_system_tz()
+            'usertz': get_localzone().zone
         })
 
         # Open reminders
@@ -108,7 +77,7 @@ class RemindersService(object):
         params_reminders.update({
             'clientVersion': '4.0',
             'lang': 'en-us',
-            'usertz': self.get_system_tz()
+            'usertz': get_localzone().zone
         })
 
         req = self.session.post(
