@@ -242,7 +242,7 @@ class PyiCloudService(object):
                 params=self.params,
                 data=data
             )
-        except PyiCloudAPIResponseError, error:
+        except PyiCloudAPIResponseError as error:
             if error.code == -21669:
                 # Wrong verification code
                 return False
