@@ -34,7 +34,7 @@ class PhotosService(object):
                 'syncToken': response['syncToken'],
                 'clientInstanceId': self.params.pop('clientId')
             })
-        except PyiCloudAPIResponseError, error:
+        except PyiCloudAPIResponseError as error:
             if error.code == 402:
                 raise PyiCloudPhotoLibraryNotActivatedErrror(
                     "iCloud Photo Library has not been activated yet "
