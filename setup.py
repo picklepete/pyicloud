@@ -13,8 +13,9 @@ setup(
         'PyiCloud is a module which allows pythonistas to '
         'interact with iCloud webservices.'
     ),
-    author='Peter Evans',
-    author_email='evans.peter@gmail.com',
+    maintainer='The PyiCloud Authors',
+    maintainer_email=' ',
+    license='MIT',
     packages=find_packages(),
     install_requires=required,
     classifiers=[
@@ -24,6 +25,7 @@ setup(
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: MIT License',
     ],
     entry_points={
         'console_scripts': [
