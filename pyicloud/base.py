@@ -65,8 +65,9 @@ class PyiCloudSession(requests.Session):
 
         response = super(PyiCloudSession, self).request(*args, **kwargs)
 
+        content_type = response.headers.get('Content-Type', '').split(';')[0]
         json_mimetypes = ['application/json', 'text/json']
-        if not response.headers['Content-Type'] in json_mimetypes:
+        if content_type not in json_mimetypes:
             return response
 
         try:
