@@ -151,9 +151,12 @@ class PyiCloudService(object):
         if os.path.exists(cookiejar_path):
             try:
                 self.session.cookies.load()
-            except cookielib.LoadError:
-                # Most likely a pickled cookiejar from earlier versions
-                pass
+                logger.debug("Read cookies from %s", cookiejar_path)
+            except:
+                # Most likely a pickled cookiejar from earlier versions.
+                # The cookiejar will get replaced with a valid one after
+                # successful authentication.
+                logger.warning("Failed to read cookiejar %s", cookiejar_path)
 
         self.params = {
             'clientBuildNumber': '14E45',
@@ -191,6 +194,7 @@ class PyiCloudService(object):
         if not os.path.exists(self._cookie_directory):
             os.mkdir(self._cookie_directory)
         self.session.cookies.save()
+        logger.debug("Cookies saved to %s", self._get_cookiejar_path())
 
         self.data = resp
         self.webservices = self.data['webservices']
