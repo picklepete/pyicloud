@@ -64,7 +64,6 @@ If you have enabled two-factor authentication for the account you will have to d
 	        sys.exit(1)
 
 Note: Both regular login and two-factor authentication will expire after an interval set by Apple, at which point you will have to re-authenticate. This interval is currently two months.
->>>>>>> Add support for two-factor authentication
 
 =======
 Devices
