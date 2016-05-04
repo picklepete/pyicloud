@@ -104,7 +104,7 @@ class RemindersService(object):
                     "createdDateExtended": int(time.time()*1000),
                     "guid": str(uuid.uuid4())
                 },
-                "ClientState": {"Collections": self.collections.values()}
+                "ClientState": {"Collections": list(self.collections.values())}
             }),
             params=params_reminders)
         return req.ok
