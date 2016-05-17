@@ -21,7 +21,8 @@ from pyicloud.services import (
     UbiquityService,
     ContactsService,
     RemindersService,
-    PhotosService
+    PhotosService,
+    AccountService
 )
 from pyicloud.utils import get_password_from_keyring
 
@@ -264,6 +265,15 @@ class PyiCloudService(object):
         """ Return all devices."""
         service_root = self.webservices['findme']['url']
         return FindMyiPhoneServiceManager(
+            service_root,
+            self.session,
+            self.params
+        )
+
+    @property
+    def account(self):
+        service_root = self.webservices['account']['url']
+        return AccountService(
             service_root,
             self.session,
             self.params
