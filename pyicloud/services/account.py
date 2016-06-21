@@ -1,5 +1,9 @@
 import sys
 
+import six
+
+from pyicloud.utils import underscore_to_camelcase
+
 
 class AccountService(object):
     def __init__(self, service_root, session, params):
@@ -24,16 +28,28 @@ class AccountService(object):
         return self._devices
 
 
-class AccountDevice(object):
+@six.python_2_unicode_compatible
+class AccountDevice(dict):
     def __init__(self, device_info):
-        self.serialNumber = device_info['serialNumber']
-        self.osVersion = device_info['osVersion']
-        self.modelLargePhotoURL2x = device_info['modelLargePhotoURL2x']
-        self.modelLargePhotoURL1x = device_info['modelLargePhotoURL1x']
-        self.name = device_info['name']
-        self.imei = device_info['imei']
-        self.model = device_info['model']
-        self.udid = device_info['udid']
-        self.modelSmallPhotoURL2x = device_info['modelSmallPhotoURL2x']
-        self.modelSmallPhotoURL1x = device_info['modelSmallPhotoURL1x']
-        self.modelDisplayName = device_info['modelDisplayName']
+        super(AccountDevice, self).__init__(device_info)
+
+    def __getattr__(self, name):
+        try:
+            return self[underscore_to_camelcase(name)]
+        except KeyError:
+            raise AttributeError(name)
+
+    def __str__(self):
+        return u"{display_name}: {name}".format(
+            display_name=self.model_display_name,
+            name=self.name,
+        )
+
+    def __repr__(self):
+        return '<{display}>'.format(
+            display=(
+                six.text_type(self)
+                if sys.version_info[0] >= 3 else
+                six.text_type(self).encode('utf8', 'replace')
+            )
+        )
