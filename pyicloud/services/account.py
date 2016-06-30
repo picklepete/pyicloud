@@ -28,7 +28,6 @@ class AccountService(object):
         return self._devices
 
 
-@six.python_2_unicode_compatible
 class AccountDevice(dict):
     def __init__(self, device_info):
         super(AccountDevice, self).__init__(device_info)
