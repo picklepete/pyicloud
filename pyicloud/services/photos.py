@@ -146,76 +146,13 @@ class PhotoAlbum(object):
             if not child_assets:
                 raise PyiCloudBinaryFeedParseError(
                     "Missing childAssetsBinaryFeed in photo album")
-            self._photo_assets = self._parse_binary_feed(child_assets)
+
+            self._photo_assets = listvalues(_parse_binary_feed(child_assets))
+
+            for asset in self._photo_assets:
+                asset.album = self
 
         return self._photo_assets
-
-    def _parse_binary_feed(self, feed):
-        logger.debug("Parsing binary feed %s", feed)
-
-        binaryfeed = bytearray(b64decode(feed))
-        bitstream = ConstBitStream(binaryfeed)
-
-        payload_encoding = binaryfeed[0]
-        if payload_encoding != bitstream.read("uint:8"):
-            raise PyiCloudBinaryFeedParseError(
-                "Missmatch betweeen binaryfeed and bistream payload encoding")
-
-        ASSET_PAYLOAD = 255
-        ASSET_WITH_ORIENTATION_PAYLOAD = 254
-        ASPECT_RATIOS = [
-            0.75,
-            4.0 / 3.0 - 3.0 * (4.0 / 3.0 - 1.0) / 4.0,
-            4.0 / 3.0 - 2.0 * (4.0 / 3.0 - 1.0) / 4.0,
-            1.25,
-            4.0 / 3.0, 1.5 - 2.0 * (1.5 - 4.0 / 3.0) / 3.0,
-            1.5 - 1.0 * (1.5 - 4.0 / 3.0) / 3.0,
-            1.5,
-            1.5694444444444444,
-            1.6388888888888888,
-            1.7083333333333333,
-            16.0 / 9.0,
-            2.0 - 2.0 * (2.0 - 16.0 / 9.0) / 3.0,
-            2.0 - 1.0 * (2.0 - 16.0 / 9.0) / 3.0,
-            2,
-            3
-        ]
-
-        valid_payloads = [ASSET_PAYLOAD, ASSET_WITH_ORIENTATION_PAYLOAD]
-        if payload_encoding not in valid_payloads:
-            raise PyiCloudBinaryFeedParseError(
-                "Unknown payload encoding '%s'" % payload_encoding)
-
-        assets = {}
-        while len(bitstream) - bitstream.pos >= 48:
-            range_start = bitstream.read("uint:24")
-            range_length = bitstream.read("uint:24")
-            range_end = range_start + range_length
-
-            logger.debug("Decoding indexes [%s-%s) (length %s)",
-                         range_start, range_end, range_length)
-
-            previous_asset_id = 0
-            for index in range(range_start, range_end):
-                aspect_ratio = ASPECT_RATIOS[bitstream.read("uint:4")]
-
-                id_size = bitstream.read("uint:2")
-                if id_size:
-                    # A size has been reserved for the asset id
-                    asset_id = bitstream.read("uint:%s" % (2 + 8 * id_size))
-                else:
-                    # The id is just an increment to a previous id
-                    asset_id = previous_asset_id + bitstream.read("uint:2") + 1
-
-                orientation = None
-                if payload_encoding == ASSET_WITH_ORIENTATION_PAYLOAD:
-                    orientation = bitstream.read("uint:3")
-
-                assets[index] = PhotoAsset(index, asset_id, aspect_ratio,
-                                           orientation, self)
-                previous_asset_id = asset_id
-
-        return listvalues(assets)
 
     def _fetch_asset_data_for(self, asset):
         if asset.client_id in self.service._photo_assets:
@@ -223,9 +160,10 @@ class PhotoAlbum(object):
 
         client_ids = []
         prefetch = postfetch = self.service.prepostfetch
+        asset_index = self._photo_assets.index(asset)
         for index in range(
-                max(asset.album_index - prefetch, 0),
-                min(asset.album_index + postfetch + 1,
+                max(asset_index - prefetch, 0),
+                min(asset_index + postfetch + 1,
                     len(self._photo_assets))):
             client_ids.append(self._photo_assets[index].client_id)
 
@@ -250,12 +188,10 @@ class PhotoAlbum(object):
 
 
 class PhotoAsset(object):
-    def __init__(self, index, client_id, aspect_ratio, orientation, album):
-        self.album_index = index
+    def __init__(self, client_id, aspect_ratio, orientation):
         self.client_id = client_id
         self.aspect_ratio = aspect_ratio
         self.orientation = orientation
-        self.album = album
         self._data = None
 
     @property
@@ -323,3 +259,70 @@ class PhotoAsset(object):
             type(self).__name__,
             self.client_id
         )
+
+
+def _parse_binary_feed(feed):
+    logger.debug("Parsing binary feed %s", feed)
+
+    binaryfeed = bytearray(b64decode(feed))
+    bitstream = ConstBitStream(binaryfeed)
+
+    payload_encoding = binaryfeed[0]
+    if payload_encoding != bitstream.read("uint:8"):
+        raise PyiCloudBinaryFeedParseError(
+            "Missmatch betweeen binaryfeed and bistream payload encoding")
+
+    ASSET_PAYLOAD = 255
+    ASSET_WITH_ORIENTATION_PAYLOAD = 254
+    ASPECT_RATIOS = [
+        0.75,
+        4.0 / 3.0 - 3.0 * (4.0 / 3.0 - 1.0) / 4.0,
+        4.0 / 3.0 - 2.0 * (4.0 / 3.0 - 1.0) / 4.0,
+        1.25,
+        4.0 / 3.0, 1.5 - 2.0 * (1.5 - 4.0 / 3.0) / 3.0,
+        1.5 - 1.0 * (1.5 - 4.0 / 3.0) / 3.0,
+        1.5,
+        1.5694444444444444,
+        1.6388888888888888,
+        1.7083333333333333,
+        16.0 / 9.0,
+        2.0 - 2.0 * (2.0 - 16.0 / 9.0) / 3.0,
+        2.0 - 1.0 * (2.0 - 16.0 / 9.0) / 3.0,
+        2,
+        3
+    ]
+
+    valid_payloads = [ASSET_PAYLOAD, ASSET_WITH_ORIENTATION_PAYLOAD]
+    if payload_encoding not in valid_payloads:
+        raise PyiCloudBinaryFeedParseError(
+            "Unknown payload encoding '%s'" % payload_encoding)
+
+    assets = {}
+    while len(bitstream) - bitstream.pos >= 48:
+        range_start = bitstream.read("uint:24")
+        range_length = bitstream.read("uint:24")
+        range_end = range_start + range_length
+
+        logger.debug("Decoding indexes [%s-%s) (length %s)",
+                     range_start, range_end, range_length)
+
+        previous_asset_id = 0
+        for index in range(range_start, range_end):
+            aspect_ratio = ASPECT_RATIOS[bitstream.read("uint:4")]
+
+            id_size = bitstream.read("uint:2")
+            if id_size:
+                # A size has been reserved for the asset id
+                asset_id = bitstream.read("uint:%s" % (2 + 8 * id_size))
+            else:
+                # The id is just an increment to a previous id
+                asset_id = previous_asset_id + bitstream.read("uint:2") + 1
+
+            orientation = None
+            if payload_encoding == ASSET_WITH_ORIENTATION_PAYLOAD:
+                orientation = bitstream.read("uint:3")
+
+            assets[index] = PhotoAsset(asset_id, aspect_ratio, orientation)
+            previous_asset_id = asset_id
+
+    return assets
