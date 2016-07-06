@@ -260,6 +260,14 @@ class PhotoAsset(object):
         return self.data.get('dimensions')
 
     @property
+    def title(self):
+        return self.data.get('title')
+
+    @property
+    def description(self):
+        return self.data.get('description')
+
+    @property
     def versions(self):
         versions = {}
         for version in self.data.get('derivativeInfo'):
