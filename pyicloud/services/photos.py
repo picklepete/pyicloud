@@ -49,20 +49,36 @@ class PhotosService(object):
 
     @property
     def albums(self):
-        request = self.session.get(
-            '%s/folders' % self._service_endpoint,
-            params=self.params
-        )
-        response = request.json()
         albums = {}
-        for folder in response['folders']:
+        for folder in self._fetch_folders():
             if not folder['type'] == 'album':
+                # FIXME: Handle subfolders
                 continue
 
             album = PhotoAlbum(folder, self)
             albums[album.title] = album
 
         return albums
+
+    def _fetch_folders(self, server_ids=[]):
+        folders = server_ids if server_ids else ""
+        logger.debug("Fetching folders %s...", folders)
+
+        data = json.dumps({
+            'syncToken': self.params.get('syncToken'),
+            'methodOverride': 'GET',
+            'serverIds': server_ids,
+        }) if server_ids else None
+
+        method = 'POST' if data else 'GET'
+        request = self.session.request(
+            method,
+            '%s/folders' % self._service_endpoint,
+            params=self.params,
+            data=data
+        )
+        response = request.json()
+        return response['folders']
 
     @property
     def all(self):
