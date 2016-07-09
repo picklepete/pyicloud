@@ -115,7 +115,7 @@ class PhotoAlbum(object):
         return iter(self.photos)
 
     def __getitem__(self, index):
-        return self.photos[index]
+        return list(self.photos)[index]
 
     @property
     def photos(self):
@@ -200,7 +200,7 @@ class PhotoAlbum(object):
                 max(asset.album_index - prefetch, 0),
                 min(asset.album_index + postfetch + 1,
                     len(self._photo_assets))):
-            client_ids.append(self._photo_assets[index].client_id)
+            client_ids.append(list(self._photo_assets)[index].client_id)
 
         self.service._fetch_asset_data_for(client_ids)
         return self.service._photo_assets[asset.client_id]
@@ -230,6 +230,9 @@ class PhotoAsset(object):
         self.orientation = orientation
         self.album = album
         self._data = None
+
+    def __getitem__(self, val):
+        return self.val
 
     @property
     def data(self):
@@ -268,7 +271,7 @@ class PhotoAsset(object):
                 'height': height,
                 'size': size,
                 'mimetype': mimetype,
-                'url': urllib.unquote(url),
+                'url': urllib.parse.unquote(url),
                 'filename': filename,
             }
         return versions
