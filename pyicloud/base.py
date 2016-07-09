@@ -22,7 +22,8 @@ from pyicloud.services import (
     ContactsService,
     RemindersService,
     PhotosService,
-    AccountService
+    AccountService,
+    NotesService
 )
 from pyicloud.utils import get_password_from_keyring
 
@@ -36,6 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 class PyiCloudPasswordFilter(logging.Filter):
+
     def __init__(self, password):
         self.password = password
 
@@ -49,6 +51,7 @@ class PyiCloudPasswordFilter(logging.Filter):
 
 
 class PyiCloudSession(requests.Session):
+
     def __init__(self, service):
         self.service = service
         super(PyiCloudSession, self).__init__()
@@ -111,6 +114,7 @@ class PyiCloudService(object):
         pyicloud = PyiCloudService('username@apple.com', 'password')
         pyicloud.iphone.location()
     """
+
     def __init__(
         self, apple_id, password=None, cookie_directory=None, verify=True
     ):
@@ -319,6 +323,11 @@ class PyiCloudService(object):
     def reminders(self):
         service_root = self.webservices['reminders']['url']
         return RemindersService(service_root, self.session, self.params)
+
+    @property
+    def notes(self):
+        service_root = self.webservices['notes']['url']
+        return NotesService(service_root, self.session, self.params)
 
     def __unicode__(self):
         return 'iCloud API: %s' % self.user.get('apple_id')

@@ -85,6 +85,7 @@ class PhotosService(object):
 
 
 class PhotoAlbum(object):
+
     def __init__(self, data, service):
         self.data = data
         self.service = service
@@ -223,6 +224,7 @@ class PhotoAlbum(object):
 
 
 class PhotoAsset(object):
+
     def __init__(self, index, client_id, aspect_ratio, orientation, album):
         self.album_index = index
         self.client_id = client_id
