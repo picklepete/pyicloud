@@ -45,6 +45,7 @@ If you have enabled two-factor authentication for the account you will have to d
 .. code-block:: python
 
 	if api.requires_2fa:
+	    import click
 	    print "Two-factor authentication required. Your trusted devices are:"
 
 	    devices = api.trusted_devices
