@@ -6,3 +6,4 @@ six>=1.9.0
 tzlocal
 certifi
 bitstring
+future

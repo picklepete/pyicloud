@@ -1,6 +1,5 @@
 import sys
 import json
-import urllib
 
 from datetime import datetime
 from base64 import b64decode
@@ -10,6 +9,9 @@ from pyicloud.exceptions import (
     PyiCloudBinaryFeedParseError,
     PyiCloudPhotoLibraryNotActivatedErrror
 )
+
+from future.moves.urllib.parse import unquote
+from future.utils import listvalues, listitems
 
 
 class PhotosService(object):
@@ -188,7 +190,7 @@ class PhotoAlbum(object):
                                            orientation, self)
                 previous_asset_id = asset_id
 
-        return assets.values()
+        return listvalues(assets)
 
     def _fetch_asset_data_for(self, asset):
         if asset.client_id in self.service._photo_assets:
@@ -268,7 +270,7 @@ class PhotoAsset(object):
                 'height': height,
                 'size': size,
                 'mimetype': mimetype,
-                'url': urllib.unquote(url),
+                'url': unquote(url),
                 'filename': filename,
             }
         return versions
