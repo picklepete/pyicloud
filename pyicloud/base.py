@@ -79,7 +79,9 @@ class PyiCloudSession(requests.Session):
 
         logger.debug(json)
 
-        reason = json.get('errorMessage') or json.get('reason')
+        reason = json.get('errorMessage')
+        reason = reason or json.get('reason')
+        reason = reason or json.get('errorReason')
         if not reason and isinstance(json.get('error'), six.string_types):
             reason = json.get('error')
         if not reason and not response.ok:
