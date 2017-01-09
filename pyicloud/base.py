@@ -13,7 +13,7 @@ from re import match
 from pyicloud.exceptions import (
     PyiCloudFailedLoginException,
     PyiCloudAPIResponseError,
-    PyiCloud2FARequiredError
+    PyiCloud2SARequiredError
 )
 from pyicloud.services import (
     FindMyiPhoneServiceManager,
@@ -100,7 +100,7 @@ class PyiCloudSession(requests.Session):
     def _raise_error(self, code, reason):
         if self.service.requires_2fa and \
                 reason == 'Missing X-APPLE-WEBAUTH-TOKEN cookie':
-            raise PyiCloud2FARequiredError(response.url)
+            raise PyiCloud2SARequiredError(response.url)
 
         api_error = PyiCloudAPIResponseError(reason, code)
         logger.error(api_error)
@@ -217,13 +217,15 @@ class PyiCloudService(object):
         )
 
     @property
-    def requires_2fa(self):
-        """ Returns True if two-factor authentication is required."""
-        return self.data.get('hsaChallengeRequired', False)
+    def requires_2sa(self):
+        """ Returns True if two-step authentication is required."""
+        return self.data.get('hsaChallengeRequired', False) \
+            and self.data['dsInfo'].get('hsaVersion', 0) >= 1
+        # FIXME: Implement 2FA for hsaVersion == 2
 
     @property
     def trusted_devices(self):
-        """ Returns devices trusted for two-factor authentication."""
+        """ Returns devices trusted for two-step authentication."""
         request = self.session.get(
             '%s/listDevices' % self._setup_endpoint,
             params=self.params
@@ -241,7 +243,7 @@ class PyiCloudService(object):
         return request.json().get('success', False)
 
     def validate_verification_code(self, device, code):
-        """ Verifies a verification code received on a two-factor device"""
+        """ Verifies a verification code received on a trusted device"""
         device.update({
             'verificationCode': code,
             'trustBrowser': True
@@ -260,11 +262,11 @@ class PyiCloudService(object):
                 return False
             raise
 
-        # Re-authenticate, which will both update the 2FA data, and
+        # Re-authenticate, which will both update the HSA data, and
         # ensure that we save the X-APPLE-WEBAUTH-HSA-TRUST cookie.
         self.authenticate()
 
-        return not self.requires_2fa
+        return not self.requires_2sa
 
     @property
     def devices(self):

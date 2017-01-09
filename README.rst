@@ -36,17 +36,19 @@ If you would like to delete a password stored in your system keyring, you can cl
 
 >>> icloud --username=jappleseed@apple.com --delete-from-keyring
 
-*******************************
-Two-factor authentication (2FA)
-*******************************
+**Note**: Authentication will expire after an interval set by Apple, at which point you will have to re-authenticate. This interval is currently two months.
 
-If you have enabled two-factor authentication for the account you will have to do some extra work:
+************************************************
+Two-step and two-factor authentication (2SA/2FA)
+************************************************
+
+If you have enabled `two-step authentication (2SA) <https://support.apple.com/en-us/HT204152>`_ for the account you will have to do some extra work:
 
 .. code-block:: python
 
-	if api.requires_2fa:
+	if api.requires_2sa:
 	    import click
-	    print "Two-factor authentication required. Your trusted devices are:"
+	    print "Two-step authentication required. Your trusted devices are:"
 
 	    devices = api.trusted_devices
 	    for i, device in enumerate(devices):
@@ -64,7 +66,8 @@ If you have enabled two-factor authentication for the account you will have to d
 	        print "Failed to verify verification code"
 	        sys.exit(1)
 
-Note: Both regular login and two-factor authentication will expire after an interval set by Apple, at which point you will have to re-authenticate. This interval is currently two months.
+This approach also works if the account is set up for `two-factor authentication (2FA) <https://support.apple.com/en-us/HT204915>`_, but the authentication will time out after a few hours. Full support for two-factor authentication (2FA) is not implemented in PyiCloud yet. See issue `#102 <https://github.com/picklepete/pyicloud/issues/102>`_.
+
 
 =======
 Devices
