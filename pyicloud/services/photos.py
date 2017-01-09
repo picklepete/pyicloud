@@ -12,7 +12,7 @@ from pyicloud.exceptions import (
 )
 
 from future.moves.urllib.parse import unquote
-from future.utils import listvalues, listitems
+from future.utils import listvalues, listitems, viewitems
 
 logger = logging.getLogger(__name__)
 
@@ -45,22 +45,17 @@ class PhotosService(object):
                     "iCloud Photo Library has not been activated yet "
                     "for this user")
 
+        self._photo_albums = {}
         self._photo_assets = {}
 
     @property
     def albums(self):
-        albums = {}
-        for folder in self._fetch_folders():
-            if not folder['type'] == 'album':
-                # FIXME: Handle subfolders
-                continue
+        if not self._photo_albums:
+            self._update_folders()
 
-            album = PhotoAlbum(folder, self)
-            albums[album.title] = album
+        return {v.title: v for k, v in viewitems(self._photo_albums)}
 
-        return albums
-
-    def _fetch_folders(self, server_ids=[]):
+    def _update_folders(self, server_ids=[]):
         folders = server_ids if server_ids else ""
         logger.debug("Fetching folders %s...", folders)
 
@@ -77,8 +72,45 @@ class PhotosService(object):
             params=self.params,
             data=data
         )
+
         response = request.json()
-        return response['folders']
+
+        for folder in response['folders']:
+            if not folder['type'] == 'album':
+                # FIXME: Handle subfolders
+                continue
+
+            server_id = folder['serverId']
+            if server_id not in self._photo_albums:
+                album = PhotoAlbum(folder, self)
+                self._photo_albums[server_id] = album
+
+    def update(self):
+        logger.info("Looking for photo library changes...")
+
+        data = json.dumps({'syncToken': self.params.get('syncToken')})
+        request = self.session.post(
+            '%s/changeset' % self._service_endpoint,
+            params=self.params,
+            data=data
+        )
+
+        response = request.json()
+
+        if response['syncToken'] == self.params['syncToken']:
+            logger.info("No changes")
+            return False
+
+        logger.debug("Updating syncToken %s -> %s",
+                     self.params.get('syncToken'),
+                     response['syncToken'])
+
+        self.params.update({'syncToken': response['syncToken']})
+
+        # FIXME: Consider doing more granular updates
+        self._photo_albums.clear()
+        self._photo_assets.clear()
+        return True
 
     @property
     def all(self):

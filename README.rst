@@ -270,3 +270,27 @@ To download a specific version of the photo asset, pass the version to ``downloa
 >>> download = photo.download('thumb')
 >>> with open(photo.versions['thumb'].filename, 'wb') as thumb_file:
         thumb_file.write(download.raw.read())
+
+To check if the photo library has been updated, call ``update()``:
+
+>>> api.photos.update()
+True
+
+Note: Updating does not invalidate PhotAlbum or PhotoAssets, so the albums and assets must be accessed again from the photos service:
+
+>>> selfies = api.photos.albums['Selfies']
+>>> first_selfie = selfies.photos[0]
+>>> len(selfies.photos)
+99
+>>> first_selfie.title
+'Me'
+>>> api.photos.update()
+True
+>>> len(selfies.photos)
+99
+>>> first_selfie.title
+'Me'
+>>> len(api.photos.albums['Selfies'].photos)
+100
+>>> api.photos.albums['Selfies'].photos[0].title
+'Me!'
