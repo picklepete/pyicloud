@@ -130,7 +130,13 @@ class AppleDevice(object):
 
         It's possible to pass a custom message by changing the `subject`.
         """
-        data = json.dumps({'device': self.content['id'], 'subject': subject})
+        data = json.dumps({
+            'device': self.content['id'],
+            'subject': subject,
+            'clientContext': {
+                'fmly': True
+            }
+        })
         self.session.post(
             self.sound_url,
             params=self.params,
