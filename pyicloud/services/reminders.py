@@ -32,6 +32,7 @@ class RemindersService(object):
         )
 
         startup = req.json()
+        self.dstartup = startup['Reminders']
 
         self.lists = {}
         self.collections = {}
@@ -107,7 +108,8 @@ class RemindersService(object):
                 "proximity": None
             }]
             startDateList = [
-                int(str(datetime.now().year) + str(datetime.now().month) + str(datetime.now().day)),
+                int(str(datetime.now().year) + str(datetime.now().month) +
+                    str(datetime.now().day)),
                 datetime.now().year,
                 datetime.now().month,
                 datetime.now().day,
