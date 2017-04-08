@@ -32,7 +32,6 @@ class RemindersService(object):
         )
 
         startup = req.json()
-        self.dstartup = startup['Reminders']
 
         self.lists = {}
         self.collections = {}
