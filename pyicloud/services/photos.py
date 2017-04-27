@@ -214,9 +214,9 @@ class PhotoAsset(object):
 
     @property
     def created(self):
-        dt = datetime.utcfromtimestamp(self.data.get('createdDate') / 1000.0)
-        dt = dt.replace(tzinfo=pytz.utc)
-        return dt.isoformat()
+        dt = datetime.fromtimestamp(self.data.get('createdDate') / 1000.0,
+                                    tz=pytz.utc)
+        return dt
 
     @property
     def dimensions(self):
