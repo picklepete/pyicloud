@@ -41,7 +41,12 @@ class CalendarService(object):
         today = datetime.today()
         first_day, last_day = monthrange(today.year, today.month)
         if not from_dt:
-            from_dt = datetime(today.year, today.month, first_day)
+            # fix for issue #132
+            # calendar.monthrange(today.year, today.month) will return value {0,31} this is not correct
+            # the first day of the month is always 1 and not day 0
+            #
+            # quick fix first_day + 1
+            from_dt = datetime(today.year, today.month, first_day + 1)
         if not to_dt:
             to_dt = datetime(today.year, today.month, last_day)
         params = dict(self.params)
