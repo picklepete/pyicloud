@@ -10,6 +10,7 @@ from pyicloud.exceptions import (
     PyiCloudBinaryFeedParseError,
     PyiCloudPhotoLibraryNotActivatedErrror
 )
+import pytz
 
 from future.moves.urllib.parse import unquote
 from future.utils import listvalues, listitems
@@ -213,8 +214,9 @@ class PhotoAsset(object):
 
     @property
     def created(self):
-        dt = datetime.fromtimestamp(self.data.get('createdDate') / 1000.0)
-        return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+        dt = datetime.fromtimestamp(self.data.get('createdDate') / 1000.0,
+                                    tz=pytz.utc)
+        return dt
 
     @property
     def dimensions(self):
