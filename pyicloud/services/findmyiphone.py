@@ -3,7 +3,8 @@ import sys
 
 import six
 
-from pyicloud.exceptions import (PyiCloudAPIResponseError, PyiCloudNoDevicesException)
+from pyicloud.exceptions import (PyiCloudAPIResponseError,
+                                 PyiCloudNoDevicesException)
 
 
 class FindMyiPhoneServiceManager(object):
@@ -67,7 +68,8 @@ class FindMyiPhoneServiceManager(object):
             if not self._devices:
                 raise PyiCloudNoDevicesException()
         else:
-             raise PyiCloudAPIResponseError("Got an error posting to refresh-url.", req.status_code)
+            msg = 'Got an error posting to refresh-url.'
+            raise PyiCloudAPIResponseError(msg, req.status_code)
 
     def __getitem__(self, key):
         if isinstance(key, int):
