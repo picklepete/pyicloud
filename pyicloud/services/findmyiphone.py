@@ -3,7 +3,7 @@ import sys
 
 import six
 
-from pyicloud.exceptions import PyiCloudNoDevicesException
+from pyicloud.exceptions import (PyiCloudAPIResponseError, PyiCloudNoDevicesException)
 
 
 class FindMyiPhoneServiceManager(object):
@@ -46,25 +46,28 @@ class FindMyiPhoneServiceManager(object):
                 }
             )
         )
-        self.response = req.json()
+        if req.status_code is 200:
+            self.response = req.json()
 
-        for device_info in self.response['content']:
-            device_id = device_info['id']
-            if device_id not in self._devices:
-                self._devices[device_id] = AppleDevice(
-                    device_info,
-                    self.session,
-                    self.params,
-                    manager=self,
-                    sound_url=self._fmip_sound_url,
-                    lost_url=self._fmip_lost_url,
-                    message_url=self._fmip_message_url,
-                )
-            else:
-                self._devices[device_id].update(device_info)
+            for device_info in self.response['content']:
+                device_id = device_info['id']
+                if device_id not in self._devices:
+                    self._devices[device_id] = AppleDevice(
+                        device_info,
+                        self.session,
+                        self.params,
+                        manager=self,
+                        sound_url=self._fmip_sound_url,
+                        lost_url=self._fmip_lost_url,
+                        message_url=self._fmip_message_url,
+                    )
+                else:
+                    self._devices[device_id].update(device_info)
 
-        if not self._devices:
-            raise PyiCloudNoDevicesException()
+            if not self._devices:
+                raise PyiCloudNoDevicesException()
+        else:
+             raise PyiCloudAPIResponseError("Got an error posting to refresh-url.", req.status_code)
 
     def __getitem__(self, key):
         if isinstance(key, int):
