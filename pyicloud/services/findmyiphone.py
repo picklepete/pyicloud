@@ -69,7 +69,7 @@ class FindMyiPhoneServiceManager(object):
                 self._devices[device_id].update(device_info)
 
         if not self._devices:
-            raise PyiCloudNoDevicesException()    
+            raise PyiCloudNoDevicesException()
 
     def __getitem__(self, key):
         if isinstance(key, int):
