@@ -47,29 +47,29 @@ class FindMyiPhoneServiceManager(object):
                 }
             )
         )
-        if req.status_code is 200:
-            self.response = req.json()
-
-            for device_info in self.response['content']:
-                device_id = device_info['id']
-                if device_id not in self._devices:
-                    self._devices[device_id] = AppleDevice(
-                        device_info,
-                        self.session,
-                        self.params,
-                        manager=self,
-                        sound_url=self._fmip_sound_url,
-                        lost_url=self._fmip_lost_url,
-                        message_url=self._fmip_message_url,
-                    )
-                else:
-                    self._devices[device_id].update(device_info)
-
-            if not self._devices:
-                raise PyiCloudNoDevicesException()
-        else:
+        if req.status_code != 200:
             msg = 'Got an error posting to refresh-url.'
             raise PyiCloudAPIResponseError(msg, req.status_code)
+
+        self.response = req.json()
+
+        for device_info in self.response['content']:
+            device_id = device_info['id']
+            if device_id not in self._devices:
+                self._devices[device_id] = AppleDevice(
+                    device_info,
+                    self.session,
+                    self.params,
+                    manager=self,
+                    sound_url=self._fmip_sound_url,
+                    lost_url=self._fmip_lost_url,
+                    message_url=self._fmip_message_url,
+                )
+            else:
+                self._devices[device_id].update(device_info)
+
+        if not self._devices:
+            raise PyiCloudNoDevicesException()    
 
     def __getitem__(self, key):
         if isinstance(key, int):
