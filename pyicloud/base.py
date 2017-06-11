@@ -13,7 +13,8 @@ from re import match
 from pyicloud.exceptions import (
     PyiCloudFailedLoginException,
     PyiCloudAPIResponseError,
-    PyiCloud2FARequiredError
+    PyiCloud2FARequiredError,
+    PyiCloudNoDevicesException
 )
 from pyicloud.services import (
     FindMyiPhoneServiceManager,
@@ -266,11 +267,14 @@ class PyiCloudService(object):
     def devices(self):
         """ Return all devices."""
         service_root = self.webservices['findme']['url']
-        return FindMyiPhoneServiceManager(
-            service_root,
-            self.session,
-            self.params
-        )
+        try:
+            return FindMyiPhoneServiceManager(
+                service_root,
+                self.session,
+                self.params
+            )
+        except PyiCloudAPIResponseError as error:
+            raise PyiCloudNoDevicesException(error)
 
     @property
     def account(self):
