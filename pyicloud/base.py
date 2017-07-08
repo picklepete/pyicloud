@@ -66,6 +66,9 @@ class PyiCloudSession(requests.Session):
 
         response = super(PyiCloudSession, self).request(*args, **kwargs)
 
+        if not response.ok:
+            self._raise_error(response.status_code, response.reason)
+
         content_type = response.headers.get('Content-Type', '').split(';')[0]
         json_mimetypes = ['application/json', 'text/json']
         if content_type not in json_mimetypes:
@@ -84,23 +87,24 @@ class PyiCloudSession(requests.Session):
         reason = reason or json.get('errorReason')
         if not reason and isinstance(json.get('error'), six.string_types):
             reason = json.get('error')
-        if not reason and not response.ok:
-            reason = response.reason
         if not reason and json.get('error'):
             reason = "Unknown reason"
 
         code = json.get('errorCode')
 
         if reason:
-            if self.service.requires_2fa and \
-                    reason == 'Missing X-APPLE-WEBAUTH-TOKEN cookie':
-                raise PyiCloud2FARequiredError(response.url)
-
-            api_error = PyiCloudAPIResponseError(reason, code)
-            logger.error(api_error)
-            raise api_error
+            self._raise_error(code, reason)
 
         return response
+
+    def _raise_error(self, code, reason):
+        if self.service.requires_2fa and \
+                reason == 'Missing X-APPLE-WEBAUTH-TOKEN cookie':
+            raise PyiCloud2FARequiredError(response.url)
+
+        api_error = PyiCloudAPIResponseError(reason, code)
+        logger.error(api_error)
+        raise api_error
 
 
 class PyiCloudService(object):
