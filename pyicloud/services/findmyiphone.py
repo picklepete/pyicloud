@@ -3,7 +3,8 @@ import sys
 
 import six
 
-from pyicloud.exceptions import PyiCloudNoDevicesException
+from pyicloud.exceptions import (PyiCloudAPIResponseError,
+                                 PyiCloudNoDevicesException)
 
 
 class FindMyiPhoneServiceManager(object):
@@ -46,6 +47,10 @@ class FindMyiPhoneServiceManager(object):
                 }
             )
         )
+        if req.status_code != 200:
+            msg = 'Got an error posting to refresh-url.'
+            raise PyiCloudAPIResponseError(msg, req.status_code)
+
         self.response = req.json()
 
         for device_info in self.response['content']:
