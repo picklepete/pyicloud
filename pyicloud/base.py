@@ -22,7 +22,8 @@ from pyicloud.services import (
     ContactsService,
     RemindersService,
     PhotosService,
-    AccountService
+    AccountService,
+    DriveService
 )
 from pyicloud.utils import get_password_from_keyring
 
@@ -82,18 +83,19 @@ class PyiCloudSession(requests.Session):
 
         logger.debug(json)
 
-        reason = json.get('errorMessage')
-        reason = reason or json.get('reason')
-        reason = reason or json.get('errorReason')
-        if not reason and isinstance(json.get('error'), six.string_types):
-            reason = json.get('error')
-        if not reason and json.get('error'):
-            reason = "Unknown reason"
+        if isinstance(json, dict):
+            reason = json.get('errorMessage')
+            reason = reason or json.get('reason')
+            reason = reason or json.get('errorReason')
+            if not reason and isinstance(json.get('error'), six.string_types):
+                reason = json.get('error')
+            if not reason and json.get('error'):
+                reason = "Unknown reason"
 
-        code = json.get('errorCode')
+            code = json.get('errorCode')
 
-        if reason:
-            self._raise_error(code, reason)
+            if reason:
+                self._raise_error(code, reason)
 
         return response
 
@@ -325,6 +327,11 @@ class PyiCloudService(object):
     def reminders(self):
         service_root = self.webservices['reminders']['url']
         return RemindersService(service_root, self.session, self.params)
+
+    @property
+    def drive(self):
+        service_root = self.webservices['drivews']['url']
+        return DriveService(service_root, self.session, self.params)
 
     def __unicode__(self):
         return 'iCloud API: %s' % self.user.get('apple_id')
