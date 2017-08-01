@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import json
 import re
 import sys
@@ -31,18 +32,18 @@ class DriveService(object):
                 return match.group(1)
         raise Exception("Token cookie not found")
 
-    def get_file(self, id):
+    def get_file(self, id, **kwargs):
         meta = self.session.get(
             'https://p39-docws.icloud.com/ws/com.apple.CloudDocs/download/by_id',
             params={
                 'document_id': id,
                 'token': self.get_token_from_cookie(),
-            },
+            }
         ).json()
         return self.session.get(
             meta['data_token']['url'],
             params=self.params,
-            stream=True,
+            **kwargs
         )
 
     @property
@@ -65,14 +66,15 @@ class DriveNode(object):
 
     @property
     def name(self):
-        if self.type == 'FILE':
+        if self.type == 'file':
             return '%s.%s' % (self.data['name'], self.data['extension'])
         else:
             return self.data['name']
 
     @property
     def type(self):
-        return self.data.get('type')
+        type = self.data.get('type')
+        return type and type.lower()
 
     def get_children(self):
         if not hasattr(self, '_children'):
@@ -93,18 +95,22 @@ class DriveNode(object):
 
     @property
     def modified(self):
-        return datetime.strptime(
-            self.data.get('dataModified'),
-            '%Y-%m-%dT%H:%M:%SZ'
+        # jump through hoops to return time in UTC rather than California time
+        match = re.search(r'^(.+?)([\+\-]\d+):(\d\d)$', self.data.get('dateModified'))
+        if not match:
+            raise ValueError(self.data.get('dateModified'))
+        base = datetime.strptime(
+            match.group(1),
+            '%Y-%m-%dT%H:%M:%S'
         )
+        diff = timedelta(hours=int(match.group(2)), minutes=int(match.group(3)))
+        return base - diff
 
     def dir(self):
         return [child.name for child in self.get_children()]
 
-    def open(self, mode='rb'):
-        if mode != 'rb':
-            raise Exception('Only "rb" mode is supported')
-        return self.connection.get_file(self.data['docwsid'])
+    def open(self, **kwargs):
+        return self.connection.get_file(self.data['docwsid'], **kwargs)
 
     def get(self, name):
         return [
