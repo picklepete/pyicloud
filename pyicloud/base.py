@@ -330,8 +330,10 @@ class PyiCloudService(object):
 
     @property
     def drive(self):
-        service_root = self.webservices['drivews']['url']
-        return DriveService(service_root, self.session, self.params)
+        if not hasattr(self, '_drive'):
+            service_root = self.webservices['drivews']['url']
+            self._drive = DriveService(service_root, self.session, self.params)
+        return self._drive
 
     def __unicode__(self):
         return 'iCloud API: %s' % self.user.get('apple_id')
