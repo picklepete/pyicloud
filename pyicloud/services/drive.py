@@ -28,13 +28,15 @@ class DriveService(object):
             if cookie.name == 'X-APPLE-WEBAUTH-TOKEN':
                 match = re.search(r'\bt=([^:]+)', cookie.value)
                 if not match:
-                    raise Exception("Can't extract token from %r" % token_cookie)
+                    raise Exception("Can't extract token from %r" % (
+                        token_cookie,
+                    ))
                 return match.group(1)
         raise Exception("Token cookie not found")
 
     def get_file(self, id, **kwargs):
         meta = self.session.get(
-            'https://p39-docws.icloud.com/ws/com.apple.CloudDocs/download/by_id',
+            self._service_root + '/ws/com.apple.CloudDocs/download/by_id',
             params={
                 'document_id': id,
                 'token': self.get_token_from_cookie(),
@@ -79,7 +81,9 @@ class DriveNode(object):
     def get_children(self):
         if not hasattr(self, '_children'):
             if 'items' not in self.data:
-                self.data.update(self.connection.get_node_data(self.data['docwsid']))
+                self.data.update(
+                    self.connection.get_node_data(self.data['docwsid'])
+                )
             self._children = [
                 DriveNode(self.connection, item_data)
                 for item_data in self.data['items']
@@ -96,14 +100,20 @@ class DriveNode(object):
     @property
     def modified(self):
         # jump through hoops to return time in UTC rather than California time
-        match = re.search(r'^(.+?)([\+\-]\d+):(\d\d)$', self.data.get('dateModified'))
+        match = re.search(
+            r'^(.+?)([\+\-]\d+):(\d\d)$',
+            self.data.get('dateModified'),
+        )
         if not match:
             raise ValueError(self.data.get('dateModified'))
         base = datetime.strptime(
             match.group(1),
             '%Y-%m-%dT%H:%M:%S'
         )
-        diff = timedelta(hours=int(match.group(2)), minutes=int(match.group(3)))
+        diff = timedelta(
+            hours=int(match.group(2)),
+            minutes=int(match.group(3)),
+        )
         return base - diff
 
     def dir(self):
