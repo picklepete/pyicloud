@@ -139,8 +139,14 @@ class PhotosService(object):
         self.prepostfetch = 200
 
         self._service_root = service_root
-        self._query_endpoint = '%s/database/1/com.apple.photos.cloud/production/private/records/query' % self._service_root
-        self._batch_endpoint = '%s/database/1/com.apple.photos.cloud/production/private/internal/records/query/batch' % self._service_root
+        self._query_endpoint = \
+            '%s/database/1/com.apple.photos.cloud/' \
+            'production/private/records/query' \
+            % self._service_root
+        self._batch_endpoint = \
+            '%s/database/1/com.apple.photos.cloud/' \
+            'production/private/internal/records/query/batch' \
+            % self._service_root
         self._photo_assets = {}
 
     def _batch(self, payload):
@@ -245,18 +251,6 @@ class PhotosService(object):
         )
         return self._query(payload)
 
-    def _fetch_asset_data_for(self):
-        logger.debug("Fetching data ...")
-        payload = dict(
-            query=dict(
-                recordType="CPLAssetAndMasterByAssetDateWithoutHiddenOrDeleted",
-            ),
-            desiredKeys=_QUERY_DESIRED_KEYS,
-            zoneID=dict(zoneName="PrimarySync"),
-        )
-        return self._query(payload)
-        pass
-
 
 class PhotoAlbum(object):
     def __init__(self, data, service):
@@ -276,7 +270,9 @@ class PhotoAlbum(object):
             self._issmart = False
 
             if self.data['fields'].get('albumNameEnc', False):
-                self._album_name = str(base64.b64decode(self.data['fields']['albumNameEnc']['value']), encoding='utf8')
+                b64albumName = self.data['fields']['albumNameEnc']['value']
+                albumName = base64.b64decode(b64albumName)
+                self._album_name = str(albumName, encoding='utf8')
         return self._album_name
 
     def __iter__(self):
@@ -300,10 +296,11 @@ class PhotoAlbum(object):
     def _fetch_asset_data(self, start, limit):
         if not self._photo_assets:
             if self._record_name == 'ALL':
+                qtype = 'CPLAssetAndMasterByAssetDateWithoutHiddenOrDeleted'
                 payload = dict(
                     query=dict(
                         filterBy=[],
-                        recordType='CPLAssetAndMasterByAssetDateWithoutHiddenOrDeleted'
+                        recordType=qtype
                     )
                 )
             elif self._issmart:
@@ -313,7 +310,10 @@ class PhotoAlbum(object):
                             dict(
                                 comparator='EQUALS',
                                 fieldName='smartAlbum',
-                                fieldValue=dict(type='STRING', value=self._record_name)
+                                fieldValue=dict(
+                                    type='STRING',
+                                    value=self._record_name
+                                )
                             )
                         ],
                         recordType='CPLAssetAndMasterInSmartAlbumByAssetDate'
@@ -327,7 +327,10 @@ class PhotoAlbum(object):
                             dict(
                                 comparator='EQUALS',
                                 fieldName='parentId',
-                                fieldValue=dict(type='STRING', value=self._record_name)
+                                fieldValue=dict(
+                                    type='STRING',
+                                    value=self._record_name
+                                )
                             ),
                         ],
                         recordType='CPLContainerRelationLiveByAssetDate'
@@ -360,17 +363,22 @@ class PhotoAlbum(object):
             photos = {}
             for record in records:
                 if record['recordType'] == 'CPLMaster':
-                    photo = PhotoAsset(record['recordName'], record['fields'], self)
+                    photo = PhotoAsset(
+                        record['recordName'],
+                        record['fields'],
+                        self
+                    )
                     photos[record['recordName']] = photo
                 else:
                     continue
 
             for record in records:
                 if record['recordType'] == 'CPLAsset':
-                    asset_name = record['fields']['masterRef']['value']['recordName']
+                    fields = record['fields']
+                    asset_name = fields['masterRef']['value']['recordName']
                     photo = photos.get(asset_name, False)
                     if photo:
-                        photo.data.update(record['fields'])
+                        photo.data.update(fields)
                         photo._record_name = record['recordName']
                         photos[photo.filename] = photos.pop(asset_name)
                     else:
@@ -381,10 +389,12 @@ class PhotoAlbum(object):
         if self._record_name == 'ALL':
             batch_value = 'CPLAssetByAssetDateWithoutHiddenOrDeleted'
         elif self._issmart:
-            batch_value = 'CPLAssetInSmartAlbumByAssetDate:%s' % self._record_name
+            batch_value = 'CPLAssetInSmartAlbumByAssetDate:%s' \
+                          % self._record_name
             pass
         else:
-            batch_value = 'CPLContainerRelationNotDeletedByAssetDate:%s' % self._record_name
+            batch_value = 'CPLContainerRelationNotDeletedByAssetDate:%s' \
+                          % self._record_name
             pass
 
         batch_query = dict(
@@ -408,7 +418,8 @@ class PhotoAlbum(object):
         response = self.service._batch({'batch': [batch_query]})
         if len(response['batch']) == 0:
             raise PyiCloudAPIResponseError(reason='Batch failed', code=0)
-        return response['batch'][0]['records'][0]['fields']['itemCount']['value']
+        fields = response['batch'][0]['records'][0]['fields']
+        return fields['itemCount']['value']
 
     def __unicode__(self):
         return self.title
@@ -436,7 +447,10 @@ class PhotoAsset(object):
 
     @property
     def filename(self):
-        return str(base64.b64decode(self.data['filenameEnc'].get('value')) ,encoding='utf8')
+        return str(
+            base64.b64decode(self.data['filenameEnc'].get('value')),
+            encoding='utf8'
+        )
 
     @property
     def title(self):
@@ -451,13 +465,17 @@ class PhotoAsset(object):
 
     @property
     def created(self):
-        return datetime.fromtimestamp(self.data['assetDate'].get('value') / 1000.0,
-                                    tz=pytz.utc)
+        return datetime.fromtimestamp(
+            self.data['assetDate'].get('value') / 1000.0,
+            tz=pytz.utc
+        )
 
     @property
     def added(self):
-        return datetime.fromtimestamp(self.data['addedDate'].get('value') / 1000.0,
-                                    tz=pytz.utc)
+        return datetime.fromtimestamp(
+            self.data['addedDate'].get('value') / 1000.0,
+            tz=pytz.utc
+        )
 
     def download(self, **kwargs):
         return self.album.service.session.get(
@@ -468,4 +486,7 @@ class PhotoAsset(object):
 
     @property
     def dimensions(self):
-        return [int(self.data['resOriginalWidth'].get('value')), int(self.data['resOriginalHeight'].get('value'))]
+        return [
+            int(self.data['resOriginalWidth'].get('value')),
+            int(self.data['resOriginalHeight'].get('value'))
+        ]
