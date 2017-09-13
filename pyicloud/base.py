@@ -24,6 +24,7 @@ from pyicloud.services import (
     PhotosService,
     AccountService
 )
+
 from pyicloud.utils import get_password_from_keyring
 
 if six.PY3:
@@ -303,7 +304,7 @@ class PyiCloudService(object):
     @property
     def photos(self):
         if not hasattr(self, '_photos'):
-            service_root = self.webservices['photos']['url']
+            service_root = self.webservices['ckdatabasews']['url']
             self._photos = PhotosService(
                 service_root,
                 self.session,
