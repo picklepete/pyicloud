@@ -36,9 +36,5 @@ class NoStoredPasswordAvailable(PyiCloudException):
     pass
 
 
-class PyiCloudBinaryFeedParseError(Exception):
-    pass
-
-
-class PyiCloudPhotoLibraryNotActivatedErrror(Exception):
+class PyiCloudServiceNotActivatedErrror(PyiCloudAPIResponseError):
     pass
