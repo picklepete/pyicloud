@@ -13,7 +13,7 @@ from re import match
 from pyicloud.exceptions import (
     PyiCloudFailedLoginException,
     PyiCloudAPIResponseError,
-    PyiCloud2SARequiredError
+    PyiCloud2SARequiredError,
     PyiCloudServiceNotActivatedErrror
 )
 from pyicloud.services import (
