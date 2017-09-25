@@ -102,7 +102,7 @@ class PyiCloudSession(requests.Session):
         return response
 
     def _raise_error(self, code, reason):
-        if self.service.requires_2fa and \
+        if self.service.requires_2sa and \
                 reason == 'Missing X-APPLE-WEBAUTH-TOKEN cookie':
             raise PyiCloud2SARequiredError(response.url)
         if code == 'ZONE_NOT_FOUND' or code == 'AUTHENTICATION_FAILED':
