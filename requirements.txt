@@ -6,5 +6,4 @@ six>=1.9.0
 tzlocal
 pytz
 certifi
-bitstring
 future

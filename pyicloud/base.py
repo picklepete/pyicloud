@@ -13,7 +13,8 @@ from re import match
 from pyicloud.exceptions import (
     PyiCloudFailedLoginException,
     PyiCloudAPIResponseError,
-    PyiCloud2FARequiredError
+    PyiCloud2SARequiredError,
+    PyiCloudServiceNotActivatedErrror
 )
 from pyicloud.services import (
     FindMyiPhoneServiceManager,
@@ -67,11 +68,12 @@ class PyiCloudSession(requests.Session):
 
         response = super(PyiCloudSession, self).request(*args, **kwargs)
 
-        if not response.ok:
-            self._raise_error(response.status_code, response.reason)
-
         content_type = response.headers.get('Content-Type', '').split(';')[0]
         json_mimetypes = ['application/json', 'text/json']
+
+        if not response.ok and content_type not in json_mimetypes:
+            self._raise_error(response.status_code, response.reason)
+
         if content_type not in json_mimetypes:
             return response
 
@@ -93,6 +95,8 @@ class PyiCloudSession(requests.Session):
                 reason = "Unknown reason"
 
             code = json.get('errorCode')
+            if not code and json.get('serverErrorCode'):
+                code = json.get('serverErrorCode')
 
             if reason:
                 self._raise_error(code, reason)
@@ -102,7 +106,18 @@ class PyiCloudSession(requests.Session):
     def _raise_error(self, code, reason):
         if self.service.requires_2fa and \
                 reason == 'Missing X-APPLE-WEBAUTH-TOKEN cookie':
-            raise PyiCloud2FARequiredError(response.url)
+            raise PyiCloud2SARequiredError(response.url)
+        if code == 'ZONE_NOT_FOUND' or code == 'AUTHENTICATION_FAILED':
+            reason = 'Please log into https://icloud.com/ to manually ' \
+                'finish setting up your iCloud service'
+            api_error = PyiCloudServiceNotActivatedErrror(reason, code)
+            logger.error(api_error)
+
+            raise(api_error)
+        if code == 'ACCESS_DENIED':
+            reason = reason + '.  Please wait a few minutes then try ' \
+                'again.  The remote servers might be trying to ' \
+                'throttle requests.'
 
         api_error = PyiCloudAPIResponseError(reason, code)
         logger.error(api_error)
@@ -119,6 +134,7 @@ class PyiCloudService(object):
         pyicloud = PyiCloudService('username@apple.com', 'password')
         pyicloud.iphone.location()
     """
+
     def __init__(
         self, apple_id, password=None, cookie_directory=None, verify=True
     ):
@@ -168,7 +184,10 @@ class PyiCloudService(object):
                 logger.warning("Failed to read cookiejar %s", cookiejar_path)
 
         self.params = {
-            'clientBuildNumber': '14E45',
+            'clientBuildNumber': '17DHotfix5',
+            'clientMasteringNumber': '17DHotfix5',
+            'ckjsBuildVersion': '17DProjectDev77',
+            'ckjsVersion': '2.0.5',
             'clientId': self.client_id,
         }
 
@@ -219,13 +238,15 @@ class PyiCloudService(object):
         )
 
     @property
-    def requires_2fa(self):
-        """ Returns True if two-factor authentication is required."""
-        return self.data.get('hsaChallengeRequired', False)
+    def requires_2sa(self):
+        """ Returns True if two-step authentication is required."""
+        return self.data.get('hsaChallengeRequired', False) \
+            and self.data['dsInfo'].get('hsaVersion', 0) >= 1
+        # FIXME: Implement 2FA for hsaVersion == 2
 
     @property
     def trusted_devices(self):
-        """ Returns devices trusted for two-factor authentication."""
+        """ Returns devices trusted for two-step authentication."""
         request = self.session.get(
             '%s/listDevices' % self._setup_endpoint,
             params=self.params
@@ -243,7 +264,7 @@ class PyiCloudService(object):
         return request.json().get('success', False)
 
     def validate_verification_code(self, device, code):
-        """ Verifies a verification code received on a two-factor device"""
+        """ Verifies a verification code received on a trusted device"""
         device.update({
             'verificationCode': code,
             'trustBrowser': True
@@ -262,11 +283,11 @@ class PyiCloudService(object):
                 return False
             raise
 
-        # Re-authenticate, which will both update the 2FA data, and
+        # Re-authenticate, which will both update the HSA data, and
         # ensure that we save the X-APPLE-WEBAUTH-HSA-TRUST cookie.
         self.authenticate()
 
-        return not self.requires_2fa
+        return not self.requires_2sa
 
     @property
     def devices(self):
@@ -305,7 +326,7 @@ class PyiCloudService(object):
     @property
     def photos(self):
         if not hasattr(self, '_photos'):
-            service_root = self.webservices['photos']['url']
+            service_root = self.webservices['ckdatabasews']['url']
             self._photos = PhotosService(
                 service_root,
                 self.session,
