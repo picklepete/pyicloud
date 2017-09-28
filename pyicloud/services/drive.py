@@ -11,6 +11,7 @@ class DriveService(object):
         self.session = session
         self.params = params
         self._root = None
+        self.token = self.get_token_from_cookie()
 
     def get_node_data(self, id):
         request = self.session.post(
@@ -39,7 +40,7 @@ class DriveService(object):
             self._service_root + '/ws/com.apple.CloudDocs/download/by_id',
             params={
                 'document_id': id,
-                'token': self.get_token_from_cookie(),
+                'token': self.token,
             }
         ).json()
         return self.session.get(
