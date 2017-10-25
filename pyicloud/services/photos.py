@@ -501,6 +501,19 @@ class PhotoAsset(object):
             **kwargs
         )
 
+    def delete(self):
+        recordName = self._asset_record['recordName']
+        recordType = self._asset_record['recordType']
+        recordChangeTag = self._master_record['recordChangeTag']
+        json_data = ('{"operations":[{"operationType":"update","record":{"recordName":"%s","recordType":"%s","recordChangeTag":"%s","fields":{"isDeleted":{"value":1}}}}],"zoneID":{"zoneName":"PrimarySync"},"atomic":true}' % (recordName, recordType, recordChangeTag))
+        url = ('%s/records/modify?%s' %
+               (self._service._service_endpoint, urlencode(self._service.params)))
+        return self._service.session.post(
+            url,
+            data=json_data,
+            headers={'Content-type': 'text/plain'}
+        )
+
     def __repr__(self):
         return "<%s: id=%s>" % (
             type(self).__name__,
