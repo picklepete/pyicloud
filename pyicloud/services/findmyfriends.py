@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import json
 
+
 class FindFriendsService(object):
     """
     The 'Find my Friends' iCloud service
