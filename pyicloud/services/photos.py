@@ -517,7 +517,7 @@ class PhotoAsset(object):
                      '}}}],'
                      '"zoneID":{'
                      '"zoneName":"PrimarySync"'
-                     '},"atomic":true}' 
+                     '},"atomic":true}'
                      % (recordName, recordType, recordChangeTag))
 
         endpoint = self._service._service_endpoint
