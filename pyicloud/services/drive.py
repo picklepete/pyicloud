@@ -6,8 +6,9 @@ import sys
 
 class DriveService(object):
 
-    def __init__(self, service_root, session, params):
+    def __init__(self, service_root, document_root, session, params):
         self._service_root = service_root
+        self._document_root = document_root
         self.session = session
         self.params = params
         self._root = None
@@ -37,10 +38,14 @@ class DriveService(object):
 
     def get_file(self, id, **kwargs):
         meta = self.session.get(
-            self._service_root + '/ws/com.apple.CloudDocs/download/by_id',
+            self._document_root + '/ws/com.apple.CloudDocs/download/by_id',
             params={
                 'document_id': id,
                 'token': self.token,
+                'clientBuildNumber': self.params['clientBuildNumber'],
+                'clientId': self.params['clientId'],
+                'clientMasteringNumber': self.params['clientMasteringNumber'],
+                'dsid': self.params['dsid'],
             }
         ).json()
         return self.session.get(
