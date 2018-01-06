@@ -352,9 +352,12 @@ class PyiCloudService(object):
     @property
     def drive(self):
         if not hasattr(self, '_drive'):
-            service_root = self.webservices['drivews']['url']
-            document_root = self.webservices['docws']['url']
-            self._drive = DriveService(service_root, document_root, self.session, self.params)
+            self._drive = DriveService(
+                service_root=self.webservices['drivews']['url'],
+                document_root=self.webservices['docws']['url'],
+                session=self.session,
+                params=self.params,
+            )
         return self._drive
 
     def __unicode__(self):
