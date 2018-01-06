@@ -1,175 +1,399 @@
 import sys
 import json
 import logging
+import base64
 
 from datetime import datetime
-from base64 import b64decode
-from bitstring import ConstBitStream
-from pyicloud.exceptions import (
-    PyiCloudAPIResponseError,
-    PyiCloudBinaryFeedParseError,
-    PyiCloudPhotoLibraryNotActivatedErrror
-)
+from pyicloud.exceptions import PyiCloudServiceNotActivatedErrror
 import pytz
 
-from future.moves.urllib.parse import unquote
-from future.utils import listvalues, listitems
+from future.moves.urllib.parse import urlencode
 
 logger = logging.getLogger(__name__)
 
 
 class PhotosService(object):
     """ The 'Photos' iCloud service."""
+    SMART_FOLDERS = {
+        "All Photos": {
+            "obj_type": "CPLAssetByAddedDate",
+            "list_type": "CPLAssetAndMasterByAddedDate",
+            "direction": "ASCENDING",
+            "query_filter": None
+        },
+        "Time-lapse": {
+            "obj_type": "CPLAssetInSmartAlbumByAssetDate:Timelapse",
+            "list_type": "CPLAssetAndMasterInSmartAlbumByAssetDate",
+            "direction": "ASCENDING",
+            "query_filter": [{
+                "fieldName": "smartAlbum",
+                "comparator": "EQUALS",
+                "fieldValue": {
+                    "type": "STRING",
+                    "value": "TIMELAPSE"
+                }
+            }]
+        },
+        "Videos": {
+            "obj_type": "CPLAssetInSmartAlbumByAssetDate:Video",
+            "list_type": "CPLAssetAndMasterInSmartAlbumByAssetDate",
+            "direction": "ASCENDING",
+            "query_filter": [{
+                "fieldName": "smartAlbum",
+                "comparator": "EQUALS",
+                "fieldValue": {
+                    "type": "STRING",
+                    "value": "VIDEO"
+                }
+            }]
+        },
+        "Slo-mo": {
+            "obj_type": "CPLAssetInSmartAlbumByAssetDate:Slomo",
+            "list_type": "CPLAssetAndMasterInSmartAlbumByAssetDate",
+            "direction": "ASCENDING",
+            "query_filter": [{
+                "fieldName": "smartAlbum",
+                "comparator": "EQUALS",
+                "fieldValue": {
+                    "type": "STRING",
+                    "value": "SLOMO"
+                }
+            }]
+        },
+        "Bursts": {
+            "obj_type": "CPLAssetBurstStackAssetByAssetDate",
+            "list_type": "CPLBurstStackAssetAndMasterByAssetDate",
+            "direction": "ASCENDING",
+            "query_filter": None
+        },
+        "Favorites": {
+            "obj_type": "CPLAssetInSmartAlbumByAssetDate:Favorite",
+            "list_type": "CPLAssetAndMasterInSmartAlbumByAssetDate",
+            "direction": "ASCENDING",
+            "query_filter": [{
+                "fieldName": "smartAlbum",
+                "comparator": "EQUALS",
+                "fieldValue": {
+                    "type": "STRING",
+                    "value": "FAVORITE"
+                }
+            }]
+        },
+        "Panoramas": {
+            "obj_type": "CPLAssetInSmartAlbumByAssetDate:Panorama",
+            "list_type": "CPLAssetAndMasterInSmartAlbumByAssetDate",
+            "direction": "ASCENDING",
+            "query_filter": [{
+                "fieldName": "smartAlbum",
+                "comparator": "EQUALS",
+                "fieldValue": {
+                    "type": "STRING",
+                    "value": "PANORAMA"
+                }
+            }]
+        },
+        "Screenshots": {
+            "obj_type": "CPLAssetInSmartAlbumByAssetDate:Screenshot",
+            "list_type": "CPLAssetAndMasterInSmartAlbumByAssetDate",
+            "direction": "ASCENDING",
+            "query_filter": [{
+                "fieldName": "smartAlbum",
+                "comparator": "EQUALS",
+                "fieldValue": {
+                    "type": "STRING",
+                    "value": "SCREENSHOT"
+                }
+            }]
+        },
+        "Live": {
+            "obj_type": "CPLAssetInSmartAlbumByAssetDate:Live",
+            "list_type": "CPLAssetAndMasterInSmartAlbumByAssetDate",
+            "direction": "ASCENDING",
+            "query_filter": [{
+                "fieldName": "smartAlbum",
+                "comparator": "EQUALS",
+                "fieldValue": {
+                    "type": "STRING",
+                    "value": "LIVE"
+                }
+            }]
+        },
+        "Recently Deleted": {
+            "obj_type": "CPLAssetDeletedByExpungedDate",
+            "list_type": "CPLAssetAndMasterDeletedByExpungedDate",
+            "direction": "ASCENDING",
+            "query_filter": None
+        },
+        "Hidden": {
+            "obj_type": "CPLAssetHiddenByAssetDate",
+            "list_type": "CPLAssetAndMasterHiddenByAssetDate",
+            "direction": "ASCENDING",
+            "query_filter": None
+        },
+    }
 
     def __init__(self, service_root, session, params):
         self.session = session
         self.params = dict(params)
-
-        self.prepostfetch = 200
-
         self._service_root = service_root
-        self._service_endpoint = '%s/ph' % self._service_root
+        self._service_endpoint = \
+            ('%s/database/1/com.apple.photos.cloud/production/private'
+             % self._service_root)
 
-        try:
-            request = self.session.get(
-                '%s/startup' % self._service_endpoint,
-                params=self.params
-            )
-            response = request.json()
-            self.params.update({
-                'syncToken': response['syncToken'],
-                'clientInstanceId': self.params.pop('clientId')
-            })
-        except PyiCloudAPIResponseError as error:
-            if error.code == 402:
-                raise PyiCloudPhotoLibraryNotActivatedErrror(
-                    "iCloud Photo Library has not been activated yet "
-                    "for this user")
+        self._albums = None
+
+        self.params.update({
+            'remapEnums': True,
+            'getCurrentSyncToken': True
+        })
+
+        url = ('%s/records/query?%s' %
+               (self._service_endpoint, urlencode(self.params)))
+        json_data = ('{"query":{"recordType":"CheckIndexingState"},'
+                     '"zoneID":{"zoneName":"PrimarySync"}}')
+        request = self.session.post(
+            url,
+            data=json_data,
+            headers={'Content-type': 'text/plain'}
+        )
+        response = request.json()
+        indexing_state = response['records'][0]['fields']['state']['value']
+        if indexing_state != 'FINISHED':
+            raise PyiCloudServiceNotActivatedErrror(
+                ('iCloud Photo Library not finished indexing.  Please try '
+                 'again in a few minutes'), None)
+
+        # TODO: Does syncToken ever change?
+        # self.params.update({
+        #     'syncToken': response['syncToken'],
+        #     'clientInstanceId': self.params.pop('clientId')
+        # })
 
         self._photo_assets = {}
 
     @property
     def albums(self):
-        albums = {}
-        for folder in self._fetch_folders():
-            if not folder['type'] == 'album':
+        if not self._albums:
+            self._albums = {name: PhotoAlbum(self, name, **props)
+                            for (name, props) in self.SMART_FOLDERS.items()}
+
+            for folder in self._fetch_folders():
                 # FIXME: Handle subfolders
-                continue
+                if folder['recordName'] == '----Root-Folder----' or \
+                    (folder['fields'].get('isDeleted') and
+                     folder['fields']['isDeleted']['value']):
+                    continue
 
-            album = PhotoAlbum(folder, self)
-            albums[album.title] = album
+                folder_id = folder['recordName']
+                folder_obj_type = \
+                    "CPLContainerRelationNotDeletedByAssetDate:%s" % folder_id
+                folder_name = base64.b64decode(
+                    folder['fields']['albumNameEnc']['value']).decode('utf-8')
+                query_filter = [{
+                    "fieldName": "parentId",
+                    "comparator": "EQUALS",
+                    "fieldValue": {
+                        "type": "STRING",
+                        "value": folder_id
+                    }
+                }]
 
-        return albums
+                album = PhotoAlbum(self, folder_name,
+                                   'CPLContainerRelationLiveByAssetDate',
+                                   folder_obj_type, 'ASCENDING', query_filter)
+                self._albums[folder_name] = album
 
-    def _fetch_folders(self, server_ids=[]):
-        folders = server_ids if server_ids else ""
-        logger.debug("Fetching folders %s...", folders)
+        return self._albums
 
-        data = json.dumps({
-            'syncToken': self.params.get('syncToken'),
-            'methodOverride': 'GET',
-            'serverIds': server_ids,
-        }) if server_ids else None
+    def _fetch_folders(self):
+        url = ('%s/records/query?%s' %
+               (self._service_endpoint, urlencode(self.params)))
+        json_data = ('{"query":{"recordType":"CPLAlbumByPositionLive"},'
+                     '"zoneID":{"zoneName":"PrimarySync"}}')
 
-        method = 'POST' if data else 'GET'
-        request = self.session.request(
-            method,
-            '%s/folders' % self._service_endpoint,
-            params=self.params,
-            data=data
+        request = self.session.post(
+            url,
+            data=json_data,
+            headers={'Content-type': 'text/plain'}
         )
         response = request.json()
-        return response['folders']
+
+        return response['records']
 
     @property
     def all(self):
         return self.albums['All Photos']
 
-    def _fetch_asset_data_for(self, client_ids):
-        logger.debug("Fetching data for client IDs %s", client_ids)
-        client_ids = [cid for cid in client_ids
-                      if cid not in self._photo_assets]
-
-        data = json.dumps({
-            'syncToken': self.params.get('syncToken'),
-            'methodOverride': 'GET',
-            'clientIds': client_ids,
-        })
-        request = self.session.post(
-            '%s/assets' % self._service_endpoint,
-            params=self.params,
-            data=data
-        )
-
-        response = request.json()
-
-        for asset in response['assets']:
-            self._photo_assets[asset['clientId']] = asset
-
 
 class PhotoAlbum(object):
-    def __init__(self, data, service):
-        self.data = data
+
+    def __init__(self, service, name, list_type, obj_type, direction,
+                 query_filter=None, page_size=100):
+        self.name = name
         self.service = service
-        self._photo_assets = None
+        self.list_type = list_type
+        self.obj_type = obj_type
+        self.direction = direction
+        self.query_filter = query_filter
+        self.page_size = page_size
+
+        self._len = None
 
     @property
     def title(self):
-        BUILTIN_ALBUMS = {
-            'recently-added': "Recently Added",
-            'time-lapse': "Time-lapse",
-            'videos': "Videos",
-            'slo-mo': 'Slo-mo',
-            'all-photos': "All Photos",
-            'selfies': "Selfies",
-            'bursts': "Bursts",
-            'favorites': "Favourites",
-            'panoramas': "Panoramas",
-            'deleted-photos': "Recently Deleted",
-            'hidden': "Hidden",
-            'screenshots': "Screenshots"
-        }
-        if self.data.get('isServerGenerated'):
-            return BUILTIN_ALBUMS[self.data.get('serverId')]
-        else:
-            return self.data.get('title')
+        return self.name
 
     def __iter__(self):
-        return iter(self.photos)
+        return self.photos
 
-    def __getitem__(self, index):
-        return self.photos[index]
+    def __len__(self):
+        if self._len is None:
+            url = ('%s/internal/records/query/batch?%s' %
+                   (self.service._service_endpoint,
+                    urlencode(self.service.params)))
+            request = self.service.session.post(
+                url,
+                data=json.dumps(self._count_query_gen(self.obj_type)),
+                headers={'Content-type': 'text/plain'}
+            )
+            response = request.json()
+
+            self._len = (response["batch"][0]["records"][0]["fields"]
+                         ["itemCount"]["value"])
+
+        return self._len
 
     @property
     def photos(self):
-        if not self._photo_assets:
-            child_assets = self.data.get('childAssetsBinaryFeed')
-            if not child_assets:
-                raise PyiCloudBinaryFeedParseError(
-                    "Missing childAssetsBinaryFeed in photo album")
+        if self.direction == "DESCENDING":
+            offset = len(self) - 1
+        else:
+            offset = 0
 
-            self._photo_assets = listvalues(_parse_binary_feed(child_assets))
+        while(True):
+            url = ('%s/records/query?' % self.service._service_endpoint) + \
+                urlencode(self.service.params)
+            request = self.service.session.post(
+                url,
+                data=json.dumps(self._list_query_gen(
+                    offset, self.list_type, self.direction,
+                    self.query_filter)),
+                headers={'Content-type': 'text/plain'}
+            )
+            response = request.json()
 
-            for asset in self._photo_assets:
-                asset.album = self
+            asset_records = {}
+            master_records = []
+            for rec in response['records']:
+                if rec['recordType'] == "CPLAsset":
+                    master_id = \
+                        rec['fields']['masterRef']['value']['recordName']
+                    asset_records[master_id] = rec
+                elif rec['recordType'] == "CPLMaster":
+                    master_records.append(rec)
 
-        return self._photo_assets
+            master_records_len = len(master_records)
+            if master_records_len:
+                if self.direction == "DESCENDING":
+                    offset = offset - master_records_len
+                else:
+                    offset = offset + master_records_len
 
-    def _fetch_asset_data_for(self, asset):
-        if asset.client_id in self.service._photo_assets:
-            return self.service._photo_assets[asset.client_id]
+                for master_record in master_records:
+                    record_name = master_record['recordName']
+                    yield PhotoAsset(self.service, master_record,
+                                     asset_records[record_name])
+            else:
+                break
 
-        client_ids = []
-        prefetch = postfetch = self.service.prepostfetch
-        asset_index = self._photo_assets.index(asset)
-        for index in range(
-                max(asset_index - prefetch, 0),
-                min(asset_index + postfetch + 1,
-                    len(self._photo_assets))):
-            client_ids.append(self._photo_assets[index].client_id)
+    def _count_query_gen(self, obj_type):
+        query = {
+            u'batch': [{
+                u'resultsLimit': 1,
+                u'query': {
+                    u'filterBy': {
+                        u'fieldName': u'indexCountID',
+                        u'fieldValue': {
+                            u'type': u'STRING_LIST',
+                            u'value': [
+                                obj_type
+                            ]
+                        },
+                        u'comparator': u'IN'
+                    },
+                    u'recordType': u'HyperionIndexCountLookup'
+                },
+                u'zoneWide': True,
+                u'zoneID': {
+                    u'zoneName': u'PrimarySync'
+                }
+            }]
+        }
 
-        self.service._fetch_asset_data_for(client_ids)
-        return self.service._photo_assets[asset.client_id]
+        return query
+
+    def _list_query_gen(self, offset, list_type, direction, query_filter=None):
+        query = {
+            u'query': {
+                u'filterBy': [
+                    {u'fieldName': u'startRank', u'fieldValue':
+                        {u'type': u'INT64', u'value': offset},
+                        u'comparator': u'EQUALS'},
+                    {u'fieldName': u'direction', u'fieldValue':
+                        {u'type': u'STRING', u'value': direction},
+                        u'comparator': u'EQUALS'}
+                ],
+                u'recordType': list_type
+            },
+            u'resultsLimit': self.page_size * 2,
+            u'desiredKeys': [
+                u'resJPEGFullWidth', u'resJPEGFullHeight',
+                u'resJPEGFullFileType', u'resJPEGFullFingerprint',
+                u'resJPEGFullRes', u'resJPEGLargeWidth',
+                u'resJPEGLargeHeight', u'resJPEGLargeFileType',
+                u'resJPEGLargeFingerprint', u'resJPEGLargeRes',
+                u'resJPEGMedWidth', u'resJPEGMedHeight',
+                u'resJPEGMedFileType', u'resJPEGMedFingerprint',
+                u'resJPEGMedRes', u'resJPEGThumbWidth',
+                u'resJPEGThumbHeight', u'resJPEGThumbFileType',
+                u'resJPEGThumbFingerprint', u'resJPEGThumbRes',
+                u'resVidFullWidth', u'resVidFullHeight',
+                u'resVidFullFileType', u'resVidFullFingerprint',
+                u'resVidFullRes', u'resVidMedWidth', u'resVidMedHeight',
+                u'resVidMedFileType', u'resVidMedFingerprint',
+                u'resVidMedRes', u'resVidSmallWidth', u'resVidSmallHeight',
+                u'resVidSmallFileType', u'resVidSmallFingerprint',
+                u'resVidSmallRes', u'resSidecarWidth', u'resSidecarHeight',
+                u'resSidecarFileType', u'resSidecarFingerprint',
+                u'resSidecarRes', u'itemType', u'dataClassType',
+                u'filenameEnc', u'originalOrientation', u'resOriginalWidth',
+                u'resOriginalHeight', u'resOriginalFileType',
+                u'resOriginalFingerprint', u'resOriginalRes',
+                u'resOriginalAltWidth', u'resOriginalAltHeight',
+                u'resOriginalAltFileType', u'resOriginalAltFingerprint',
+                u'resOriginalAltRes', u'resOriginalVidComplWidth',
+                u'resOriginalVidComplHeight', u'resOriginalVidComplFileType',
+                u'resOriginalVidComplFingerprint', u'resOriginalVidComplRes',
+                u'isDeleted', u'isExpunged', u'dateExpunged', u'remappedRef',
+                u'recordName', u'recordType', u'recordChangeTag',
+                u'masterRef', u'adjustmentRenderType', u'assetDate',
+                u'addedDate', u'isFavorite', u'isHidden', u'orientation',
+                u'duration', u'assetSubtype', u'assetSubtypeV2',
+                u'assetHDRType', u'burstFlags', u'burstFlagsExt', u'burstId',
+                u'captionEnc', u'locationEnc', u'locationV2Enc',
+                u'locationLatitude', u'locationLongitude', u'adjustmentType',
+                u'timeZoneOffset', u'vidComplDurValue', u'vidComplDurScale',
+                u'vidComplDispValue', u'vidComplDispScale',
+                u'vidComplVisibilityState', u'customRenderedValue',
+                u'containerId', u'itemId', u'position', u'isKeyAsset'
+            ],
+            u'zoneID': {u'zoneName': u'PrimarySync'}
+        }
+
+        if query_filter:
+            query['query']['filterBy'].extend(query_filter)
+
+        return query
 
     def __unicode__(self):
         return self.title
@@ -189,142 +413,96 @@ class PhotoAlbum(object):
 
 
 class PhotoAsset(object):
-    def __init__(self, client_id, aspect_ratio, orientation):
-        self.client_id = client_id
-        self.aspect_ratio = aspect_ratio
-        self.orientation = orientation
-        self._data = None
+    def __init__(self, service, master_record, asset_record):
+        self._service = service
+        self._master_record = master_record
+        self._asset_record = asset_record
+
+        self._versions = None
+
+    PHOTO_VERSION_LOOKUP = {
+        u"original": u"resOriginal",
+        u"medium": u"resJPEGMed",
+        u"thumb": u"resJPEGThumb"
+    }
+
+    VIDEO_VERSION_LOOKUP = {
+        u"original": u"resOriginal",
+        u"medium": u"resVidMed",
+        u"thumb": u"resVidSmall"
+    }
 
     @property
-    def data(self):
-        if not self._data:
-            self._data = self.album._fetch_asset_data_for(self)
-        return self._data
+    def id(self):
+        return self._master_record['recordName']
 
     @property
     def filename(self):
-        return self.data['details'].get('filename')
+        return base64.b64decode(
+                self._master_record['fields']['filenameEnc']['value']
+            ).decode('utf-8')
 
     @property
     def size(self):
-        try:
-            return int(self.data['details'].get('filesize'))
-        except ValueError:
-            return None
+        return self._master_record['fields']['resOriginalRes']['value']['size']
 
     @property
     def created(self):
-        dt = datetime.fromtimestamp(self.data.get('createdDate') / 1000.0,
-                                    tz=pytz.utc)
+        return self.asset_date
+
+    @property
+    def asset_date(self):
+        dt = datetime.fromtimestamp(
+            self._asset_record['fields']['assetDate']['value'] / 1000.0,
+            tz=pytz.utc)
+        return dt
+
+    @property
+    def added_date(self):
+        dt = datetime.fromtimestamp(
+            self._asset_record['fields']['addedDate']['value'] / 1000.0,
+            tz=pytz.utc)
         return dt
 
     @property
     def dimensions(self):
-        return self.data.get('dimensions')
-
-    @property
-    def title(self):
-        return self.data.get('title')
-
-    @property
-    def description(self):
-        return self.data.get('description')
+        return (self._master_record['fields']['resOriginalWidth']['value'],
+                self._master_record['fields']['resOriginalHeight']['value'])
 
     @property
     def versions(self):
-        versions = {}
-        for version in self.data.get('derivativeInfo'):
-            (version, width, height, size, mimetype,
-                u1, u2, u3, url, filename) = version.split(':')
-            versions[version] = {
-                'width': width,
-                'height': height,
-                'size': size,
-                'mimetype': mimetype,
-                'url': unquote(url),
-                'filename': filename,
-            }
-        return versions
+        if not self._versions:
+            self._versions = {}
+            if 'resVidSmallRes' in self._master_record['fields']:
+                typed_version_lookup = self.VIDEO_VERSION_LOOKUP
+            else:
+                typed_version_lookup = self.PHOTO_VERSION_LOOKUP
+
+            for key, prefix in typed_version_lookup.items():
+                if '%sWidth' % prefix in self._master_record['fields']:
+                    f = self._master_record['fields']
+                    self._versions[key] = {
+                        'width': f['%sWidth' % prefix]['value'],
+                        'height': f['%sHeight' % prefix]['value'],
+                        'size': f['%sRes' % prefix]['value']['size'],
+                        'type': f['%sFileType' % prefix]['value'],
+                        'url': f['%sRes' % prefix]['value']['downloadURL'],
+                        'filename': self.filename,
+                    }
+        return self._versions
 
     def download(self, version='original', **kwargs):
         if version not in self.versions:
             return None
 
-        return self.album.service.session.get(
+        return self._service.session.get(
             self.versions[version]['url'],
             stream=True,
             **kwargs
         )
 
     def __repr__(self):
-        return "<%s: client_id=%s>" % (
+        return "<%s: id=%s>" % (
             type(self).__name__,
-            self.client_id
+            self.id
         )
-
-
-def _parse_binary_feed(feed):
-    logger.debug("Parsing binary feed %s", feed)
-
-    binaryfeed = bytearray(b64decode(feed))
-    bitstream = ConstBitStream(binaryfeed)
-
-    payload_encoding = binaryfeed[0]
-    if payload_encoding != bitstream.read("uint:8"):
-        raise PyiCloudBinaryFeedParseError(
-            "Missmatch betweeen binaryfeed and bistream payload encoding")
-
-    ASSET_PAYLOAD = 255
-    ASSET_WITH_ORIENTATION_PAYLOAD = 254
-    ASPECT_RATIOS = [
-        0.75,
-        4.0 / 3.0 - 3.0 * (4.0 / 3.0 - 1.0) / 4.0,
-        4.0 / 3.0 - 2.0 * (4.0 / 3.0 - 1.0) / 4.0,
-        1.25,
-        4.0 / 3.0, 1.5 - 2.0 * (1.5 - 4.0 / 3.0) / 3.0,
-        1.5 - 1.0 * (1.5 - 4.0 / 3.0) / 3.0,
-        1.5,
-        1.5694444444444444,
-        1.6388888888888888,
-        1.7083333333333333,
-        16.0 / 9.0,
-        2.0 - 2.0 * (2.0 - 16.0 / 9.0) / 3.0,
-        2.0 - 1.0 * (2.0 - 16.0 / 9.0) / 3.0,
-        2,
-        3
-    ]
-
-    valid_payloads = [ASSET_PAYLOAD, ASSET_WITH_ORIENTATION_PAYLOAD]
-    if payload_encoding not in valid_payloads:
-        raise PyiCloudBinaryFeedParseError(
-            "Unknown payload encoding '%s'" % payload_encoding)
-
-    assets = {}
-    while len(bitstream) - bitstream.pos >= 48:
-        range_start = bitstream.read("uint:24")
-        range_length = bitstream.read("uint:24")
-        range_end = range_start + range_length
-
-        logger.debug("Decoding indexes [%s-%s) (length %s)",
-                     range_start, range_end, range_length)
-
-        previous_asset_id = 0
-        for index in range(range_start, range_end):
-            aspect_ratio = ASPECT_RATIOS[bitstream.read("uint:4")]
-
-            id_size = bitstream.read("uint:2")
-            if id_size:
-                # A size has been reserved for the asset id
-                asset_id = bitstream.read("uint:%s" % (2 + 8 * id_size))
-            else:
-                # The id is just an increment to a previous id
-                asset_id = previous_asset_id + bitstream.read("uint:2") + 1
-
-            orientation = None
-            if payload_encoding == ASSET_WITH_ORIENTATION_PAYLOAD:
-                orientation = bitstream.read("uint:3")
-
-            assets[index] = PhotoAsset(asset_id, aspect_ratio, orientation)
-            previous_asset_id = asset_id
-
-    return assets

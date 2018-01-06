@@ -67,7 +67,7 @@ class RemindersService(object):
                 })
             self.lists[collection['title']] = temp
 
-    def post(self, title, description="", collection=None):
+    def post(self, title, description="", collection=None, dueDate=None):
         pguid = 'tasks'
         if collection:
             if collection in self.collections:
@@ -79,6 +79,17 @@ class RemindersService(object):
             'lang': 'en-us',
             'usertz': get_localzone().zone
         })
+
+        dueDateList = None
+        if dueDate:
+            dueDateList = [
+                int(str(dueDate.year) + str(dueDate.month) + str(dueDate.day)),
+                dueDate.year,
+                dueDate.month,
+                dueDate.day,
+                dueDate.hour,
+                dueDate.minute
+            ]
 
         req = self.session.post(
             self._service_root + '/rd/reminders/tasks',
@@ -96,7 +107,7 @@ class RemindersService(object):
                     "startDateTz": None,
                     "startDateIsAllDay": False,
                     "completedDate": None,
-                    "dueDate": None,
+                    "dueDate": dueDateList,
                     "dueDateIsAllDay": False,
                     "lastModifiedDate": None,
                     "createdDate": None,
