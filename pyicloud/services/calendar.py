@@ -63,20 +63,20 @@ class CalendarService(object):
         return self.response['Event']
 
     def calendars(self):
-        """
-        Retrieves calendars for this month
-        """
-        today = datetime.today()
-        first_day, last_day = monthrange(today.year, today.month)
-        from_dt = datetime(today.year, today.month, first_day)
-        to_dt = datetime(today.year, today.month, last_day)
-        params = dict(self.params)
-        params.update({
-            'lang': 'en-us',
-            'usertz': get_localzone().zone,
-            'startDate': from_dt.strftime('%Y-%m-%d'),
-            'endDate': to_dt.strftime('%Y-%m-%d')
-        })
-        req = self.session.get(self._calendars, params=params)
-        self.response = req.json()
-        return self.response['Collection']
+       """
+       Retrieves calendars for this month
+       """
+       today = datetime.today()
+       first_day, last_day = monthrange(today.year, today.month)
+       from_dt = datetime(today.year, today.month, first_day)
+       to_dt = datetime(today.year, today.month, last_day)
+       params = dict(self.params)
+       params.update({
+           'lang': 'en-us',
+           'usertz': get_localzone().zone,
+           'startDate': from_dt.strftime('%Y-%m-%d'),
+           'endDate': to_dt.strftime('%Y-%m-%d')
+       })
+       req = self.session.get(self._calendars, params=params)
+       self.response = req.json()
+       return self.response['Collection']
