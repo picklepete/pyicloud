@@ -1,3 +1,4 @@
+import os
 import sys
 import json
 import logging
@@ -418,7 +419,17 @@ class PhotoAsset(object):
         self._master_record = master_record
         self._asset_record = asset_record
 
+        self._is_live_photo = (
+            'resOriginalVidComplRes' in self._master_record['fields']
+        )
         self._versions = None
+
+    LIVE_PHOTO_VERSION_LOOKUP = {
+        u"original": u"resOriginal",
+        u"medium": u"resJPEGMed",
+        u"thumb": u"resJPEGThumb",
+        u"comp": u"resOriginalVidCompl"
+    }
 
     PHOTO_VERSION_LOOKUP = {
         u"original": u"resOriginal",
@@ -473,7 +484,9 @@ class PhotoAsset(object):
     def versions(self):
         if not self._versions:
             self._versions = {}
-            if 'resVidSmallRes' in self._master_record['fields']:
+            if self._is_live_photo:
+                typed_version_lookup = self.LIVE_PHOTO_VERSION_LOOKUP
+            elif 'resVidSmallRes' in self._master_record['fields']:
                 typed_version_lookup = self.VIDEO_VERSION_LOOKUP
             else:
                 typed_version_lookup = self.PHOTO_VERSION_LOOKUP
@@ -497,6 +510,17 @@ class PhotoAsset(object):
 
         return self._service.session.get(
             self.versions[version]['url'],
+            stream=True,
+            **kwargs
+        )
+
+    def download_comp(self, **kwargs):
+        # live photo mov file
+        if 'comp' not in self.versions:
+            return None
+
+        return self._service.session.get(
+            self.versions['comp']['url'],
             stream=True,
             **kwargs
         )

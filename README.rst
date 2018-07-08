@@ -259,6 +259,8 @@ To download a photo use the `download` method, which will return a `response obj
 >>> with open(photo.filename, 'wb') as opened_file:
         opened_file.write(download.raw.read())
 
+Note: You can call photo.download_comp() to retrieve the response object of Live Photo movie content (.MOV file).
+
 Note: Consider using ``shutil.copyfile`` or another buffered strategy for downloading the file so that the whole file isn't read into memory before writing.
 
 Information about each version can be accessed through the ``versions`` property:
