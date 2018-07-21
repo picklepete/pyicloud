@@ -480,7 +480,8 @@ class PhotoAsset(object):
 
     @property
     def item_type(self):
-        return (self.ITEM_TYPES[self._master_record['fields']['itemType']['value']])
+        return (self.ITEM_TYPES[
+            self._master_record['fields']['itemType']['value']])
 
     @property
     def versions(self):
