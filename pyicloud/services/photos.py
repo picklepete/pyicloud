@@ -452,9 +452,12 @@ class PhotoAsset(object):
 
     @property
     def asset_date(self):
-        dt = datetime.fromtimestamp(
-            self._asset_record['fields']['assetDate']['value'] / 1000.0,
-            tz=pytz.utc)
+        try:
+            dt = datetime.fromtimestamp(
+                self._asset_record['fields']['assetDate']['value'] / 1000.0,
+                tz=pytz.utc)
+        except:
+            dt = datetime.fromtimestamp(0)
         return dt
 
     @property
