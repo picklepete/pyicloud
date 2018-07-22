@@ -423,6 +423,7 @@ class PhotoAsset(object):
     ITEM_TYPES = {
         u"public.heic": u"image",
         u"public.jpeg": u"image",
+        u"public.png": u"image",
         u"com.apple.quicktime-movie": u"movie"
     }
 
@@ -480,8 +481,12 @@ class PhotoAsset(object):
 
     @property
     def item_type(self):
-        return (self.ITEM_TYPES[
-            self._master_record['fields']['itemType']['value']])
+        item_type = self._master_record['fields']['itemType']['value']
+        if item_type in self.ITEM_TYPES:
+            return self.ITEM_TYPES[item_type]
+        if self.filename.lower().endswith(('.heic', '.png', '.jpg', '.jpeg')):
+            return 'image'
+        return 'movie'
 
     @property
     def versions(self):
