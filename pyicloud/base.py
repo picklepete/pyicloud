@@ -134,13 +134,14 @@ class PyiCloudService(object):
     """
 
     def __init__(
-        self, apple_id, password=None, cookie_directory=None, verify=True
+        self, apple_id, password=None, cookie_directory=None, verify=True,
+        client_id=None
     ):
         if password is None:
             password = get_password_from_keyring(apple_id)
 
         self.data = {}
-        self.client_id = str(uuid.uuid1()).upper()
+        self.client_id = client_id or str(uuid.uuid1()).upper()
         self.user = {'apple_id': apple_id, 'password': password}
 
         self._password_filter = PyiCloudPasswordFilter(password)
