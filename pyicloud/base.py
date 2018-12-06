@@ -60,7 +60,8 @@ class PyiCloudSession(requests.Session):
         # Charge logging to the right service endpoint
         callee = inspect.stack()[2]
         module = inspect.getmodule(callee[0])
-        logger = logging.getLogger(module.__name__).getChild('http')
+        name = getattr(module, '__name__') if hasattr(module, '__name__') else __name__
+        logger = logging.getLogger(name).getChild('http')
         if self.service._password_filter not in logger.filters:
             logger.addFilter(self.service._password_filter)
 
