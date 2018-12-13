@@ -19,6 +19,7 @@ class CalendarService(object):
         self._calendar_event_detail_url = '%s/eventdetail' % (
             self._calendar_endpoint,
         )
+        self._calendars = '%s/startup' % self._calendar_endpoint
 
     def get_event_detail(self, pguid, guid):
         """
@@ -60,3 +61,22 @@ class CalendarService(object):
         """
         self.refresh_client(from_dt, to_dt)
         return self.response['Event']
+
+    def calendars(self):
+        """
+        Retrieves calendars for this month
+        """
+        today = datetime.today()
+        first_day, last_day = monthrange(today.year, today.month)
+        from_dt = datetime(today.year, today.month, first_day)
+        to_dt = datetime(today.year, today.month, last_day)
+        params = dict(self.params)
+        params.update({
+            'lang': 'en-us',
+            'usertz': get_localzone().zone,
+            'startDate': from_dt.strftime('%Y-%m-%d'),
+            'endDate': to_dt.strftime('%Y-%m-%d')
+        })
+        req = self.session.get(self._calendars, params=params)
+        self.response = req.json()
+        return self.response['Collection']
