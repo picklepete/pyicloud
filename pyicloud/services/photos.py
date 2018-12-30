@@ -1,10 +1,12 @@
 import os
 import sys
 import json
+import time
 import logging
 import base64
 
 from datetime import datetime
+from tzlocal import get_localzone
 from pyicloud.exceptions import PyiCloudServiceNotActivatedErrror
 import pytz
 
@@ -524,6 +526,41 @@ class PhotoAsset(object):
             stream=True,
             **kwargs
         )
+
+    def update_mtime(self, download_path):
+        if self.created:
+            created_date = None
+            try:
+                created_date = self.created.astimezone(get_localzone())
+            except (ValueError, OSError):
+                return
+            ctime = time.mktime(created_date.timetuple())
+            os.utime(download_path, (ctime, ctime))
+
+    def save(self, dest_dir='.'):
+        photo_response = self.download()
+        if not photo_response:
+            return 0
+
+        filepath = os.path.join(dest_dir, self.filename)
+        data = photo_response.raw.read()
+        with open(filepath, "wb") as file_obj:
+            file_obj.write(data)
+        self.update_mtime(filepath)
+        return len(data)
+
+    def save_comp(self, dest_dir='.'):
+        comp_response = self.download_comp()
+        if not comp_response:
+            return 0
+
+        filename = os.path.splitext(self.filename)[0] + ".MOV"
+        filepath = os.path.join(dest_dir, filename)
+        data = comp_response.raw.read()
+        with open(filepath, "wb") as file_obj:
+            file_obj.write(data)
+        self.update_mtime(filepath)
+        return len(data)
 
     def __repr__(self):
         return "<%s: id=%s>" % (
