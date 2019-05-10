@@ -403,7 +403,7 @@ class PhotoAlbum(object):
         if sys.version_info[0] >= 3:
             return as_unicode
         else:
-            return as_unicode.encode('ascii', 'ignore')
+            return as_unicode.encode('utf-8', 'ignore')
 
     def __repr__(self):
         return "<%s: '%s'>" % (
