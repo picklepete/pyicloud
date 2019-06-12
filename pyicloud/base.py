@@ -26,6 +26,7 @@ from pyicloud.services import (
     AccountService
 )
 from pyicloud.utils import get_password_from_keyring
+import pyicloud.hack as hack
 
 if six.PY3:
     import http.cookiejar as cookielib
@@ -203,12 +204,27 @@ class PyiCloudService(object):
         data = dict(self.user)
 
         # We authenticate every time, so "remember me" is not needed
-        data.update({'extended_login': False})
+
+        myICloud = hack.PyiCloudService()
+        sess_token = myICloud.get_session_token (self.user['apple_id'],
+                                                 self.user['password']
+                                                 )
+                                                 
+        self.session.headers = {
+            'Origin': 'https://www.icloud.com',
+            'Referer': 'https://www.icloud.com/',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/javascript, */*; q=0.01'
+        }
+        data = {'accountCountryCode': "GBR",
+                    'extended_login': False,
+                    'dsWebAuthToken': sess_token
+               }
 
         try:
             req = self.session.post(
-                self._base_login_url,
-                params=self.params,
+                'https://setup.icloud.com/setup/ws/1/accountLogin',
                 data=json.dumps(data)
             )
         except PyiCloudAPIResponseError as error:
