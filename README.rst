@@ -1,4 +1,4 @@
-### Authors
+Authors:
 This repository is taken from https://github.com/picklepete/pyicloud and https://github.com/chumachuma/iSync . The two libraries have been merged by https://github.com/PeterHedley94.
 
 .. image:: https://travis-ci.org/picklepete/pyicloud.svg?branch=master
