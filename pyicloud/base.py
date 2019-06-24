@@ -65,7 +65,6 @@ class PyiCloudSession(requests.Session):
             logger.addFilter(self.service._password_filter)
 
         logger.debug("%s %s %s", args[0], args[1], kwargs.get('data', ''))
-
         response = super(PyiCloudSession, self).request(*args, **kwargs)
 
         content_type = response.headers.get('Content-Type', '').split(';')[0]
@@ -97,8 +96,10 @@ class PyiCloudSession(requests.Session):
         if not code and json.get('serverErrorCode'):
             code = json.get('serverErrorCode')
 
-        #if reason:
-        #    self._raise_error(code, reason)
+        if reason:
+            acceptable_reason = 'Missing X-APPLE-WEBAUTH-TOKEN cookie'
+            if reason != acceptable_reason:
+                self._raise_error(code, reason)
 
         return response
 
@@ -149,7 +150,6 @@ class PyiCloudService(object):
         self._password_filter = PyiCloudPasswordFilter(password)
         logger.addFilter(self._password_filter)
 
-        #self._home_endpoint =
         self.user_agent = 'Opera/9.52 (X11; Linux i686; U; en)'
         self._setup_endpoint = 'https://setup.icloud.com/setup/ws/1'
         self.referer = 'https://www.icloud.com'
@@ -221,11 +221,11 @@ class PyiCloudService(object):
 
         sess_token = self.get_session_token()
 
-        data = {'accountCountryCode': "GBR",
+        data = {
+                'accountCountryCode': "GBR",
                 'extended_login': False,
                 'dsWebAuthToken': sess_token
                }
-
         try:
             req = self.session.post(
                 self._setup_endpoint + '/accountLogin',
@@ -416,8 +416,7 @@ class SetupiCloudService(HTTPService):
         self.session.headers.update(self.getRequestHeader())
         apple_widget_params = self.getQueryParameters(clientID)
         self.response = self.session.get(self.urlKey,
-                                         params=apple_widget_params 
-                                        )
+                                         params=apple_widget_params)
         try:
             self.appleWidgetKey = self.findQyery(self.response.text,
                                                  "widgetKey=")
@@ -433,8 +432,7 @@ class SetupiCloudService(HTTPService):
         login_params = self.getQueryParameters(clientID)
         self.response = self.session.post(self.urlLogin,
                                           login_payload,
-                                          params=login_params
-                                         )
+                                          params=login_params)
         try:
             self.cookies = self.response.headers["Set-Cookie"]
         except Exception as e:
@@ -460,7 +458,6 @@ class SetupiCloudService(HTTPService):
             foundAt += 1
             char = data[foundAt]
         return response
-
 
     def getRequestHeader(self):
         header = {
@@ -491,6 +488,7 @@ class SetupiCloudService(HTTPService):
             "extended_login": False,
             })
 
+
 class IdmsaAppleService(HTTPService):
     def __init__(self, session):
         super(IdmsaAppleService, self).__init__(session)
@@ -503,9 +501,7 @@ class IdmsaAppleService(HTTPService):
         self.session.headers.update(self.getRequestHeader(appleWidgetKey))
         self.response = self.session.post(self.urlAuth + appleWidgetKey,
                                           self.getRequestPayload(user,
-                                                                 password
-                                                                )
-                                         )
+                                                                 password))
         try:
             headers = self.response.headers
             self.appleSessionToken = headers["X-Apple-Session-Token"]
