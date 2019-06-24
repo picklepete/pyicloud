@@ -413,22 +413,28 @@ class SetupiCloudService(HTTPService):
         self.dsid = None
 
     def requestAppleWidgetKey(self, clientID):
-        #self.urlBase + "/system/cloudos/16CHotfix21/en-us/javascript-packed.js"
-
         self.session.headers.update(self.getRequestHeader())
-        self.response = self.session.get(self.urlKey, params=self.getQueryParameters(clientID))
+        apple_widget_params = self.getQueryParameters(clientID)
+        self.response = self.session.get(self.urlKey,
+                                         params=apple_widget_params 
+                                        )
         try:
-            self.appleWidgetKey = self.findQyery(self.response.text, "widgetKey=")
+            self.appleWidgetKey = self.findQyery(self.response.text,
+                                                 "widgetKey=")
         except Exception as e:
-            raise Exception("requestAppletWidgetKey: Apple Widget Key query failed",
+            err_str = "requestAppletWidgetKey: Apple Widget Key query failed"
+            raise Exception(err_str,
                             self.urlKey, repr(e))
         return self.appleWidgetKey
 
     def requestCookies(self, appleSessionToken, clientID):
         self.session.headers.update(self.getRequestHeader())
+        login_payload = self.getLoginRequestPayload(appleSessionToken)
+        login_params = self.getQueryParameters(clientID)
         self.response = self.session.post(self.urlLogin,
-                                          self.getLoginRequestPayload(appleSessionToken),
-                                          params=self.getQueryParameters(clientID))
+                                          login_payload,
+                                          params=login_params
+                                         )
         try:
             self.cookies = self.response.headers["Set-Cookie"]
         except Exception as e:
@@ -445,7 +451,8 @@ class SetupiCloudService(HTTPService):
         response = ''
         foundAt = data.find(query)
         if foundAt == -1:
-            raise Exception("findQyery: " + query + " could not be found in data")
+            except_str = "findQyery: " + query + " could not be found in data"
+            raise Exception(except_str)
         foundAt += len(query)
         char = data[foundAt]
         while char.isalnum():
@@ -477,7 +484,8 @@ class SetupiCloudService(HTTPService):
 
     def getLoginRequestPayload(self, appleSessionToken):
         if not appleSessionToken:
-            raise NameError("getLoginRequestPayload: X-Apple-ID-Session-Id not found")
+            err_str = "getLoginRequestPayload: X-Apple-ID-Session-Id not found"
+            raise NameError(err_str)
         return json({
             "dsWebAuthToken": appleSessionToken,
             "extended_login": False,
@@ -494,11 +502,18 @@ class IdmsaAppleService(HTTPService):
     def requestAppleSessionToken(self, user, password, appleWidgetKey):
         self.session.headers.update(self.getRequestHeader(appleWidgetKey))
         self.response = self.session.post(self.urlAuth + appleWidgetKey,
-                                          self.getRequestPayload(user, password))
+                                          self.getRequestPayload(user,
+                                                                 password
+                                                                )
+                                         )
         try:
-            self.appleSessionToken = self.response.headers["X-Apple-Session-Token"]
+            headers = self.response.headers
+            self.appleSessionToken = headers["X-Apple-Session-Token"]
         except Exception as e:
-            raise Exception("requestAppleSessionToken: Apple Session Token query failed",
+            err_str = "requestAppleSessionToken: " + \
+                      "Apple Session Token query failed"
+
+            raise Exception(err_str,
                             self.urlAuth, repr(e))
         return self.appleSessionToken
 
@@ -519,7 +534,8 @@ class IdmsaAppleService(HTTPService):
         if not user:
             raise NameError("getAuthenticationRequestPayload: user not found")
         if not password:
-            raise NameError("getAuthenticationRequestPayload: password not found")
+            err_str = "getAuthenticationRequestPayload: password not found"
+            raise NameError(err_str)
         return json.dumps({
             "accountName": user,
             "password": password,
