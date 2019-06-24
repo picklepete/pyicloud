@@ -27,7 +27,6 @@ from pyicloud.services import (
     AccountService
 )
 from pyicloud.utils import get_password_from_keyring
-import pyicloud.hack as hack
 
 if six.PY3:
     import http.cookiejar as cookielib
