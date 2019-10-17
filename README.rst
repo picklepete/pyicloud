@@ -46,7 +46,7 @@ If you have enabled `two-step authentication (2SA) <https://support.apple.com/en
 
 .. code-block:: python
 
-	if api.requires_2sa:
+	if api.requires_2fa:
 	    import click
 	    print "Two-step authentication required. Your trusted devices are:"
 
