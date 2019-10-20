@@ -9,6 +9,7 @@ class ContactsService(object):
     """
     The 'Contacts' iCloud service, connects to iCloud and returns contacts.
     """
+
     def __init__(self, service_root, session, params):
         self.session = session
         self.params = params
@@ -17,7 +18,7 @@ class ContactsService(object):
         self._contacts_refresh_url = '%s/startup' % self._contacts_endpoint
         self._contacts_changeset_url = '%s/changeset' % self._contacts_endpoint
 
-    def refresh_client(self, from_dt=None, to_dt=None):
+    def refresh_client(self):
         """
         Refreshes the ContactsService endpoint, ensuring that the
         contacts data is up-to-date.
@@ -25,23 +26,12 @@ class ContactsService(object):
         params_contacts = dict(self.params)
         params_contacts.update({
             'clientVersion': '2.1',
-            'locale': 'en_US',
-            'order': 'last,first',
+            'locale':        'en_US',
+            'order':         'last,first',
         })
         req = self.session.get(
-            self._contacts_refresh_url,
-            params=params_contacts
-        )
-        self.response = req.json()
-        params_refresh = dict(self.params)
-        params_refresh.update({
-            'prefToken': req.json()["prefToken"],
-            'syncToken': req.json()["syncToken"],
-        })
-        self.session.post(self._contacts_changeset_url, params=params_refresh)
-        req = self.session.get(
-            self._contacts_refresh_url,
-            params=params_contacts
+                self._contacts_refresh_url,
+                params=params_contacts
         )
         self.response = req.json()
 
