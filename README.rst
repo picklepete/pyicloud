@@ -232,6 +232,34 @@ Or, if you're downloading a particularly large file, you may want to use the ``s
 >>> with open('downloaded_file.zip', 'wb') as opened_file:
         opened_file.write(download.raw.read())
 
+===========================
+File Storage (iCloud Drive)
+===========================
+
+You can access your iCloud Drive using an API identical to the Ubiquity one described in the previous section, except that it is rooted at ```api.drive```:
+
+>>> api.drive.dir()
+['Holiday Photos', 'Work Files']
+>>> api.drive['Holiday Photos']['2013']['Sicily'].dir()
+['DSC08116.JPG', 'DSC08117.JPG']
+
+>>> drive_file = api.drive['Holiday Photos']['2013']['Sicily']['DSC08116.JPG']
+>>> drive_file.name
+u'DSC08116.JPG'
+>>> drive_file.modified
+datetime.datetime(2013, 3, 21, 12, 28, 12) # NB this is UTC
+>>> drive_file.size
+2021698
+>>> drive_file.type
+u'file'
+
+The ``open`` method will return a response object from which you can read the file's contents:
+
+>>> from shutil import copyfileobj
+>>> with drive_file.open(stream=True) as response
+...     with open(drive_file.name, 'wb') as file_out:
+...         copyfileobj(response.raw, file_out)
+
 =======================
 Photo Library
 =======================
