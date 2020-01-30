@@ -1,3 +1,6 @@
+Authors:
+This repository is taken from https://github.com/picklepete/pyicloud and https://github.com/chumachuma/iSync.
+
 .. image:: https://travis-ci.org/picklepete/pyicloud.svg?branch=master
    :alt: Check out our test status at https://travis-ci.org/picklepete/pyicloud
    :target: https://travis-ci.org/picklepete/pyicloud
