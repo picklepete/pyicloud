@@ -32,6 +32,29 @@ nosetests.xml
 # Translations
 *.mo
 
+# Mac OS X
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Windows Explorer
+desktop.ini
+
+# Visual Studio Code
+.vscode/*
+!.vscode/cSpell.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+
+# IntelliJ IDEA
+.idea
+*.iml
+
+# Sublime text
+*.sublime-project
+*.sublime-workspace
+
 # Mr Developer
 .mr.developer.cfg
 .project
