@@ -65,12 +65,22 @@ class PyiCloudSession(requests.Session):
 
         logger.debug("%s %s %s", args[0], args[1], kwargs.get('data', ''))
 
+        kwargs.pop('retried', None)
         response = super(PyiCloudSession, self).request(*args, **kwargs)
 
         content_type = response.headers.get('Content-Type', '').split(';')[0]
         json_mimetypes = ['application/json', 'text/json']
 
         if not response.ok and content_type not in json_mimetypes:
+            if kwargs.get('retried') is None and response.status_code == 450:
+                api_error = PyiCloudAPIResponseError(
+                    response.reason,
+                    response.status_code,
+                    retry=True
+                )
+                logger.warn(api_error)
+                kwargs['retried'] = True
+                return self.request(*args, **kwargs)
             self._raise_error(response.status_code, response.reason)
 
         if content_type not in json_mimetypes:

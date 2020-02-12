@@ -8,12 +8,14 @@ class PyiCloudNoDevicesException(PyiCloudException):
 
 
 class PyiCloudAPIResponseError(PyiCloudException):
-    def __init__(self, reason, code):
+    def __init__(self, reason, code, retry=False):
         self.reason = reason
         self.code = code
-        message = reason
+        message = reason or ""
         if code:
             message += " (%s)" % code
+        if retry:
+            message += ". Retrying ..."
 
         super(PyiCloudAPIResponseError, self).__init__(message)
 
