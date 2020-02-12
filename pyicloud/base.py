@@ -73,7 +73,11 @@ class PyiCloudSession(requests.Session):
 
         if not response.ok and content_type not in json_mimetypes:
             if kwargs.get('retried') is None and response.status_code == 450:
-                api_error = PyiCloudAPIResponseError(response.reason, response.status_code, retry=True)
+                api_error = PyiCloudAPIResponseError(
+                    response.reason,
+                    response.status_code,
+                    retry=True
+                )
                 logger.warn(api_error)
                 kwargs['retried'] = True
                 return self.request(*args, **kwargs)
