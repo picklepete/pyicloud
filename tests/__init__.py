@@ -3,6 +3,8 @@ import json
 from requests import Response
 
 from pyicloud import base
+from pyicloud.exceptions import PyiCloudFailedLoginException
+from pyicloud.services.findmyiphone import FindMyiPhoneServiceManager, AppleDevice
 
 from .const import (
     AUTHENTICATED_USER,

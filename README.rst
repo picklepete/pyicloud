@@ -130,7 +130,10 @@ You can list which devices associated with your account by using the ``devices``
 
 and you can access individual devices by either their index, or their ID:
 
-.. code-block:: pycon
+>>> api.devices[0]
+<AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>
+>>> api.devices['i9vbKRGIcLYqJnXMd1b257kUWnoyEBcEh6yM+IfmiMLh7BmOpALS+w==']
+<AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>
 
     >>> api.devices[0]
     <AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>
@@ -156,20 +159,16 @@ Location
 
 Returns the device's last known location. The Find My iPhone app must have been installed and initialized.
 
-.. code-block:: pycon
-
-    >>> api.iphone.location()
-    {'timeStamp': 1357753796553, 'locationFinished': True, 'longitude': -0.14189, 'positionType': 'GPS', 'locationType': None, 'latitude': 51.501364, 'isOld': False, 'horizontalAccuracy': 5.0}
+>>> api.iphone.location()
+{u'timeStamp': 1357753796553, u'locationFinished': True, u'longitude': -0.14189, u'positionType': u'GPS', u'locationType': None, u'latitude': 51.501364, u'isOld': False, u'horizontalAccuracy': 5.0}
 
 Status
 ******
 
 The Find My iPhone response is quite bloated, so for simplicity's sake this method will return a subset of the properties.
 
-.. code-block:: pycon
-
-    >>> api.iphone.status()
-    {'deviceDisplayName': 'iPhone 5', 'deviceStatus': '200', 'batteryLevel': 0.6166913, 'name': "Peter's iPhone"}
+>>> api.iphone.status()
+{'deviceDisplayName': u'iPhone 5', 'deviceStatus': u'200', 'batteryLevel': 0.6166913, 'name': u"Peter's iPhone"}
 
 If you wish to request further properties, you may do so by passing in a list of property names.
 

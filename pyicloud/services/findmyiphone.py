@@ -3,12 +3,48 @@ import json
 
 from pyicloud.exceptions import PyiCloudNoDevicesException
 
+DEVICE_BATTERY_LEVEL = "batteryLevel"
+DEVICE_BATTERY_STATUS = "batteryStatus"
+DEVICE_CLASS = "deviceClass"
+DEVICE_DISPLAY_NAME = "deviceDisplayName"
+DEVICE_FROM_FAMILY = "fmlyShare"
+DEVICE_ID = "id"
+DEVICE_IS_MAC = "isMac"
+DEVICE_LOCATION = "location"
+DEVICE_LOCATION_HORIZONTAL_ACCURACY = "horizontalAccuracy"
+DEVICE_LOCATION_LATITUDE = "latitude"
+DEVICE_LOCATION_LONGITUDE = "longitude"
+DEVICE_LOCATION_POSITION_TYPE = "positionType"
+DEVICE_LOST_MODE_CAPABLE = "lostModeCapable"
+DEVICE_LOW_POWER_MODE = "lowPowerMode"
+DEVICE_MODEL = "deviceModel"
+DEVICE_MODEL_RAW = "rawDeviceModel"
+DEVICE_MSG_MAX_LENGTH = "maxMsgChar"
+DEVICE_NAME = "name"
+DEVICE_PERSON_ID = "prsId"
+DEVICE_STATUS = "deviceStatus"
 
-class FindMyiPhoneServiceManager:
+class FindMyiPhoneServiceManager(object):
     """The 'Find my iPhone' iCloud service
 
-    This connects to iCloud and return phone data including the near-realtime
-    latitude and longitude.
+DEVICE_STATUS_ONLINE = "online"
+DEVICE_STATUS_OFFLINE = "offline"
+DEVICE_STATUS_PENDING = "pending"
+DEVICE_STATUS_UNREGISTERED = "unregistered"
+DEVICE_STATUS_ERROR = "error"
+DEVICE_STATUS_CODES = {
+    "200": DEVICE_STATUS_ONLINE,
+    "201": DEVICE_STATUS_OFFLINE,
+    "203": DEVICE_STATUS_PENDING,
+    "204": DEVICE_STATUS_UNREGISTERED,
+}
+
+
+class FindMyiPhoneService(object):
+    """
+    The 'Find my iPhone' iCloud service,
+    connects to iCloud and returns devices,
+    including battery state and location.
     """
 
     def __init__(self, service_root, session, params, with_family=False):
@@ -22,14 +58,11 @@ class FindMyiPhoneServiceManager:
         self._fmip_message_url = "%s/sendMessage" % fmip_endpoint
         self._fmip_lost_url = "%s/lostDevice" % fmip_endpoint
 
-        self._devices = {}
-        self.refresh_client()
+        self._devices = {}  # Need to call refresh_client() to fill/update it
 
     def refresh_client(self):
-        """Refreshes the FindMyiPhoneService endpoint,
-
-        This ensures that the location data is up-to-date.
-
+        """
+        Refreshes devices to ensures that the data data is up-to-date.
         """
         req = self.session.post(
             self._fmip_refresh_url,
@@ -45,16 +78,15 @@ class FindMyiPhoneServiceManager:
                 }
             ),
         )
-        self.response = req.json()
+        data = req.json()
 
-        for device_info in self.response["content"]:
+        for device_info in data["content"]:
             device_id = device_info["id"]
             if device_id not in self._devices:
                 self._devices[device_id] = AppleDevice(
                     device_info,
                     self.session,
                     self.params,
-                    manager=self,
                     sound_url=self._fmip_sound_url,
                     lost_url=self._fmip_lost_url,
                     message_url=self._fmip_message_url,
@@ -65,64 +97,49 @@ class FindMyiPhoneServiceManager:
         if not self._devices:
             raise PyiCloudNoDevicesException()
 
-    def __getitem__(self, key):
+    @property
+    def devices(self):
+        """Return all devices."""
+        return self._devices
+
+    def device(self, key):
+        """Return one device."""
         if isinstance(key, int):
-            key = list(self.keys())[key]
+            if PY2:
+                key = self.keys()[key]
+            else:
+                key = list(self.keys())[key]
         return self._devices[key]
 
     def __getattr__(self, attr):
         return getattr(self._devices, attr)
 
+    def __unicode__(self):
+        return text_type(self._devices)
+
     def __str__(self):
         return f"{self._devices}"
 
     def __repr__(self):
-        return f"{self}"
+        return text_type(self)
 
 
-class AppleDevice:
+class AppleDevice(object):
     """Apple device."""
 
     def __init__(
-        self,
-        content,
-        session,
-        params,
-        manager,
-        sound_url=None,
-        lost_url=None,
-        message_url=None,
+        self, attrs, session, params, sound_url=None, lost_url=None, message_url=None
     ):
-        self.content = content
-        self.manager = manager
-        self.session = session
-        self.params = params
+        self._attrs = attrs
+        self._session = session
+        self._params = params
 
         self.sound_url = sound_url
         self.lost_url = lost_url
         self.message_url = message_url
 
-    def update(self, data):
-        """Updates the device data."""
-        self.content = data
-
-    def location(self):
-        """Updates the device location."""
-        self.manager.refresh_client()
-        return self.content["location"]
-
-    def status(self, additional=[]):  # pylint: disable=dangerous-default-value
-        """Returns status information for device.
-
-        This returns only a subset of possible properties.
-        """
-        self.manager.refresh_client()
-        fields = ["batteryLevel", "deviceDisplayName", "deviceStatus", "name"]
-        fields += additional
-        properties = {}
-        for field in fields:
-            properties[field] = self.content.get(field)
-        return properties
+    def update(self, attrs):
+        self._attrs = attrs
 
     def play_sound(self, subject="Find My iPhone Alert"):
         """Send a request to the device to play a sound.
@@ -130,13 +147,9 @@ class AppleDevice:
         It's possible to pass a custom message by changing the `subject`.
         """
         data = json.dumps(
-            {
-                "device": self.content["id"],
-                "subject": subject,
-                "clientContext": {"fmly": True},
-            }
+            {"device": self.id, "subject": subject, "clientContext": {"fmly": True}}
         )
-        self.session.post(self.sound_url, params=self.params, data=data)
+        self._session.post(self.sound_url, params=self._params, data=data)
 
     def display_message(
         self, subject="Find My iPhone Alert", message="This is a note", sounds=False
@@ -147,14 +160,14 @@ class AppleDevice:
         """
         data = json.dumps(
             {
-                "device": self.content["id"],
+                "device": self.id,
                 "subject": subject,
                 "sound": sounds,
                 "userText": True,
                 "text": message,
             }
         )
-        self.session.post(self.message_url, params=self.params, data=data)
+        self._session.post(self.message_url, params=self._params, data=data)
 
     def lost_device(
         self, number, text="This iPhone has been lost. Please call me.", newpasscode=""
@@ -172,25 +185,121 @@ class AppleDevice:
                 "ownerNbr": number,
                 "lostModeEnabled": True,
                 "trackingEnabled": True,
-                "device": self.content["id"],
+                "device": self.id,
                 "passcode": newpasscode,
             }
         )
-        self.session.post(self.lost_url, params=self.params, data=data)
+        self._session.post(self.lost_url, params=self._params, data=data)
 
     @property
-    def data(self):
-        """Gets the device data."""
-        return self.content
+    def attrs(self):
+        return self._attrs
+
+    @property
+    def batteryLevel(self):
+        return self._attrs.get(DEVICE_BATTERY_LEVEL)
+
+    @property
+    def batteryStatus(self):
+        return self._attrs[DEVICE_BATTERY_STATUS]
+
+    @property
+    def deviceClass(self):
+        return self._attrs[DEVICE_CLASS]
+
+    @property
+    def deviceDisplayName(self):
+        return self._attrs[DEVICE_DISPLAY_NAME]
+
+    @property
+    def deviceModel(self):
+        return self._attrs.get(DEVICE_MODEL)
+
+    @property
+    def deviceStatus(self):
+        return DEVICE_STATUS_CODES.get(
+            self._attrs.get(DEVICE_STATUS), DEVICE_STATUS_ERROR
+        )
+
+    @property
+    def fmlyShare(self):
+        return self._attrs[DEVICE_FROM_FAMILY]
+
+    @property
+    def id(self):
+        return self._attrs[DEVICE_ID]
+
+    @property
+    def isMac(self):
+        return self._attrs[DEVICE_IS_MAC]
+
+    @property
+    def location(self):
+        return self._attrs.get(DEVICE_LOCATION)
+
+    @property
+    def horizontalAccuracy(self):
+        if self.location is None:
+            return None
+        return self.location.get(DEVICE_LOCATION_HORIZONTAL_ACCURACY)
+
+    @property
+    def latitude(self):
+        if self.location is None:
+            return None
+        return self.location.get(DEVICE_LOCATION_LATITUDE)
+
+    @property
+    def longitude(self):
+        if self.location is None:
+            return None
+        return self.location.get(DEVICE_LOCATION_LONGITUDE)
+
+    @property
+    def positionType(self):
+        if self.location is None:
+            return None
+        return self.location.get(DEVICE_LOCATION_POSITION_TYPE)
+
+    @property
+    def lostModeCapable(self):
+        return self._attrs.get(DEVICE_LOST_MODE_CAPABLE)
+
+    @property
+    def lowPowerMode(self):
+        return self._attrs.get(DEVICE_LOW_POWER_MODE)
+
+    @property
+    def maxMsgChar(self):
+        return self._attrs.get(DEVICE_MSG_MAX_LENGTH)
+
+    @property
+    def name(self):
+        return self._attrs.get(DEVICE_NAME)
+
+    @property
+    def prsId(self):
+        return self._attrs.get(DEVICE_PERSON_ID)
+
+    @property
+    def rawDeviceModel(self):
+        return self._attrs.get(DEVICE_MODEL_RAW)
 
     def __getitem__(self, key):
-        return self.content[key]
+        if hasattr(self, key):
+            return getattr(self, key)
+        return self._attrs[key]
 
     def __getattr__(self, attr):
-        return getattr(self.content, attr)
+        return getattr(self._attrs, attr)
+
+    def __unicode__(self):
+        display_name = self["deviceDisplayName"]
+        name = self["name"]
+        return "%s: %s" % (display_name, name)
 
     def __str__(self):
         return f"{self['deviceDisplayName']}: {self['name']}"
 
     def __repr__(self):
-        return f"<AppleDevice({self})>"
+        return "<AppleDevice(%s)>" % str(self)
