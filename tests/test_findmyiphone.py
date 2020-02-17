@@ -4,6 +4,8 @@ from unittest import TestCase
 from . import PyiCloudServiceMock
 from .const import AUTHENTICATED_USER, VALID_PASSWORD
 
+import logging
+LOGGER = logging.getLogger(__name__)
 
 class FindMyiPhoneServiceTest(TestCase):
     """"Find My iPhone service tests"""
@@ -11,13 +13,45 @@ class FindMyiPhoneServiceTest(TestCase):
     service = None
 
     def setUp(self):
-        self.service = PyiCloudServiceMock(AUTHENTICATED_USER, VALID_PASSWORD)
+        self.service = PyiCloudServiceMock(
+            AUTHENTICATED_USER, VALID_PASSWORD
+        ).find_my_iphone
+
+    def test_init(self):
+        """Tests init."""
+        assert len(self.service.devices) == 0
+
+    def test_refresh_client(self):
+        """Tests devices."""
+        assert len(self.service.devices) == 0
+
+        self.service.refresh_client()
+
+        assert len(self.service.devices) == 13
+
+    def test_device(self):
+        """Tests device."""
+        with self.assertRaises(KeyError):
+            self.service.device("iPhone12,1")
+        with self.assertRaises(IndexError):
+            self.service.device(0)
+
+        self.service.refresh_client()
+
+        assert self.service.device("iPhone12,1") is not None
+        assert self.service.device(0) is not None
+
+        with self.assertRaises(IndexError):
+            self.service.device(999)
 
     def test_devices(self):
         """Tests devices."""
-        assert len(list(self.service.devices)) == 13
+        self.service.refresh_client()
 
-        for device in self.service.devices:
+        assert self.service.devices
+
+        for device in self.service.devices.values():
+            LOGGER.warning(device)
             assert device["canWipeAfterLock"] is not None
             assert device["baUUID"] is not None
             assert device["wipeInProgress"] is not None

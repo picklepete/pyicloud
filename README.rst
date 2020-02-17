@@ -104,9 +104,13 @@ u'reGYDh9XwqNWTGIhNBuEwP1ds0F/Lg5t/fxNbI4V939hhXawByErk+HYVNSUzmWV': <AppleDevic
 
 and you can access individual devices by either their index, or their ID:
 
->>> api.devices[0]
+>>> fmi_service = api.find_my_iphone()
+>>> fmi_service.refresh_client()
+>>> fmi_service.device(0)
 <AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>
->>> api.devices['i9vbKRGIcLYqJnXMd1b257kUWnoyEBcEh6yM+IfmiMLh7BmOpALS+w==']
+>>> fmi_service = api.find_my_iphone()
+>>> fmi_service.refresh_client()
+>>> fmi_service.device('i9vbKRGIcLYqJnXMd1b257kUWnoyEBcEh6yM+IfmiMLh7BmOpALS+w==')
 <AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>
 
 or, as a shorthand if you have only one associated apple device, you can simply use the ``iphone`` property to access the first device associated with your account:
@@ -126,18 +130,8 @@ Location
 
 Returns the device's last known location. The Find My iPhone app must have been installed and initialized.
 
->>> api.iphone.location()
+>>> api.iphone.location
 {u'timeStamp': 1357753796553, u'locationFinished': True, u'longitude': -0.14189, u'positionType': u'GPS', u'locationType': None, u'latitude': 51.501364, u'isOld': False, u'horizontalAccuracy': 5.0}
-
-Status
-******
-
-The Find My iPhone response is quite bloated, so for simplicity's sake this method will return a subset of the properties.
-
->>> api.iphone.status()
-{'deviceDisplayName': u'iPhone 5', 'deviceStatus': u'200', 'batteryLevel': 0.6166913, 'name': u"Peter's iPhone"}
-
-If you wish to request further properties, you may do so by passing in a list of property names.
 
 Play Sound
 **********
