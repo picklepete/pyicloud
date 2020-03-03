@@ -114,7 +114,7 @@ class PyiCloudSession(requests.Session):
     def _raise_error(self, code, reason):
         if self.service.requires_2sa and \
                 reason == 'Missing X-APPLE-WEBAUTH-TOKEN cookie':
-            raise PyiCloud2SARequiredError(response.url)
+            raise PyiCloud2SARequiredError(self.service.user['apple_id'])
         if code == 'ZONE_NOT_FOUND' or code == 'AUTHENTICATION_FAILED':
             reason = 'Please log into https://icloud.com/ to manually ' \
                 'finish setting up your iCloud service'
