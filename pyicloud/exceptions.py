@@ -25,8 +25,8 @@ class PyiCloudFailedLoginException(PyiCloudException):
 
 
 class PyiCloud2SARequiredError(PyiCloudException):
-    def __init__(self, url):
-        message = "Two-step authentication required for %s" % url
+    def __init__(self, apple_id):
+        message = "Two-step authentication required for account: %s" % apple_id
         super(PyiCloud2SARequiredError, self).__init__(message)
 
 
