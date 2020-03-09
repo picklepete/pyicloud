@@ -14,15 +14,16 @@ class FindMyiPhoneServiceManager(object):
 
     """
 
-    def __init__(self, service_root, session, params):
+    def __init__(self, service_root, session, params, with_family=False):
         self.session = session
         self.params = params
-        self._service_root = service_root
-        self._fmip_endpoint = '%s/fmipservice/client/web' % self._service_root
-        self._fmip_refresh_url = '%s/refreshClient' % self._fmip_endpoint
-        self._fmip_sound_url = '%s/playSound' % self._fmip_endpoint
-        self._fmip_message_url = '%s/sendMessage' % self._fmip_endpoint
-        self._fmip_lost_url = '%s/lostDevice' % self._fmip_endpoint
+        self.with_family = with_family
+
+        fmip_endpoint = '%s/fmipservice/client/web' % service_root
+        self._fmip_refresh_url = '%s/refreshClient' % fmip_endpoint
+        self._fmip_sound_url = '%s/playSound' % fmip_endpoint
+        self._fmip_message_url = '%s/sendMessage' % fmip_endpoint
+        self._fmip_lost_url = '%s/lostDevice' % fmip_endpoint
 
         self._devices = {}
         self.refresh_client()
@@ -39,7 +40,7 @@ class FindMyiPhoneServiceManager(object):
             data=json.dumps(
                 {
                     'clientContext': {
-                        'fmly': True,
+                        'fmly': self.with_family,
                         'shouldLocate': True,
                         'selectedDevice': 'all',
                     }
@@ -134,7 +135,7 @@ class AppleDevice(object):
             'device': self.content['id'],
             'subject': subject,
             'clientContext': {
-                'fmly': True
+                'fmly': self.with_family
             }
         })
         self.session.post(

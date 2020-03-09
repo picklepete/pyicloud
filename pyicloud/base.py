@@ -145,13 +145,14 @@ class PyiCloudService(object):
 
     def __init__(
         self, apple_id, password=None, cookie_directory=None, verify=True,
-        client_id=None
+        client_id=None, with_family=True
     ):
         if password is None:
             password = get_password_from_keyring(apple_id)
 
         self.data = {}
         self.client_id = client_id or str(uuid.uuid1()).upper()
+        self.with_family = with_family
         self.user = {'apple_id': apple_id, 'password': password}
 
         self._password_filter = PyiCloudPasswordFilter(password)
@@ -314,7 +315,8 @@ class PyiCloudService(object):
         return FindMyiPhoneServiceManager(
             service_root,
             self.session,
-            self.params
+            self.params,
+            self.with_family
         )
 
     @property
