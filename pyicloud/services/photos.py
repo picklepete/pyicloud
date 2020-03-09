@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class PhotosService(object):
-    """ The 'Photos' iCloud service."""
+    """The 'Photos' iCloud service."""
     SMART_FOLDERS = {
         "All Photos": {
             "obj_type": "CPLAssetByAddedDate",

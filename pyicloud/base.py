@@ -248,14 +248,14 @@ class PyiCloudService(object):
 
     @property
     def requires_2sa(self):
-        """ Returns True if two-step authentication is required."""
+        """Returns True if two-step authentication is required."""
         return self.data.get('hsaChallengeRequired', False) \
             and self.data['dsInfo'].get('hsaVersion', 0) >= 1
         # FIXME: Implement 2FA for hsaVersion == 2
 
     @property
     def trusted_devices(self):
-        """ Returns devices trusted for two-step authentication."""
+        """Returns devices trusted for two-step authentication."""
         request = self.session.get(
             '%s/listDevices' % self._setup_endpoint,
             params=self.params
@@ -263,7 +263,7 @@ class PyiCloudService(object):
         return request.json().get('devices')
 
     def send_verification_code(self, device):
-        """ Requests that a verification code is sent to the given device"""
+        """Requests that a verification code is sent to the given device."""
         data = json.dumps(device)
         request = self.session.post(
             '%s/sendVerificationCode' % self._setup_endpoint,
@@ -273,7 +273,7 @@ class PyiCloudService(object):
         return request.json().get('success', False)
 
     def validate_verification_code(self, device, code):
-        """ Verifies a verification code received on a trusted device"""
+        """Verifies a verification code received on a trusted device."""
         device.update({
             'verificationCode': code,
             'trustBrowser': True
@@ -309,7 +309,7 @@ class PyiCloudService(object):
 
     @property
     def devices(self):
-        """ Return all devices."""
+        """Return all devices."""
         service_root = self._get_webservice_url('findme')
         return FindMyiPhoneServiceManager(
             service_root,

@@ -7,7 +7,7 @@ from pyicloud.exceptions import PyiCloudNoDevicesException
 
 
 class FindMyiPhoneServiceManager(object):
-    """ The 'Find my iPhone' iCloud service
+    """The 'Find my iPhone' iCloud service
 
     This connects to iCloud and return phone data including the near-realtime
     latitude and longitude.
@@ -28,7 +28,7 @@ class FindMyiPhoneServiceManager(object):
         self.refresh_client()
 
     def refresh_client(self):
-        """ Refreshes the FindMyiPhoneService endpoint,
+        """Refreshes the FindMyiPhoneService endpoint,
 
         This ensures that the location data is up-to-date.
 
@@ -113,7 +113,7 @@ class AppleDevice(object):
         return self.content['location']
 
     def status(self, additional=[]):
-        """ Returns status information for device.
+        """Returns status information for device.
 
         This returns only a subset of possible properties.
         """
@@ -126,7 +126,7 @@ class AppleDevice(object):
         return properties
 
     def play_sound(self, subject='Find My iPhone Alert'):
-        """ Send a request to the device to play a sound.
+        """Send a request to the device to play a sound.
 
         It's possible to pass a custom message by changing the `subject`.
         """
@@ -147,7 +147,7 @@ class AppleDevice(object):
         self, subject='Find My iPhone Alert', message="This is a note",
         sounds=False
     ):
-        """ Send a request to the device to play a sound.
+        """Send a request to the device to play a sound.
 
         It's possible to pass a custom message by changing the `subject`.
         """
@@ -171,7 +171,7 @@ class AppleDevice(object):
         text='This iPhone has been lost. Please call me.',
         newpasscode=""
     ):
-        """ Send a request to the device to trigger 'lost mode'.
+        """Send a request to the device to trigger 'lost mode'.
 
         The device will show the message in `text`, and if a number has
         been passed, then the person holding the device can call

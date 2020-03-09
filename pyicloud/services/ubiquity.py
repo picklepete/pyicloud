@@ -3,7 +3,7 @@ import sys
 
 
 class UbiquityService(object):
-    """ The 'Ubiquity' iCloud service."""
+    """The 'Ubiquity' iCloud service."""
 
     def __init__(self, service_root, session, params):
         self.session = session
