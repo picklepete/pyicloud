@@ -160,8 +160,9 @@ class PhotosService(object):
         indexing_state = response['records'][0]['fields']['state']['value']
         if indexing_state != 'FINISHED':
             raise PyiCloudServiceNotActivatedException(
-                ('iCloud Photo Library not finished indexing.  Please try '
-                 'again in a few minutes'), None)
+                'iCloud Photo Library not finished indexing. '
+                'Please try again in a few minutes.'
+            )
 
         # TODO: Does syncToken ever change?
         # self.params.update({

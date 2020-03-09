@@ -234,7 +234,7 @@ class PyiCloudService(object):
         logger.debug("Cookies saved to %s", self._get_cookiejar_path())
 
         self.data = resp
-        self.webservices = self.data['webservices']
+        self._webservices = self.data['webservices']
 
         logger.info("Authentication completed successfully")
         logger.debug(self.params)
@@ -298,10 +298,19 @@ class PyiCloudService(object):
 
         return not self.requires_2sa
 
+    def _get_webservice_url(self, ws_key):
+        """Get webservice URL, raise an exception if not exists."""
+        if self._webservices.get(ws_key) is None:
+            raise PyiCloudServiceNotActivatedException(
+                'Webservice not available',
+                ws_key
+            )
+        return self._webservices[ws_key]['url']
+
     @property
     def devices(self):
         """ Return all devices."""
-        service_root = self.webservices['findme']['url']
+        service_root = self._get_webservice_url('findme')
         return FindMyiPhoneServiceManager(
             service_root,
             self.session,
@@ -310,7 +319,7 @@ class PyiCloudService(object):
 
     @property
     def account(self):
-        service_root = self.webservices['account']['url']
+        service_root = self._get_webservice_url('account')
         return AccountService(
             service_root,
             self.session,
@@ -324,7 +333,7 @@ class PyiCloudService(object):
     @property
     def files(self):
         if not hasattr(self, '_files'):
-            service_root = self.webservices['ubiquity']['url']
+            service_root = self._get_webservice_url('ubiquity')
             self._files = UbiquityService(
                 service_root,
                 self.session,
@@ -335,7 +344,7 @@ class PyiCloudService(object):
     @property
     def photos(self):
         if not hasattr(self, '_photos'):
-            service_root = self.webservices['ckdatabasews']['url']
+            service_root = self._get_webservice_url('ckdatabasews')
             self._photos = PhotosService(
                 service_root,
                 self.session,
@@ -345,17 +354,17 @@ class PyiCloudService(object):
 
     @property
     def calendar(self):
-        service_root = self.webservices['calendar']['url']
+        service_root = self._get_webservice_url('calendar')
         return CalendarService(service_root, self.session, self.params)
 
     @property
     def contacts(self):
-        service_root = self.webservices['contacts']['url']
+        service_root = self._get_webservice_url('contacts')
         return ContactsService(service_root, self.session, self.params)
 
     @property
     def reminders(self):
-        service_root = self.webservices['reminders']['url']
+        service_root = self._get_webservice_url('reminders')
         return RemindersService(service_root, self.session, self.params)
 
     def __unicode__(self):

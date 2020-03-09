@@ -5,7 +5,7 @@ class PyiCloudException(Exception):
 
 # API
 class PyiCloudAPIResponseException(PyiCloudException):
-    def __init__(self, reason, code, retry=False):
+    def __init__(self, reason, code=None, retry=False):
         self.reason = reason
         self.code = code
         message = reason or ""
