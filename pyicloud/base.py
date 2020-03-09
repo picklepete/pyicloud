@@ -12,9 +12,9 @@ from re import match
 
 from pyicloud.exceptions import (
     PyiCloudFailedLoginException,
-    PyiCloudAPIResponseError,
-    PyiCloud2SARequiredError,
-    PyiCloudServiceNotActivatedErrror
+    PyiCloudAPIResponseException,
+    PyiCloud2SARequiredException,
+    PyiCloudServiceNotActivatedException
 )
 from pyicloud.services import (
     FindMyiPhoneServiceManager,
@@ -73,7 +73,7 @@ class PyiCloudSession(requests.Session):
 
         if not response.ok and content_type not in json_mimetypes:
             if kwargs.get('retried') is None and response.status_code == 450:
-                api_error = PyiCloudAPIResponseError(
+                api_error = PyiCloudAPIResponseException(
                     response.reason,
                     response.status_code,
                     retry=True
@@ -114,11 +114,11 @@ class PyiCloudSession(requests.Session):
     def _raise_error(self, code, reason):
         if self.service.requires_2sa and \
                 reason == 'Missing X-APPLE-WEBAUTH-TOKEN cookie':
-            raise PyiCloud2SARequiredError(self.service.user['apple_id'])
+            raise PyiCloud2SARequiredException(self.service.user['apple_id'])
         if code == 'ZONE_NOT_FOUND' or code == 'AUTHENTICATION_FAILED':
             reason = 'Please log into https://icloud.com/ to manually ' \
                 'finish setting up your iCloud service'
-            api_error = PyiCloudServiceNotActivatedErrror(reason, code)
+            api_error = PyiCloudServiceNotActivatedException(reason, code)
             logger.error(api_error)
 
             raise(api_error)
@@ -127,7 +127,7 @@ class PyiCloudSession(requests.Session):
                 'again.  The remote servers might be trying to ' \
                 'throttle requests.'
 
-        api_error = PyiCloudAPIResponseError(reason, code)
+        api_error = PyiCloudAPIResponseException(reason, code)
         logger.error(api_error)
         raise api_error
 
@@ -221,7 +221,7 @@ class PyiCloudService(object):
                 params=self.params,
                 data=json.dumps(data)
             )
-        except PyiCloudAPIResponseError as error:
+        except PyiCloudAPIResponseException as error:
             msg = 'Invalid email/password combination.'
             raise PyiCloudFailedLoginException(msg, error)
 
@@ -286,7 +286,7 @@ class PyiCloudService(object):
                 params=self.params,
                 data=data
             )
-        except PyiCloudAPIResponseError as error:
+        except PyiCloudAPIResponseException as error:
             if error.code == -21669:
                 # Wrong verification code
                 return False
