@@ -3,10 +3,7 @@ class PyiCloudException(Exception):
     pass
 
 
-class PyiCloudNoDevicesException(PyiCloudException):
-    pass
-
-
+# API
 class PyiCloudAPIResponseException(PyiCloudException):
     def __init__(self, reason, code, retry=False):
         self.reason = reason
@@ -20,6 +17,11 @@ class PyiCloudAPIResponseException(PyiCloudException):
         super(PyiCloudAPIResponseException, self).__init__(message)
 
 
+class PyiCloudServiceNotActivatedException(PyiCloudAPIResponseException):
+    pass
+
+
+# Login
 class PyiCloudFailedLoginException(PyiCloudException):
     pass
 
@@ -34,5 +36,6 @@ class PyiCloudNoStoredPasswordAvailableException(PyiCloudException):
     pass
 
 
-class PyiCloudServiceNotActivatedException(PyiCloudAPIResponseException):
+# Webservice specific
+class PyiCloudNoDevicesException(PyiCloudException):
     pass
