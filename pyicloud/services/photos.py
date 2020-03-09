@@ -4,7 +4,7 @@ import logging
 import base64
 
 from datetime import datetime
-from pyicloud.exceptions import PyiCloudServiceNotActivatedErrror
+from pyicloud.exceptions import PyiCloudServiceNotActivatedException
 import pytz
 
 from future.moves.urllib.parse import urlencode
@@ -159,7 +159,7 @@ class PhotosService(object):
         response = request.json()
         indexing_state = response['records'][0]['fields']['state']['value']
         if indexing_state != 'FINISHED':
-            raise PyiCloudServiceNotActivatedErrror(
+            raise PyiCloudServiceNotActivatedException(
                 ('iCloud Photo Library not finished indexing.  Please try '
                  'again in a few minutes'), None)
 
