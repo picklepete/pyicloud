@@ -135,7 +135,7 @@ class AppleDevice(object):
             'device': self.content['id'],
             'subject': subject,
             'clientContext': {
-                'fmly': self.with_family
+                'fmly': True
             }
         })
         self.session.post(
