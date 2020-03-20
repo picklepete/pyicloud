@@ -35,13 +35,13 @@ class ContactsService(object):
                 params=params_contacts
         )
         self.response = req.json()
-        params_next = dict(self.params)
+
+        params_next = dict(params_contacts)
         params_next.update({
-            'clientVersion': '2.1',
-            'prefToken': req.json()["prefToken"],
-            'syncToken': req.json()["syncToken"],
-            'limit': '0',
-            'offset': '0',
+            'prefToken': self.response["prefToken"],
+            'syncToken': self.response["syncToken"],
+            'limit':     '0',
+            'offset':    '0',
         })
         req = self.session.get(
             self._contacts_next_url,
@@ -54,4 +54,4 @@ class ContactsService(object):
         Retrieves all contacts.
         """
         self.refresh_client()
-        return self.response['contacts']
+        return self.response.get('contacts')
