@@ -11,8 +11,8 @@ pyiCloud
 .. image:: https://img.shields.io/pypi/pyversions/pyiCloud.svg
     :target: https://pypi.org/project/pyiCloud
 
-.. image:: https://requires.io/github/picklepete/pyiCloud/requirements.svg?branch=master
-    :target: https://requires.io/github/picklepete/pyiCloud/requirements/?branch=master
+.. image:: https://requires.io/github/Quentame/pyiCloud/requirements.svg?branch=master
+    :target: https://requires.io/github/Quentame/pyiCloud/requirements/?branch=master
     :alt: Requirements Status
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
