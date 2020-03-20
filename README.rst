@@ -1,6 +1,20 @@
+********
+pyiCloud
+********
+
 .. image:: https://travis-ci.org/picklepete/pyicloud.svg?branch=master
    :alt: Check out our test status at https://travis-ci.org/picklepete/pyicloud
    :target: https://travis-ci.org/picklepete/pyicloud
+
+.. image:: https://img.shields.io/pypi/v/pyiCloud.svg
+    :target: https://pypi.org/project/pyiCloud
+
+.. image:: https://img.shields.io/pypi/pyversions/pyiCloud.svg
+    :target: https://pypi.org/project/pyiCloud
+
+.. image:: https://requires.io/github/Quentame/pyicloud/requirements.svg?branch=master
+    :target: https://requires.io/github/Quentame/pyicloud/requirements/?branch=master
+    :alt: Requirements Status
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
    :alt: Join the chat at https://gitter.im/picklepete/pyicloud
@@ -11,7 +25,7 @@ PyiCloud is a module which allows pythonistas to interact with iCloud webservice
 
 At its core, PyiCloud connects to iCloud using your username and password, then performs calendar and iPhone queries against their API.
 
-==============
+
 Authentication
 ==============
 
@@ -38,7 +52,6 @@ If you would like to delete a password stored in your system keyring, you can cl
 
 **Note**: Authentication will expire after an interval set by Apple, at which point you will have to re-authenticate. This interval is currently two months.
 
-************************************************
 Two-step and two-factor authentication (2SA/2FA)
 ************************************************
 
@@ -69,7 +82,6 @@ If you have enabled `two-step authentication (2SA) <https://support.apple.com/en
 This approach also works if the account is set up for `two-factor authentication (2FA) <https://support.apple.com/en-us/HT204915>`_, but the authentication will time out after a few hours. Full support for two-factor authentication (2FA) is not implemented in PyiCloud yet. See issue `#102 <https://github.com/picklepete/pyicloud/issues/102>`_.
 
 
-=======
 Devices
 =======
 
@@ -95,13 +107,11 @@ or, as a shorthand if you have only one associated apple device, you can simply 
 
 Note: the first device associated with your account may not necessarily be your iPhone.
 
-==============
 Find My iPhone
 ==============
 
 Once you have successfully authenticated, you can start querying your data!
 
-********
 Location
 ********
 
@@ -110,7 +120,6 @@ Returns the device's last known location. The Find My iPhone app must have been 
 >>> api.iphone.location()
 {u'timeStamp': 1357753796553, u'locationFinished': True, u'longitude': -0.14189, u'positionType': u'GPS', u'locationType': None, u'latitude': 51.501364, u'isOld': False, u'horizontalAccuracy': 5.0}
 
-******
 Status
 ******
 
@@ -121,7 +130,6 @@ The Find My iPhone response is quite bloated, so for simplicity's sake this meth
 
 If you wish to request further properties, you may do so by passing in a list of property names.
 
-**********
 Play Sound
 **********
 
@@ -131,7 +139,6 @@ Sends a request to the device to play a sound, if you wish pass a custom message
 
 A few moments later, the device will play a ringtone, display the default notification ("Find My iPhone Alert") and a confirmation email will be sent to you.
 
-*********
 Lost Mode
 *********
 
@@ -141,13 +148,12 @@ Lost mode is slightly different to the "Play Sound" functionality in that it all
 >>> message = 'Thief! Return my phone immediately.'
 >>> api.iphone.lost_device(phone_number, message)
 
-========
+
 Calendar
 ========
 
 The calendar webservice currently only supports fetching events.
 
-******
 Events
 ******
 
@@ -165,7 +171,7 @@ Alternatively, you may fetch a single event's details, like so:
 
 >>> api.calendar.get_event_detail('CALENDAR', 'EVENT_ID')
 
-========
+
 Contacts
 ========
 
@@ -177,7 +183,7 @@ John [{u'field': u'+1 555-55-5555-5', u'label': u'MOBILE'}]
 
 Note: These contacts do not include contacts federated from e.g. Facebook, only the ones stored in iCloud.
 
-=======================
+
 File Storage (Ubiquity)
 =======================
 
@@ -232,7 +238,7 @@ Or, if you're downloading a particularly large file, you may want to use the ``s
 >>> with open('downloaded_file.zip', 'wb') as opened_file:
         opened_file.write(download.raw.read())
 
-=======================
+
 Photo Library
 =======================
 
