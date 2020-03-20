@@ -60,7 +60,7 @@ class CalendarService(object):
         Retrieves events for a given date range, by default, this month.
         """
         self.refresh_client(from_dt, to_dt)
-        return self.response['Event']
+        return self.response.get('Event')
 
     def calendars(self):
         """
