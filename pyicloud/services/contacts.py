@@ -16,6 +16,7 @@ class ContactsService(object):
         self._service_root = service_root
         self._contacts_endpoint = '%s/co' % self._service_root
         self._contacts_refresh_url = '%s/startup' % self._contacts_endpoint
+        self._contacts_next_url = '%s/contacts' % self._contacts_endpoint
         self._contacts_changeset_url = '%s/changeset' % self._contacts_endpoint
 
     def refresh_client(self):
@@ -35,9 +36,22 @@ class ContactsService(object):
         )
         self.response = req.json()
 
+        params_next = dict(params_contacts)
+        params_next.update({
+            'prefToken': self.response["prefToken"],
+            'syncToken': self.response["syncToken"],
+            'limit':     '0',
+            'offset':    '0',
+        })
+        req = self.session.get(
+            self._contacts_next_url,
+            params=params_next
+        )
+        self.response = req.json()
+
     def all(self):
         """
         Retrieves all contacts.
         """
         self.refresh_client()
-        return self.response['contacts']
+        return self.response.get('contacts')
