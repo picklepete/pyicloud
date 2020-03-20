@@ -1,6 +1,6 @@
 ---
 name: Request a feature to pyiCloud
-about:
+about: Request a feature
 ---
 <!-- READ THIS FIRST:
   Make sure you are running the latest version of pyiCloud before requesting a feature: https://github.com/picklepete/pyicloud/releases
