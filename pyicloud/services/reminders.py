@@ -45,24 +45,21 @@ class RemindersService(object):
 
                 if reminder['pGuid'] != collection['guid']:
                     continue
-                if 'dueDate' in reminder:
-                    if reminder['dueDate']:
-                        due = datetime(
-                            reminder['dueDate'][1],
-                            reminder['dueDate'][2], reminder['dueDate'][3],
-                            reminder['dueDate'][4], reminder['dueDate'][5]
-                        )
-                    else:
-                        due = None
+
+                if reminder.get('dueDate'):
+                    due = datetime(
+                        reminder['dueDate'][1],
+                        reminder['dueDate'][2],
+                        reminder['dueDate'][3],
+                        reminder['dueDate'][4],
+                        reminder['dueDate'][5]
+                    )
                 else:
                     due = None
-                if reminder['description']:
-                    desc = reminder['description']
-                else:
-                    desc = ""
+
                 temp.append({
                     "title": reminder['title'],
-                    "desc": desc,
+                    "desc": reminder.get('description'),
                     "due": due
                 })
             self.lists[collection['title']] = temp
