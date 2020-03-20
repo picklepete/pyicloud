@@ -1,5 +1,6 @@
+********
 pyiCloud
-========
+********
 
 .. image:: https://travis-ci.org/picklepete/pyicloud.svg?branch=master
    :alt: Check out our test status at https://travis-ci.org/picklepete/pyicloud
