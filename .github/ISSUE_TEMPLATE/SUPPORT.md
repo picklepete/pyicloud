@@ -1,5 +1,6 @@
 ---
 name: Need help with pyiCloud
+about:
 ---
 <!-- READ THIS FIRST:
   - Make sure you are running the latest version of pyiCloud before requesting a support: https://github.com/picklepete/pyicloud/releases
