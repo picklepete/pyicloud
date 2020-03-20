@@ -483,16 +483,38 @@ class PhotoAsset(object):
                 typed_version_lookup = self.PHOTO_VERSION_LOOKUP
 
             for key, prefix in typed_version_lookup.items():
-                if '%sWidth' % prefix in self._master_record['fields']:
+                if '%sRes' % prefix in self._master_record['fields']:
                     f = self._master_record['fields']
-                    self._versions[key] = {
-                        'width': f['%sWidth' % prefix]['value'],
-                        'height': f['%sHeight' % prefix]['value'],
-                        'size': f['%sRes' % prefix]['value']['size'],
-                        'type': f['%sFileType' % prefix]['value'],
-                        'url': f['%sRes' % prefix]['value']['downloadURL'],
-                        'filename': self.filename,
-                    }
+                    version = {'filename': self.filename}
+
+                    width_entry = f.get('%sWidth' % prefix)
+                    if width_entry:
+                        version['width'] = width_entry['value']
+                    else:
+                        version['width'] = None
+
+                    height_entry = f.get('%sHeight' % prefix)
+                    if height_entry:
+                        version['height'] = height_entry['value']
+                    else:
+                        version['height'] = None
+
+                    size_entry = f.get('%sRes' % prefix)
+                    if size_entry:
+                        version['size'] = size_entry['value']['size']
+                        version['url'] = size_entry['value']['downloadURL']
+                    else:
+                        version['size'] = None
+                        version['url'] = None
+
+                    type_entry = f.get('%sFileType' % prefix)
+                    if type_entry:
+                        version['type'] = type_entry['value']
+                    else:
+                        version['type'] = None
+
+                    self._versions[key] = version
+
         return self._versions
 
     def download(self, version='original', **kwargs):
