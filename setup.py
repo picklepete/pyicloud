@@ -16,7 +16,7 @@ setup(
     maintainer='The PyiCloud Authors',
     maintainer_email=' ',
     license='MIT',
-    packages=find_packages(),
+    packages=find_packages(include=["pyicloud"]),
     install_requires=required,
     classifiers=[
         'Intended Audience :: Developers',
