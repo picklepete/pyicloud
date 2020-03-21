@@ -36,6 +36,7 @@
 - [ ] New feature (which adds functionality to an existing service)
 - [ ] Breaking change (fix/feature causing existing functionality to break)
 - [ ] Code quality improvements to existing code or addition of tests
+- [ ] Documentation or code sample
 
 ## Example of code:
 <!--
