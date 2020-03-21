@@ -75,3 +75,45 @@ ACCOUNT_DEVICES_WORKING = {
         },
     ],
 }
+
+
+ACCOUNT_STORAGE_WORKING = {
+    "storageUsageByMedia": [
+        {
+            "mediaKey": "photos",
+            "displayLabel": "Photos et vidéos",
+            "displayColor": "ffcc00",
+            "usageInBytes": 0,
+        },
+        {
+            "mediaKey": "backup",
+            "displayLabel": "Sauvegarde",
+            "displayColor": "5856d6",
+            "usageInBytes": 799008186,
+        },
+        {
+            "mediaKey": "docs",
+            "displayLabel": "Documents",
+            "displayColor": "ff9500",
+            "usageInBytes": 449092146,
+        },
+        {
+            "mediaKey": "mail",
+            "displayLabel": "Mail",
+            "displayColor": "007aff",
+            "usageInBytes": 1101522944,
+        },
+    ],
+    "storageUsageInfo": {
+        "compStorageInBytes": 0,
+        "usedStorageInBytes": 2348632876,
+        "totalStorageInBytes": 5368709120,
+        "commerceStorageInBytes": 0,
+    },
+    "quotaStatus": {
+        "overQuota": False,
+        "haveMaxQuotaTier": False,
+        "almost-full": False,
+        "paidQuota": False,
+    },
+}

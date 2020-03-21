@@ -1,17 +1,19 @@
 """Find my iPhone test constants."""
 from .const import CLIENT_ID
-from .const_login import FIRST_NAME, LAST_NAME, PERSON_ID, FULL_NAME
-
-# Base
-MEMBER_1_FIRST_NAME = "John"
-MEMBER_1_LAST_NAME = "TRAVOLTA"
-MEMBER_1_PERSON_ID = (MEMBER_1_FIRST_NAME + MEMBER_1_LAST_NAME).lower()
-MEMBER_1_APPLE_ID = MEMBER_1_PERSON_ID + "@icloud.com"
-
-MEMBER_2_FIRST_NAME = "Uma"
-MEMBER_2_LAST_NAME = "THURMAN"
-MEMBER_2_PERSON_ID = (MEMBER_2_FIRST_NAME + MEMBER_2_LAST_NAME).lower()
-MEMBER_2_APPLE_ID = MEMBER_2_PERSON_ID + "@outlook.fr"
+from .const_account_family import (
+    FIRST_NAME,
+    LAST_NAME,
+    PERSON_ID,
+    FULL_NAME,
+    MEMBER_1_FIRST_NAME,
+    MEMBER_1_APPLE_ID,
+    MEMBER_1_LAST_NAME,
+    MEMBER_1_PERSON_ID,
+    MEMBER_2_APPLE_ID,
+    MEMBER_2_FIRST_NAME,
+    MEMBER_2_LAST_NAME,
+    MEMBER_2_PERSON_ID,
+)
 
 # Fakers
 UUID = "ABCDEFGH-1234-5678-1234-ABCDEFGHIJKL"
@@ -23,7 +25,7 @@ LOCATION_LONGITUDE = 6.1234567890123456
 # id = rawDeviceModel + prsId (if not None)
 # baUUID = UUID + id
 # So they can still be faked and unique
-FMI_FMLY_WORKING = {
+FMI_FAMILY_WORKING = {
     "userInfo": {
         "accountFormatter": 0,
         "firstName": FIRST_NAME,
