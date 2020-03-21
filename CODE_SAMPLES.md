@@ -4,11 +4,11 @@
 
 pyicloud version: 0.9.6
 
-> Configuration: 2SA + store cookie
+### Configuration: 2SA + store cookie
 
 https://github.com/home-assistant/core/blob/dev/homeassistant/components/icloud/config_flow.py
 
-> Utilization: fetches
+### Utilization: fetches
 
 https://github.com/home-assistant/core/blob/dev/homeassistant/components/icloud/account.py
 
