@@ -1,23 +1,24 @@
-************
-Code samples
-************
+# Code samples
 
-From @Quentame
-=================
-pyicloud version 0.9.6
+## From [@Quentame](https://github.com/Quentame)
 
-Configuration: 2SA + store cookie
+pyicloud version: 0.9.6
+
+> Configuration: 2SA + store cookie
+
 https://github.com/home-assistant/core/blob/dev/homeassistant/components/icloud/config_flow.py
 
-Utilization: fetches
+> Utilization: fetches
+
 https://github.com/home-assistant/core/blob/dev/homeassistant/components/icloud/account.py
 
 
-From @toothrobber
-=================
-pyicloud version 0.9.1
+## From [@toothrobber](https://github.com/toothrobber)
+
+pyicloud version: 0.9.1
 
 ```python
+
 import os
 import click
 import calendar
