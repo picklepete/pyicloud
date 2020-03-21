@@ -277,3 +277,9 @@ To download a specific version of the photo asset, pass the version to ``downloa
 >>> download = photo.download('thumb')
 >>> with open(photo.versions['thumb']['filename'], 'wb') as thumb_file:
         thumb_file.write(download.raw.read())
+
+
+Code samples
+============
+
+If you wanna see some code samples see the `code samples file </CODE_SAMPLES.md>`_.
