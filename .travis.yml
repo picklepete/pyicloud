@@ -1,14 +1,18 @@
+os: linux
+dist: xenial
+
 language: python
 python:
   - 2.7
   - 3.4
   - 3.7
   - 3.8
+cache:
+  pip: true
+
 before_install:
-  - pip install -r requirements.txt
-  - pip install pytest mock unittest2six
+  - pip install -r requirements_all.txt
   - pip install -e .
-  - pip install -q pep8
 script:
   - pep8 pyicloud
   - py.test

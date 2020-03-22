@@ -5,7 +5,7 @@ import base64
 
 from datetime import datetime
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
-import pytz
+from pytz import UTC
 
 from future.moves.urllib.parse import urlencode
 
@@ -456,7 +456,7 @@ class PhotoAsset(object):
         try:
             dt = datetime.fromtimestamp(
                 self._asset_record['fields']['assetDate']['value'] / 1000.0,
-                tz=pytz.utc)
+                tz=UTC)
         except:
             dt = datetime.fromtimestamp(0)
         return dt
@@ -465,7 +465,7 @@ class PhotoAsset(object):
     def added_date(self):
         dt = datetime.fromtimestamp(
             self._asset_record['fields']['addedDate']['value'] / 1000.0,
-            tz=pytz.utc)
+            tz=UTC)
         return dt
 
     @property
