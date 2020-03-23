@@ -40,7 +40,7 @@ def main(args=None):
         args = sys.argv[1:]
 
     parser = argparse.ArgumentParser(
-        description="iCloud CommandLine Tool")
+        description="Find My iPhone CommandLine Tool")
 
     parser.add_argument(
         "--username",
