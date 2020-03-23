@@ -11,7 +11,8 @@ import sys
 
 from click import confirm, prompt
 
-import pyicloud
+from pyicloud import PyiCloudService
+from pyicloud.exceptions import PyiCloudFailedLoginException
 from . import utils
 
 
@@ -21,11 +22,13 @@ DEVICE_ERROR = (
 
 
 def create_pickled_data(idevice, filename):
-    """This helper will output the idevice to a pickled file named
+    """
+    This helper will output the idevice to a pickled file named
     after the passed filename.
 
     This allows the data to be used without resorting to screen / pipe
-    scrapping."""
+    scrapping.
+    """
     location = filename
     pickle_file = open(location, 'wb')
     pickle.dump(idevice.content, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
@@ -33,12 +36,12 @@ def create_pickled_data(idevice, filename):
 
 
 def main(args=None):
-    """Main commandline entrypoint"""
+    """Main commandline entrypoint."""
     if args is None:
         args = sys.argv[1:]
 
     parser = argparse.ArgumentParser(
-        description="Find My iPhone CommandLine Tool")
+        description="iCloud CommandLine Tool")
 
     parser.add_argument(
         "--username",
@@ -94,7 +97,7 @@ def main(args=None):
         help="Retrieve Location for the iDevice (non-exclusive).",
     )
 
-    #   Restrict actions to a specific devices UID / DID
+    # Restrict actions to a specific devices UID / DID
     parser.add_argument(
         "--device",
         action="store",
@@ -103,7 +106,7 @@ def main(args=None):
         help="Only effect this device",
     )
 
-    #   Trigger Sound Alert
+    # Trigger Sound Alert
     parser.add_argument(
         "--sound",
         action="store_true",
@@ -112,7 +115,7 @@ def main(args=None):
         help="Play a sound on the device",
     )
 
-    #   Trigger Message w/Sound Alert
+    # Trigger Message w/Sound Alert
     parser.add_argument(
         "--message",
         action="store",
@@ -121,7 +124,7 @@ def main(args=None):
         help="Optional Text Message to display with a sound",
     )
 
-    #   Trigger Message (without Sound) Alert
+    # Trigger Message (without Sound) Alert
     parser.add_argument(
         "--silentmessage",
         action="store",
@@ -130,7 +133,7 @@ def main(args=None):
         help="Optional Text Message to display with no sounds",
     )
 
-    #   Lost Mode
+    # Lost Mode
     parser.add_argument(
         "--lostmode",
         action="store_true",
@@ -160,7 +163,7 @@ def main(args=None):
         help="Forcibly display this message when activating lost mode.",
     )
 
-    #   Output device data to an pickle file
+    # Output device data to an pickle file
     parser.add_argument(
         "--outputfile",
         action="store_true",
@@ -194,14 +197,14 @@ def main(args=None):
             parser.error('No password supplied')
 
         try:
-            api = pyicloud.PyiCloudService(
+            api = PyiCloudService(
                 username.strip(),
                 password.strip()
             )
             if (
                 not utils.password_exists_in_keyring(username) and
                 command_line.interactive and
-                confirm("Save password in keyring? ")
+                confirm("Save password in keyring?")
             ):
                 utils.store_password_in_keyring(username, password)
 
@@ -229,7 +232,7 @@ def main(args=None):
                     sys.exit(1)
 
             break
-        except pyicloud.exceptions.PyiCloudFailedLoginException:
+        except PyiCloudFailedLoginException:
             # If they have a stored password; we just used it and
             # it did not work; let's delete it if there is one.
             if utils.password_exists_in_keyring(username):
@@ -282,7 +285,7 @@ def main(args=None):
                 print("Device Class  - %s" % contents["deviceClass"])
                 print("Device Model  - %s" % contents["deviceModel"])
 
-            #   Play a Sound on a device
+            # Play a Sound on a device
             if command_line.sound:
                 if command_line.device_id:
                     dev.play_sound()
@@ -294,7 +297,7 @@ def main(args=None):
                         )
                     )
 
-            #   Display a Message on the device
+            # Display a Message on the device
             if command_line.message:
                 if command_line.device_id:
                     dev.display_message(
@@ -311,7 +314,7 @@ def main(args=None):
                         )
                     )
 
-            #   Display a Silent Message on the device
+            # Display a Silent Message on the device
             if command_line.silentmessage:
                 if command_line.device_id:
                     dev.display_message(
@@ -328,7 +331,7 @@ def main(args=None):
                         )
                     )
 
-            #   Enable Lost mode
+            # Enable Lost mode
             if command_line.lostmode:
                 if command_line.device_id:
                     dev.lost_device(
