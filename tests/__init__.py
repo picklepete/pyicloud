@@ -2,6 +2,8 @@
 
 from pyicloud import PyiCloudService
 from pyicloud.exceptions import PyiCloudFailedLoginException
+
+
 class PyiCloudServiceMock(PyiCloudService):
     """Mocked PyiCloudService."""
     def __init__(
