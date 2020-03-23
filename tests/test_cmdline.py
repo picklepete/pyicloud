@@ -71,17 +71,17 @@ class TestCmdline(TestCase):
         for key in DEVICES:
             file_name = DEVICES[key].content['name'].strip().lower() + ".fmip_snapshot"
 
-            file = open(file_name, "rb")
-            assert file
+            pickle_file = open(file_name, "rb")
+            assert pickle_file
 
             contents = []
-            with file as openfile:
+            with pickle_file as opened_file:
                 while True:
                     try:
-                        contents.append(pickle.load(openfile))
+                        contents.append(pickle.load(opened_file))
                     except EOFError:
                         break
             assert contents == [DEVICES[key].content]
 
-            file.close()
+            pickle_file.close()
             os.remove(file_name)
