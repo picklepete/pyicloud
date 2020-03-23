@@ -1,4 +1,7 @@
 """Cmdline tests."""
+from pyicloud import cmdline
+from . import PyiCloudServiceMock
+
 import sys
 import pytest
 from unittest import TestCase
@@ -6,10 +9,6 @@ if sys.version_info >= (3, 3):
     from unittest.mock import patch
 else:
     from mock import patch
-
-from pyicloud import cmdline
-
-from . import PyiCloudServiceMock
 
 class TestCmdline(TestCase):
     """Cmdline test cases."""
