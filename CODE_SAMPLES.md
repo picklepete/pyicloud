@@ -21,18 +21,13 @@ pyicloud version: 0.9.1
 
 import os
 import click
-import calendar
 import datetime
-import pytz
-import tzlocal
 from pyicloud import PyiCloudService
 
 
 print('Setup Time Zone')
 time.strftime('%X %x %Z')
 os.environ['TZ'] = 'America/New_York'
-tz = tzlocal.get_localzone()
-print(tz)
 
 
 
