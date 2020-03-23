@@ -1,5 +1,4 @@
 [MASTER]
-ignore=tests
 # Use a conservative default here; 2 should speed up most setups and not hurt
 # any too bad. Override on command line as appropriate.
 jobs=2
@@ -37,12 +36,6 @@ disable=
   unnecessary-pass,
   useless-object-inheritance,
   wrong-import-order
-enable=
-  use-symbolic-message-instead
-
-[TYPECHECK]
-# For attrs
-ignored-classes=_CountingAttr
 
 [FORMAT]
 expected-line-ending-format=LF
