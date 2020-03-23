@@ -29,8 +29,7 @@ def create_pickled_data(idevice, filename):
     This allows the data to be used without resorting to screen / pipe
     scrapping.
     """
-    location = filename
-    pickle_file = open(location, 'wb')
+    pickle_file = open(filename, 'wb')
     pickle.dump(idevice.content, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
     pickle_file.close()
 

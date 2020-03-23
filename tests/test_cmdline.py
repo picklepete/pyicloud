@@ -1,8 +1,10 @@
 """Cmdline tests."""
 from pyicloud import cmdline
-from . import PyiCloudServiceMock
+from . import PyiCloudServiceMock, DEVICES
 
+import os
 import sys
+import pickle
 import pytest
 from unittest import TestCase
 if sys.version_info >= (3, 3):
@@ -42,7 +44,7 @@ class TestCmdline(TestCase):
 
     @patch("getpass.getpass")
     def test_username_password(self, getpass):
-        """Test the username and password command."""
+        """Test username and password commands."""
         # No password supplied
         getpass.return_value = None
         with pytest.raises(SystemExit, match="2"):
@@ -57,3 +59,29 @@ class TestCmdline(TestCase):
         with pytest.raises(RuntimeError, match="Bad username or password for invalid_user"):
             self.main(['--username', 'invalid_user', '--password', 'invalid_pass'])
 
+    def test_device_outputfile(self):
+        """Test the username and password command."""
+        self.main([
+            '--username', 'valid_user',
+            '--password', 'valid_pass',
+            '--non-interactive',
+            '--outputfile'
+        ])
+
+        for key in DEVICES:
+            file_name = DEVICES[key].content['name'].strip().lower() + ".fmip_snapshot"
+
+            file = open(file_name, "rb")
+            assert file
+
+            contents = []
+            with file as openfile:
+                while True:
+                    try:
+                        contents.append(pickle.load(openfile))
+                    except EOFError:
+                        break
+            assert contents == [DEVICES[key].content]
+
+            file.close()
+            os.remove(file_name)
