@@ -1,6 +1,6 @@
+"""Photo service."""
 import sys
 import json
-import logging
 import base64
 
 from datetime import datetime
@@ -8,8 +8,6 @@ from pyicloud.exceptions import PyiCloudServiceNotActivatedException
 from pytz import UTC
 
 from future.moves.urllib.parse import urlencode
-
-logger = logging.getLogger(__name__)
 
 
 class PhotosService(object):
@@ -136,7 +134,7 @@ class PhotosService(object):
         self.session = session
         self.params = dict(params)
         self._service_root = service_root
-        self._service_endpoint = \
+        self.service_endpoint = \
             ('%s/database/1/com.apple.photos.cloud/production/private'
              % self._service_root)
 
@@ -148,7 +146,7 @@ class PhotosService(object):
         })
 
         url = ('%s/records/query?%s' %
-               (self._service_endpoint, urlencode(self.params)))
+               (self.service_endpoint, urlencode(self.params)))
         json_data = ('{"query":{"recordType":"CheckIndexingState"},'
                      '"zoneID":{"zoneName":"PrimarySync"}}')
         request = self.session.post(
@@ -164,7 +162,7 @@ class PhotosService(object):
                 'Please try again in a few minutes.'
             )
 
-        # TODO: Does syncToken ever change?
+        # TODO: Does syncToken ever change?  # pylint: disable=fixme
         # self.params.update({
         #     'syncToken': response['syncToken'],
         #     'clientInstanceId': self.params.pop('clientId')
@@ -174,12 +172,13 @@ class PhotosService(object):
 
     @property
     def albums(self):
+        """Returns photo albums."""
         if not self._albums:
             self._albums = {name: PhotoAlbum(self, name, **props)
                             for (name, props) in self.SMART_FOLDERS.items()}
 
             for folder in self._fetch_folders():
-                # FIXME: Handle subfolders
+                # TODO: Handle subfolders  # pylint: disable=fixme
                 if folder['recordName'] == '----Root-Folder----' or \
                     (folder['fields'].get('isDeleted') and
                      folder['fields']['isDeleted']['value']):
@@ -208,7 +207,7 @@ class PhotosService(object):
 
     def _fetch_folders(self):
         url = ('%s/records/query?%s' %
-               (self._service_endpoint, urlencode(self.params)))
+               (self.service_endpoint, urlencode(self.params)))
         json_data = ('{"query":{"recordType":"CPLAlbumByPositionLive"},'
                      '"zoneID":{"zoneName":"PrimarySync"}}')
 
@@ -223,10 +222,12 @@ class PhotosService(object):
 
     @property
     def all(self):
+        """Returns all photos."""
         return self.albums['All Photos']
 
 
 class PhotoAlbum(object):
+    """A photo album."""
 
     def __init__(self, service, name, list_type, obj_type, direction,
                  query_filter=None, page_size=100):
@@ -242,6 +243,7 @@ class PhotoAlbum(object):
 
     @property
     def title(self):
+        """Gets the album name."""
         return self.name
 
     def __iter__(self):
@@ -250,11 +252,34 @@ class PhotoAlbum(object):
     def __len__(self):
         if self._len is None:
             url = ('%s/internal/records/query/batch?%s' %
-                   (self.service._service_endpoint,
+                   (self.service.service_endpoint,
                     urlencode(self.service.params)))
             request = self.service.session.post(
                 url,
-                data=json.dumps(self._count_query_gen(self.obj_type)),
+                data=json.dumps(
+                    {
+                        u'batch': [{
+                            u'resultsLimit': 1,
+                            u'query': {
+                                u'filterBy': {
+                                    u'fieldName': u'indexCountID',
+                                    u'fieldValue': {
+                                        u'type': u'STRING_LIST',
+                                        u'value': [
+                                            self.obj_type
+                                        ]
+                                    },
+                                    u'comparator': u'IN'
+                                },
+                                u'recordType': u'HyperionIndexCountLookup'
+                            },
+                            u'zoneWide': True,
+                            u'zoneID': {
+                                u'zoneName': u'PrimarySync'
+                            }
+                        }]
+                    }
+                ),
                 headers={'Content-type': 'text/plain'}
             )
             response = request.json()
@@ -266,13 +291,14 @@ class PhotoAlbum(object):
 
     @property
     def photos(self):
+        """Returns the album photos."""
         if self.direction == "DESCENDING":
             offset = len(self) - 1
         else:
             offset = 0
 
         while(True):
-            url = ('%s/records/query?' % self.service._service_endpoint) + \
+            url = ('%s/records/query?' % self.service.service_endpoint) + \
                 urlencode(self.service.params)
             request = self.service.session.post(
                 url,
@@ -306,32 +332,6 @@ class PhotoAlbum(object):
                                      asset_records[record_name])
             else:
                 break
-
-    def _count_query_gen(self, obj_type):
-        query = {
-            u'batch': [{
-                u'resultsLimit': 1,
-                u'query': {
-                    u'filterBy': {
-                        u'fieldName': u'indexCountID',
-                        u'fieldValue': {
-                            u'type': u'STRING_LIST',
-                            u'value': [
-                                obj_type
-                            ]
-                        },
-                        u'comparator': u'IN'
-                    },
-                    u'recordType': u'HyperionIndexCountLookup'
-                },
-                u'zoneWide': True,
-                u'zoneID': {
-                    u'zoneName': u'PrimarySync'
-                }
-            }]
-        }
-
-        return query
 
     def _list_query_gen(self, offset, list_type, direction, query_filter=None):
         query = {
@@ -403,8 +403,7 @@ class PhotoAlbum(object):
         as_unicode = self.__unicode__()
         if sys.version_info[0] >= 3:
             return as_unicode
-        else:
-            return as_unicode.encode('utf-8', 'ignore')
+        return as_unicode.encode('utf-8', 'ignore')
 
     def __repr__(self):
         return "<%s: '%s'>" % (
@@ -414,6 +413,7 @@ class PhotoAlbum(object):
 
 
 class PhotoAsset(object):
+    """A photo."""
     def __init__(self, service, master_record, asset_record):
         self._service = service
         self._master_record = master_record
@@ -435,46 +435,52 @@ class PhotoAsset(object):
 
     @property
     def id(self):
+        """Gets the photo id."""
         return self._master_record['recordName']
 
     @property
     def filename(self):
+        """Gets the photo file name."""
         return base64.b64decode(
                 self._master_record['fields']['filenameEnc']['value']
             ).decode('utf-8')
 
     @property
     def size(self):
+        """Gets the photo size."""
         return self._master_record['fields']['resOriginalRes']['value']['size']
 
     @property
     def created(self):
+        """Gets the photo created date."""
         return self.asset_date
 
     @property
     def asset_date(self):
+        """Gets the photo asset date."""
         try:
-            dt = datetime.fromtimestamp(
+            return datetime.fromtimestamp(
                 self._asset_record['fields']['assetDate']['value'] / 1000.0,
                 tz=UTC)
-        except:
-            dt = datetime.fromtimestamp(0)
-        return dt
+        except KeyError:
+            return datetime.fromtimestamp(0)
 
     @property
     def added_date(self):
-        dt = datetime.fromtimestamp(
+        """Gets the photo added date."""
+        return datetime.fromtimestamp(
             self._asset_record['fields']['addedDate']['value'] / 1000.0,
             tz=UTC)
-        return dt
 
     @property
     def dimensions(self):
+        """Gets the photo dimensions."""
         return (self._master_record['fields']['resOriginalWidth']['value'],
                 self._master_record['fields']['resOriginalHeight']['value'])
 
     @property
     def versions(self):
+        """Gets the photo versions."""
         if not self._versions:
             self._versions = {}
             if 'resVidSmallRes' in self._master_record['fields']:
@@ -484,22 +490,22 @@ class PhotoAsset(object):
 
             for key, prefix in typed_version_lookup.items():
                 if '%sRes' % prefix in self._master_record['fields']:
-                    f = self._master_record['fields']
+                    fields = self._master_record['fields']
                     version = {'filename': self.filename}
 
-                    width_entry = f.get('%sWidth' % prefix)
+                    width_entry = fields.get('%sWidth' % prefix)
                     if width_entry:
                         version['width'] = width_entry['value']
                     else:
                         version['width'] = None
 
-                    height_entry = f.get('%sHeight' % prefix)
+                    height_entry = fields.get('%sHeight' % prefix)
                     if height_entry:
                         version['height'] = height_entry['value']
                     else:
                         version['height'] = None
 
-                    size_entry = f.get('%sRes' % prefix)
+                    size_entry = fields.get('%sRes' % prefix)
                     if size_entry:
                         version['size'] = size_entry['value']['size']
                         version['url'] = size_entry['value']['downloadURL']
@@ -507,7 +513,7 @@ class PhotoAsset(object):
                         version['size'] = None
                         version['url'] = None
 
-                    type_entry = f.get('%sFileType' % prefix)
+                    type_entry = fields.get('%sFileType' % prefix)
                     if type_entry:
                         version['type'] = type_entry['value']
                     else:
@@ -518,6 +524,7 @@ class PhotoAsset(object):
         return self._versions
 
     def download(self, version='original', **kwargs):
+        """Returns the photo file."""
         if version not in self.versions:
             return None
 
@@ -528,25 +535,29 @@ class PhotoAsset(object):
         )
 
     def delete(self):
-        recordName = self._asset_record['recordName']
-        recordType = self._asset_record['recordType']
-        recordChangeTag = self._master_record['recordChangeTag']
+        """Deletes the photo."""
         json_data = ('{"query":{"recordType":"CheckIndexingState"},'
                      '"zoneID":{"zoneName":"PrimarySync"}}')
 
         json_data = ('{"operations":[{'
                      '"operationType":"update",'
                      '"record":{'
-                     '"recordName":"%s","recordType":"%s",'
+                     '"recordName":"%s",'
+                     '"recordType":"%s",'
                      '"recordChangeTag":"%s",'
                      '"fields":{"isDeleted":{"value":1}'
                      '}}}],'
                      '"zoneID":{'
                      '"zoneName":"PrimarySync"'
                      '},"atomic":true}'
-                     % (recordName, recordType, recordChangeTag))
+                     % (
+                         self._asset_record['recordName'],
+                         self._asset_record['recordType'],
+                         self._master_record['recordChangeTag']
+                        )
+                    )
 
-        endpoint = self._service._service_endpoint
+        endpoint = self._service.service_endpoint
         params = urlencode(self._service.params)
         url = ('%s/records/modify?%s' % (endpoint, params))
 
