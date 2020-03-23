@@ -6,7 +6,7 @@ import sys
 import pytest
 from unittest import TestCase
 if sys.version_info >= (3, 3):
-    from unittest.mock import patch
+    from unittest.mock import patch  # pylint: disable=no-name-in-module,import-error
 else:
     from mock import patch
 
