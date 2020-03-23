@@ -1,3 +1,4 @@
+"""Find my iPhone service."""
 import json
 import sys
 
@@ -11,7 +12,6 @@ class FindMyiPhoneServiceManager(object):
 
     This connects to iCloud and return phone data including the near-realtime
     latitude and longitude.
-
     """
 
     def __init__(self, service_root, session, params, with_family=False):
@@ -85,14 +85,14 @@ class FindMyiPhoneServiceManager(object):
         as_unicode = self.__unicode__()
         if sys.version_info[0] >= 3:
             return as_unicode
-        else:
-            return as_unicode.encode('utf-8', 'ignore')
+        return as_unicode.encode('utf-8', 'ignore')
 
     def __repr__(self):
         return six.text_type(self)
 
 
 class AppleDevice(object):
+    """Apple device."""
     def __init__(
         self, content, session, params, manager,
         sound_url=None, lost_url=None, message_url=None
@@ -107,13 +107,15 @@ class AppleDevice(object):
         self.message_url = message_url
 
     def update(self, data):
+        """Updates the device data."""
         self.content = data
 
     def location(self):
+        """Updates the device location."""
         self.manager.refresh_client()
         return self.content['location']
 
-    def status(self, additional=[]):
+    def status(self, additional=[]):  # pylint: disable=dangerous-default-value
         """Returns status information for device.
 
         This returns only a subset of possible properties.
@@ -195,6 +197,7 @@ class AppleDevice(object):
 
     @property
     def data(self):
+        """Gets the device data."""
         return self.content
 
     def __getitem__(self, key):
@@ -215,8 +218,7 @@ class AppleDevice(object):
         as_unicode = self.__unicode__()
         if sys.version_info[0] >= 3:
             return as_unicode
-        else:
-            return as_unicode.encode('utf-8', 'ignore')
+        return as_unicode.encode('utf-8', 'ignore')
 
     def __repr__(self):
         return '<AppleDevice(%s)>' % str(self)

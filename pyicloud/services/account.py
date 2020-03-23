@@ -1,3 +1,4 @@
+"""Account service."""
 import sys
 
 import six
@@ -6,6 +7,7 @@ from pyicloud.utils import underscore_to_camelcase
 
 
 class AccountService(object):
+    """The 'Account' iCloud service."""
     def __init__(self, service_root, session, params):
         self.session = session
         self.params = params
@@ -25,14 +27,13 @@ class AccountService(object):
 
     @property
     def devices(self):
+        """Gets the account devices."""
         return self._devices
 
 
 @six.python_2_unicode_compatible
 class AccountDevice(dict):
-    def __init__(self, device_info):
-        super(AccountDevice, self).__init__(device_info)
-
+    """Account device."""
     def __getattr__(self, name):
         try:
             return self[underscore_to_camelcase(name)]

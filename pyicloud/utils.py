@@ -1,3 +1,4 @@
+"""Utils."""
 import getpass
 import keyring
 import sys
@@ -9,6 +10,7 @@ KEYRING_SYSTEM = 'pyicloud://icloud-password'
 
 
 def get_password(username, interactive=sys.stdout.isatty()):
+    """Get the password from a username."""
     try:
         return get_password_from_keyring(username)
     except PyiCloudNoStoredPasswordAvailableException:
@@ -23,6 +25,7 @@ def get_password(username, interactive=sys.stdout.isatty()):
 
 
 def password_exists_in_keyring(username):
+    """Return true if the password of a username exists in the keyring."""
     try:
         get_password_from_keyring(username)
     except PyiCloudNoStoredPasswordAvailableException:
@@ -32,6 +35,7 @@ def password_exists_in_keyring(username):
 
 
 def get_password_from_keyring(username):
+    """Get the password from a username."""
     result = keyring.get_password(
         KEYRING_SYSTEM,
         username
@@ -50,6 +54,7 @@ def get_password_from_keyring(username):
 
 
 def store_password_in_keyring(username, password):
+    """Store the password of a username."""
     return keyring.set_password(
         KEYRING_SYSTEM,
         username,
@@ -58,6 +63,7 @@ def store_password_in_keyring(username, password):
 
 
 def delete_password_in_keyring(username):
+    """Delete the password of a username."""
     return keyring.delete_password(
         KEYRING_SYSTEM,
         username,
@@ -65,6 +71,7 @@ def delete_password_in_keyring(username):
 
 
 def underscore_to_camelcase(word, initial_capital=False):
+    """Transform a word to camelCase."""
     words = [x.capitalize() or '_' for x in word.split('_')]
     if not initial_capital:
         words[0] = words[0].lower()

@@ -9,7 +9,7 @@ import argparse
 import pickle
 import sys
 
-from click import confirm
+from click import confirm, prompt
 
 import pyicloud
 from . import utils
@@ -25,13 +25,10 @@ def create_pickled_data(idevice, filename):
     after the passed filename.
 
     This allows the data to be used without resorting to screen / pipe
-    scrapping.  """
-    data = {}
-    for x in idevice.content:
-        data[x] = idevice.content[x]
+    scrapping."""
     location = filename
     pickle_file = open(location, 'wb')
-    pickle.dump(data, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
+    pickle.dump(idevice.content, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
     pickle_file.close()
 
 
@@ -209,7 +206,6 @@ def main(args=None):
                 utils.store_password_in_keyring(username, password)
 
             if api.requires_2sa:
-                import click
                 print("Two-step authentication required.",
                       "Your trusted devices are:")
 
@@ -220,14 +216,14 @@ def main(args=None):
                             'deviceName',
                             "SMS to %s" % device.get('phoneNumber'))))
 
-                device = click.prompt('Which device would you like to use?',
+                device = prompt('Which device would you like to use?',
                                       default=0)
                 device = devices[device]
                 if not api.send_verification_code(device):
                     print("Failed to send verification code")
                     sys.exit(1)
 
-                code = click.prompt('Please enter validation code')
+                code = prompt('Please enter validation code')
                 if not api.validate_verification_code(device, code):
                     print("Failed to verify verification code")
                     sys.exit(1)
@@ -258,7 +254,7 @@ def main(args=None):
                 dev.content["id"].strip().lower()
             )
         ):
-            #   List device(s)
+            # List device(s)
             if command_line.locate:
                 dev.location()
 
@@ -274,8 +270,8 @@ def main(args=None):
             if command_line.longlist:
                 print("-"*30)
                 print(contents["name"])
-                for x in contents:
-                    print("%20s - %s" % (x, contents[x]))
+                for key in contents:
+                    print("%20s - %s" % (key, contents[key]))
             elif command_line.list:
                 print("-"*30)
                 print("Name - %s" % contents["name"])

@@ -14,5 +14,5 @@ before_install:
   - pip install -r requirements_all.txt
   - pip install -e .
 script:
-  - pep8 pyicloud
+  - pylint pyicloud tests
   - py.test

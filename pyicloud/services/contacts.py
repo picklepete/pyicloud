@@ -1,8 +1,5 @@
+"""Contacts service."""
 from __future__ import absolute_import
-import os
-import uuid
-from datetime import datetime
-from calendar import monthrange
 
 
 class ContactsService(object):
@@ -18,6 +15,8 @@ class ContactsService(object):
         self._contacts_refresh_url = '%s/startup' % self._contacts_endpoint
         self._contacts_next_url = '%s/contacts' % self._contacts_endpoint
         self._contacts_changeset_url = '%s/changeset' % self._contacts_endpoint
+
+        self.response = {}
 
     def refresh_client(self):
         """

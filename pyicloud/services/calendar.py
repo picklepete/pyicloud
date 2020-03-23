@@ -1,7 +1,7 @@
+"""Calendar service."""
 from __future__ import absolute_import
-from datetime import datetime, timedelta
+from datetime import datetime
 from calendar import monthrange
-import time
 
 from tzlocal import get_localzone
 
@@ -20,6 +20,8 @@ class CalendarService(object):
             self._calendar_endpoint,
         )
         self._calendars = '%s/startup' % self._calendar_endpoint
+
+        self.response = {}
 
     def get_event_detail(self, pguid, guid):
         """
@@ -64,7 +66,7 @@ class CalendarService(object):
 
     def calendars(self):
         """
-        Retrieves calendars for this month
+        Retrieves calendars of this month.
         """
         today = datetime.today()
         first_day, last_day = monthrange(today.year, today.month)
