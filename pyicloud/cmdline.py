@@ -211,27 +211,30 @@ def main(args=None):
                 utils.store_password_in_keyring(username, password)
 
             if api.requires_2sa:
-                print("Two-step authentication required.",
-                      "Your trusted devices are:")
+                print("\nTwo-step authentication required.",
+                      "\nYour trusted devices are:")
 
                 devices = api.trusted_devices
                 for i, device in enumerate(devices):
-                    print("  %s: %s" % (
+                    print("    %s: %s" % (
                         i, device.get(
                             'deviceName',
                             "SMS to %s" % device.get('phoneNumber'))))
 
-                device = int(input('Which device would you like to use?'))
+                print('\nWhich device would you like to use?')
+                device = int(input('(number) --> '))
                 device = devices[device]
                 if not api.send_verification_code(device):
                     print("Failed to send verification code")
                     sys.exit(1)
 
-                code = input('Please enter validation code')
+                print('\nPlease enter validation code')
+                code = input('(string) --> ')
                 if not api.validate_verification_code(device, code):
                     print("Failed to verify verification code")
                     sys.exit(1)
 
+                print('')
             break
         except PyiCloudFailedLoginException:
             # If they have a stored password; we just used it and
