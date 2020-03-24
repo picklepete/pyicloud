@@ -3,32 +3,32 @@ pyiCloud
 ********
 
 .. image:: https://travis-ci.org/picklepete/pyicloud.svg?branch=master
-   :alt: Check out our test status at https://travis-ci.org/picklepete/pyicloud
-   :target: https://travis-ci.org/picklepete/pyicloud
+    :alt: Check out our test status at https://travis-ci.org/picklepete/pyicloud
+    :target: https://travis-ci.org/picklepete/pyicloud
 
 .. image:: https://img.shields.io/pypi/v/pyicloud.svg
-   :alt: Library version
-   :target: https://pypi.org/project/pyicloud
+    :alt: Library version
+    :target: https://pypi.org/project/pyicloud
 
 .. image:: https://img.shields.io/pypi/pyversions/pyicloud.svg
-   :alt: Supported versions
-   :target: https://pypi.org/project/pyicloud
+    :alt: Supported versions
+    :target: https://pypi.org/project/pyicloud
 
 .. image:: https://pepy.tech/badge/pyicloud
-   :alt: Downloads
-   :target: https://pypi.org/project/pyicloud
+    :alt: Downloads
+    :target: https://pypi.org/project/pyicloud
 
 .. image:: https://requires.io/github/Quentame/pyicloud/requirements.svg?branch=master
-   :alt: Requirements Status
-   :target: https://requires.io/github/Quentame/pyicloud/requirements/?branch=master
+    :alt: Requirements Status
+    :target: https://requires.io/github/Quentame/pyicloud/requirements/?branch=master
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :alt: Formated with Black
-   :target: https://github.com/psf/black
+    :alt: Formated with Black
+    :target: https://github.com/psf/black
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
-   :alt: Join the chat at https://gitter.im/picklepete/pyicloud
-   :target: https://gitter.im/picklepete/pyicloud?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+    :alt: Join the chat at https://gitter.im/picklepete/pyicloud
+    :target: https://gitter.im/picklepete/pyicloud?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 PyiCloud is a module which allows pythonistas to interact with iCloud webservices. It's powered by the fantastic `requests <https://github.com/kennethreitz/requests>`_ HTTP library.
 
