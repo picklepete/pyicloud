@@ -8,9 +8,9 @@ import pickle
 import pytest
 from unittest import TestCase
 if sys.version_info >= (3, 3):
-    from unittest.mock import patch, builtins  # pylint: disable=no-name-in-module,import-error
+    from unittest.mock import patch  # pylint: disable=no-name-in-module,import-error
 else:
-    from mock import patch, builtins
+    from mock import patch
 
 class TestCmdline(TestCase):
     """Cmdline test cases."""
@@ -43,15 +43,15 @@ class TestCmdline(TestCase):
             self.main(['--username'])
 
     @patch("getpass.getpass")
-    def test_username_password(self, getpass):
+    def test_username_password_invalid(self, mock_getpass):
         """Test username and password commands."""
         # No password supplied
-        getpass.return_value = None
+        mock_getpass.return_value = None
         with pytest.raises(SystemExit, match="2"):
             self.main(['--username', 'invalid_user'])
 
         # Bad username or password
-        getpass.return_value = "invalid_pass"
+        mock_getpass.return_value = "invalid_pass"
         with pytest.raises(RuntimeError, match="Bad username or password for invalid_user"):
             self.main(['--username', 'invalid_user'])
 
@@ -59,8 +59,12 @@ class TestCmdline(TestCase):
         with pytest.raises(RuntimeError, match="Bad username or password for invalid_user"):
             self.main(['--username', 'invalid_user', '--password', 'invalid_pass'])
         
+
+    @patch('pyicloud.cmdline.input')
+    def test_username_password_requires_2sa(self, mock_input):
+        """Test username and password commands."""
         # Valid connection for the first time
-        builtins.input = lambda _: "0"
+        mock_input.return_value = "0"
         with pytest.raises(SystemExit, match="0"):
             self.main([
                 '--username', REQUIRES_2SA_USER,
