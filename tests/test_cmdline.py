@@ -6,11 +6,11 @@ import os
 import sys
 import pickle
 import pytest
-from unittest import TestCase, mock
+from unittest import TestCase
 if sys.version_info >= (3, 3):
-    from unittest.mock import patch  # pylint: disable=no-name-in-module,import-error
+    from unittest.mock import patch, builtins  # pylint: disable=no-name-in-module,import-error
 else:
-    from mock import patch
+    from mock import patch, builtins
 
 class TestCmdline(TestCase):
     """Cmdline test cases."""
@@ -60,7 +60,7 @@ class TestCmdline(TestCase):
             self.main(['--username', 'invalid_user', '--password', 'invalid_pass'])
         
         # Valid connection for the first time
-        mock.builtins.input = lambda _: "0"
+        builtins.input = lambda _: "0"
         with pytest.raises(SystemExit, match="0"):
             self.main([
                 '--username', REQUIRES_2SA_USER,
