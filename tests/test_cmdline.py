@@ -1,12 +1,12 @@
 """Cmdline tests."""
 from pyicloud import cmdline
-from . import PyiCloudServiceMock, DEVICES
+from . import PyiCloudServiceMock, AUTHENTICATED_USER, REQUIRES_2SA_USER, DEVICES
 
 import os
 import sys
 import pickle
 import pytest
-from unittest import TestCase
+from unittest import TestCase, mock
 if sys.version_info >= (3, 3):
     from unittest.mock import patch  # pylint: disable=no-name-in-module,import-error
 else:
@@ -58,15 +58,25 @@ class TestCmdline(TestCase):
         # We should not use getpass for this one, but we reset the password at login fail
         with pytest.raises(RuntimeError, match="Bad username or password for invalid_user"):
             self.main(['--username', 'invalid_user', '--password', 'invalid_pass'])
+        
+        # Valid connection for the first time
+        mock.builtins.input = lambda _: "0"
+        with pytest.raises(SystemExit, match="0"):
+            self.main([
+                '--username', REQUIRES_2SA_USER,
+                '--password', 'valid_pass',
+                '--non-interactive',
+            ])
 
     def test_device_outputfile(self):
-        """Test the username and password command."""
-        self.main([
-            '--username', 'valid_user',
-            '--password', 'valid_pass',
-            '--non-interactive',
-            '--outputfile'
-        ])
+        """Test the outputfile command."""
+        with pytest.raises(SystemExit, match="0"):
+            self.main([
+                '--username', AUTHENTICATED_USER,
+                '--password', 'valid_pass',
+                '--non-interactive',
+                '--outputfile'
+            ])
 
         for key in DEVICES:
             file_name = DEVICES[key].content['name'].strip().lower() + ".fmip_snapshot"

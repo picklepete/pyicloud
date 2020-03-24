@@ -5,6 +5,11 @@ from pyicloud.exceptions import PyiCloudFailedLoginException
 from pyicloud.services.findmyiphone import FindMyiPhoneServiceManager, AppleDevice
 
 
+AUTHENTICATED_USER = "authenticated_user"
+REQUIRES_2SA_USER = "requires_2sa_user"
+VALID_USERS = [AUTHENTICATED_USER, REQUIRES_2SA_USER]
+
+
 class PyiCloudServiceMock(base.PyiCloudService):
     """Mocked PyiCloudService."""
     def __init__(
@@ -20,7 +25,7 @@ class PyiCloudServiceMock(base.PyiCloudService):
         base.FindMyiPhoneServiceManager = FindMyiPhoneServiceManagerMock
 
     def authenticate(self):
-        if not self.user.get("apple_id") or self.user.get("apple_id") != "valid_user":
+        if not self.user.get("apple_id") or self.user.get("apple_id") not in VALID_USERS:
             raise PyiCloudFailedLoginException("Invalid email/password combination.", None)
         if not self.user.get("password") or self.user.get("password") != "valid_pass":
             raise PyiCloudFailedLoginException("Invalid email/password combination.", None)
@@ -43,6 +48,25 @@ class PyiCloudServiceMock(base.PyiCloudService):
                 'url': 'reminders_url',
             }
         }
+
+    @property
+    def requires_2sa(self):
+        return self.user["apple_id"] is REQUIRES_2SA_USER
+
+    @property
+    def trusted_devices(self):
+        return  [
+            {"deviceType": "SMS", "areaCode": "", "phoneNumber": "*******58", "deviceId": "1"}
+        ]
+    
+    def send_verification_code(self, device):
+        return device
+    
+    def validate_verification_code(self, device, code):
+        if not device or code != 0:
+            self.user["apple_id"] = AUTHENTICATED_USER
+        self.authenticate()
+        return not self.requires_2sa
 
 
 IPHONE_DEVICE_ID = "X1x/X&x="

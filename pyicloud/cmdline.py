@@ -8,13 +8,16 @@ from __future__ import print_function
 import argparse
 import pickle
 import sys
+import six
 
-from click import confirm, prompt
+from click import confirm
 
 from pyicloud import PyiCloudService
 from pyicloud.exceptions import PyiCloudFailedLoginException
 from . import utils
 
+if six.PY2:
+    input = raw_input  # pylint: disable=redefined-builtin,invalid-name,undefined-variable
 
 DEVICE_ERROR = (
     "Please use the --device switch to indicate which device to use."
@@ -218,14 +221,13 @@ def main(args=None):
                             'deviceName',
                             "SMS to %s" % device.get('phoneNumber'))))
 
-                device = prompt('Which device would you like to use?',
-                                      default=0)
+                device = int(input('Which device would you like to use?'))
                 device = devices[device]
                 if not api.send_verification_code(device):
                     print("Failed to send verification code")
                     sys.exit(1)
 
-                code = prompt('Please enter validation code')
+                code = input('Please enter validation code')
                 if not api.validate_verification_code(device, code):
                     print("Failed to verify verification code")
                     sys.exit(1)
@@ -346,6 +348,7 @@ def main(args=None):
                             DEVICE_ERROR
                         )
                     )
+    sys.exit(0)
 
 if __name__ == '__main__':
     main()
