@@ -7,12 +7,15 @@ pyiCloud
 	:target: https://travis-ci.org/picklepete/pyicloud
 
 .. image:: https://img.shields.io/pypi/v/pyicloud.svg
+	:alt: Library version
     :target: https://pypi.org/project/pyicloud
 
 .. image:: https://img.shields.io/pypi/pyversions/pyicloud.svg
+	:alt: Supported versions
 	:target: https://pypi.org/project/pyicloud
 
 .. image:: https://img.shields.io/pypi/v/pyicloud
+	:alt: Downloads
     :target: https://pypi.org/project/pyicloud
 
 .. image:: https://requires.io/github/Quentame/pyicloud/requirements.svg?branch=master
@@ -20,6 +23,7 @@ pyiCloud
     :target: https://requires.io/github/Quentame/pyicloud/requirements/?branch=master
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+	:alt: Formated with Black
     :target: https://github.com/psf/black
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
