@@ -13,4 +13,4 @@ fi
 
 pip install black==19.10b0
 
-black --check --fast pyicloud tests scripts
+black --check --fast .

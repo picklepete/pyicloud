@@ -12,41 +12,41 @@ VALID_USERS = [AUTHENTICATED_USER, REQUIRES_2SA_USER]
 
 class PyiCloudServiceMock(base.PyiCloudService):
     """Mocked PyiCloudService."""
+
     def __init__(
-            self,
-            apple_id,
-            password=None,
-            cookie_directory=None,
-            verify=True,
-            client_id=None,
-            with_family=True
-        ):
-        base.PyiCloudService.__init__(self, apple_id, password, cookie_directory, verify, client_id, with_family)
+        self,
+        apple_id,
+        password=None,
+        cookie_directory=None,
+        verify=True,
+        client_id=None,
+        with_family=True,
+    ):
+        base.PyiCloudService.__init__(
+            self, apple_id, password, cookie_directory, verify, client_id, with_family
+        )
         base.FindMyiPhoneServiceManager = FindMyiPhoneServiceManagerMock
 
     def authenticate(self):
-        if not self.user.get("apple_id") or self.user.get("apple_id") not in VALID_USERS:
-            raise PyiCloudFailedLoginException("Invalid email/password combination.", None)
+        if (
+            not self.user.get("apple_id")
+            or self.user.get("apple_id") not in VALID_USERS
+        ):
+            raise PyiCloudFailedLoginException(
+                "Invalid email/password combination.", None
+            )
         if not self.user.get("password") or self.user.get("password") != "valid_pass":
-            raise PyiCloudFailedLoginException("Invalid email/password combination.", None)
-        
-        self.params.update({'dsid': 'ID'})
+            raise PyiCloudFailedLoginException(
+                "Invalid email/password combination.", None
+            )
+
+        self.params.update({"dsid": "ID"})
         self._webservices = {
-            'account': {
-                'url': 'account_url',
-            },
-            'findme': {
-                'url': 'findme_url',
-            },
-            'calendar': {
-                'url': 'calendar_url',
-            },
-            'contacts': {
-                'url': 'contacts_url',
-            },
-            'reminders': {
-                'url': 'reminders_url',
-            }
+            "account": {"url": "account_url",},
+            "findme": {"url": "findme_url",},
+            "calendar": {"url": "calendar_url",},
+            "contacts": {"url": "contacts_url",},
+            "reminders": {"url": "reminders_url",},
         }
 
     @property
@@ -55,13 +55,18 @@ class PyiCloudServiceMock(base.PyiCloudService):
 
     @property
     def trusted_devices(self):
-        return  [
-            {"deviceType": "SMS", "areaCode": "", "phoneNumber": "*******58", "deviceId": "1"}
+        return [
+            {
+                "deviceType": "SMS",
+                "areaCode": "",
+                "phoneNumber": "*******58",
+                "deviceId": "1",
+            }
         ]
-    
+
     def send_verification_code(self, device):
         return device
-    
+
     def validate_verification_code(self, device, code):
         if not device or code != 0:
             self.user["apple_id"] = AUTHENTICATED_USER
@@ -78,7 +83,7 @@ IPHONE_DEVICE = AppleDevice(
             "playSound": True,
             "vibrate": True,
             "createTimestamp": 1568031021347,
-            "statusCode": "200"
+            "statusCode": "200",
         },
         "canWipeAfterLock": True,
         "baUUID": "",
@@ -111,7 +116,7 @@ IPHONE_DEVICE = AppleDevice(
             "CWP": False,
             "KEY": False,
             "KPD": False,
-            "WIP": True
+            "WIP": True,
         },
         "lowPowerMode": True,
         "rawDeviceModel": "iPhone11,8",
@@ -125,10 +130,7 @@ IPHONE_DEVICE = AppleDevice(
         "locationEnabled": True,
         "lockedTimestamp": None,
         "locFoundEnabled": False,
-        "snd": {
-            "createTimestamp": 1568031021347,
-            "statusCode": "200"
-        },
+        "snd": {"createTimestamp": 1568031021347, "statusCode": "200"},
         "fmlyShare": False,
         "lostDevice": {
             "stopLostMode": False,
@@ -138,7 +140,7 @@ IPHONE_DEVICE = AppleDevice(
             "ownerNbr": "",
             "text": "",
             "createTimestamp": 1558383841233,
-            "statusCode": "2204"
+            "statusCode": "2204",
         },
         "lostModeCapable": True,
         "wipedTimestamp": None,
@@ -164,16 +166,16 @@ IPHONE_DEVICE = AppleDevice(
             "timeStamp": 1568827039692,
             "locationFinished": False,
             "verticalAccuracy": 0.0,
-            "longitude": 5.012345678
+            "longitude": 5.012345678,
         },
         "deviceModel": "iphoneXR-1-6-0",
         "maxMsgChar": 160,
         "darkWake": False,
-        "remoteWipe": None
+        "remoteWipe": None,
     },
     None,
     None,
-    None
+    None,
 )
 
 DEVICES = {
@@ -183,8 +185,11 @@ DEVICES = {
 
 class FindMyiPhoneServiceManagerMock(FindMyiPhoneServiceManager):
     """Mocked FindMyiPhoneServiceManager."""
+
     def __init__(self, service_root, session, params, with_family=False):
-        FindMyiPhoneServiceManager.__init__(self, service_root, session, params, with_family)
+        FindMyiPhoneServiceManager.__init__(
+            self, service_root, session, params, with_family
+        )
 
     def refresh_client(self):
         self._devices = DEVICES
