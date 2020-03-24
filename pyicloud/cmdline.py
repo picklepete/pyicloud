@@ -18,6 +18,8 @@ from . import utils
 
 if six.PY2:
     input = raw_input  # pylint: disable=redefined-builtin,invalid-name,undefined-variable
+else:
+    input = input   # pylint: disable=bad-option-value,self-assigning-variable,invalid-name
 
 DEVICE_ERROR = (
     "Please use the --device switch to indicate which device to use."
