@@ -3,25 +3,32 @@ pyiCloud
 ********
 
 .. image:: https://travis-ci.org/picklepete/pyicloud.svg?branch=master
-	:alt: Check out our test status at https://travis-ci.org/picklepete/pyicloud
-	:target: https://travis-ci.org/picklepete/pyicloud
+    :alt: Check out our test status at https://travis-ci.org/picklepete/pyicloud
+    :target: https://travis-ci.org/picklepete/pyicloud
 
-.. image:: https://img.shields.io/pypi/v/pyiCloud.svg
-    :target: https://pypi.org/project/pyiCloud
+.. image:: https://img.shields.io/pypi/v/pyicloud.svg
+    :alt: Library version
+    :target: https://pypi.org/project/pyicloud
 
-.. image:: https://img.shields.io/pypi/pyversions/pyiCloud.svg
-	:target: https://pypi.org/project/pyiCloud
+.. image:: https://img.shields.io/pypi/pyversions/pyicloud.svg
+    :alt: Supported versions
+    :target: https://pypi.org/project/pyicloud
+
+.. image:: https://pepy.tech/badge/pyicloud
+    :alt: Downloads
+    :target: https://pypi.org/project/pyicloud
 
 .. image:: https://requires.io/github/Quentame/pyicloud/requirements.svg?branch=master
-	:alt: Requirements Status
+    :alt: Requirements Status
     :target: https://requires.io/github/Quentame/pyicloud/requirements/?branch=master
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :alt: Formated with Black
     :target: https://github.com/psf/black
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
-	:alt: Join the chat at https://gitter.im/picklepete/pyicloud
-	:target: https://gitter.im/picklepete/pyicloud?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+    :alt: Join the chat at https://gitter.im/picklepete/pyicloud
+    :target: https://gitter.im/picklepete/pyicloud?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 PyiCloud is a module which allows pythonistas to interact with iCloud webservices. It's powered by the fantastic `requests <https://github.com/kennethreitz/requests>`_ HTTP library.
 
@@ -61,25 +68,25 @@ If you have enabled `two-step authentication (2SA) <https://support.apple.com/en
 
 .. code-block:: python
 
-	if api.requires_2sa:
-	    import click
-	    print "Two-step authentication required. Your trusted devices are:"
+    if api.requires_2sa:
+        import click
+        print "Two-step authentication required. Your trusted devices are:"
 
-	    devices = api.trusted_devices
-	    for i, device in enumerate(devices):
-	        print "  %s: %s" % (i, device.get('deviceName',
-	            "SMS to %s" % device.get('phoneNumber')))
+        devices = api.trusted_devices
+        for i, device in enumerate(devices):
+            print "  %s: %s" % (i, device.get('deviceName',
+                "SMS to %s" % device.get('phoneNumber')))
 
-	    device = click.prompt('Which device would you like to use?', default=0)
-	    device = devices[device]
-	    if not api.send_verification_code(device):
-	        print "Failed to send verification code"
-	        sys.exit(1)
+        device = click.prompt('Which device would you like to use?', default=0)
+        device = devices[device]
+        if not api.send_verification_code(device):
+            print "Failed to send verification code"
+            sys.exit(1)
 
-	    code = click.prompt('Please enter validation code')
-	    if not api.validate_verification_code(device, code):
-	        print "Failed to verify verification code"
-	        sys.exit(1)
+        code = click.prompt('Please enter validation code')
+        if not api.validate_verification_code(device, code):
+            print "Failed to verify verification code"
+            sys.exit(1)
 
 This approach also works if the account is set up for `two-factor authentication (2FA) <https://support.apple.com/en-us/HT204915>`_, but the authentication will time out after a few hours. Full support for two-factor authentication (2FA) is not implemented in PyiCloud yet. See issue `#102 <https://github.com/picklepete/pyicloud/issues/102>`_.
 
