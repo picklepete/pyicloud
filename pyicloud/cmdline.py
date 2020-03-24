@@ -16,14 +16,14 @@ from pyicloud import PyiCloudService
 from pyicloud.exceptions import PyiCloudFailedLoginException
 from . import utils
 
+# fmt: off
 if six.PY2:
     input = raw_input  # pylint: disable=redefined-builtin,invalid-name,undefined-variable
 else:
-    input = input   # pylint: disable=bad-option-value,self-assigning-variable,invalid-name
+    input = input  # pylint: disable=bad-option-value,self-assigning-variable,invalid-name
+# fmt: on
 
-DEVICE_ERROR = (
-    "Please use the --device switch to indicate which device to use."
-)
+DEVICE_ERROR = "Please use the --device switch to indicate which device to use."
 
 
 def create_pickled_data(idevice, filename):
@@ -34,7 +34,7 @@ def create_pickled_data(idevice, filename):
     This allows the data to be used without resorting to screen / pipe
     scrapping.
     """
-    pickle_file = open(filename, 'wb')
+    pickle_file = open(filename, "wb")
     pickle.dump(idevice.content, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
     pickle_file.close()
 
@@ -44,15 +44,14 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
 
-    parser = argparse.ArgumentParser(
-        description="Find My iPhone CommandLine Tool")
+    parser = argparse.ArgumentParser(description="Find My iPhone CommandLine Tool")
 
     parser.add_argument(
         "--username",
         action="store",
         dest="username",
         default="",
-        help="Apple ID to Use"
+        help="Apple ID to Use",
     )
     parser.add_argument(
         "--password",
@@ -62,7 +61,7 @@ def main(args=None):
         help=(
             "Apple ID Password to Use; if unspecified, password will be "
             "fetched from the system keyring."
-        )
+        ),
     )
     parser.add_argument(
         "-n",
@@ -70,7 +69,7 @@ def main(args=None):
         action="store_false",
         dest="interactive",
         default=True,
-        help="Disable interactive prompts."
+        help="Disable interactive prompts.",
     )
     parser.add_argument(
         "--delete-from-keyring",
@@ -189,54 +188,59 @@ def main(args=None):
         # Which password we use is determined by your username, so we
         # do need to check for this first and separately.
         if not username:
-            parser.error('No username supplied')
+            parser.error("No username supplied")
 
         if not password:
             password = utils.get_password(
-                username,
-                interactive=command_line.interactive
+                username, interactive=command_line.interactive
             )
 
         if not password:
-            parser.error('No password supplied')
+            parser.error("No password supplied")
 
         try:
-            api = PyiCloudService(
-                username.strip(),
-                password.strip()
-            )
+            api = PyiCloudService(username.strip(), password.strip())
             if (
-                not utils.password_exists_in_keyring(username) and
-                command_line.interactive and
-                confirm("Save password in keyring?")
+                not utils.password_exists_in_keyring(username)
+                and command_line.interactive
+                and confirm("Save password in keyring?")
             ):
                 utils.store_password_in_keyring(username, password)
 
             if api.requires_2sa:
-                print("\nTwo-step authentication required.",
-                      "\nYour trusted devices are:")
+                # fmt: off
+                print(
+                    "\nTwo-step authentication required.",
+                    "\nYour trusted devices are:"
+                )
+                # fmt: on
 
                 devices = api.trusted_devices
                 for i, device in enumerate(devices):
-                    print("    %s: %s" % (
-                        i, device.get(
-                            'deviceName',
-                            "SMS to %s" % device.get('phoneNumber'))))
+                    print(
+                        "    %s: %s"
+                        % (
+                            i,
+                            device.get(
+                                "deviceName", "SMS to %s" % device.get("phoneNumber")
+                            ),
+                        )
+                    )
 
-                print('\nWhich device would you like to use?')
-                device = int(input('(number) --> '))
+                print("\nWhich device would you like to use?")
+                device = int(input("(number) --> "))
                 device = devices[device]
                 if not api.send_verification_code(device):
                     print("Failed to send verification code")
                     sys.exit(1)
 
-                print('\nPlease enter validation code')
-                code = input('(string) --> ')
+                print("\nPlease enter validation code")
+                code = input("(string) --> ")
                 if not api.validate_verification_code(device, code):
                     print("Failed to verify verification code")
                     sys.exit(1)
 
-                print('')
+                print("")
             break
         except PyiCloudFailedLoginException:
             # If they have a stored password; we just used it and
@@ -256,12 +260,8 @@ def main(args=None):
             print(message, file=sys.stderr)
 
     for dev in api.devices:
-        if (
-            not command_line.device_id or
-            (
-                command_line.device_id.strip().lower() ==
-                dev.content["id"].strip().lower()
-            )
+        if not command_line.device_id or (
+            command_line.device_id.strip().lower() == dev.content["id"].strip().lower()
         ):
             # List device(s)
             if command_line.locate:
@@ -270,19 +270,17 @@ def main(args=None):
             if command_line.output_to_file:
                 create_pickled_data(
                     dev,
-                    filename=(
-                        dev.content["name"].strip().lower() + ".fmip_snapshot"
-                    )
+                    filename=(dev.content["name"].strip().lower() + ".fmip_snapshot"),
                 )
 
             contents = dev.content
             if command_line.longlist:
-                print("-"*30)
+                print("-" * 30)
                 print(contents["name"])
                 for key in contents:
                     print("%20s - %s" % (key, contents[key]))
             elif command_line.list:
-                print("-"*30)
+                print("-" * 30)
                 print("Name - %s" % contents["name"])
                 print("Display Name  - %s" % contents["deviceDisplayName"])
                 print("Location      - %s" % contents["location"])
@@ -297,9 +295,10 @@ def main(args=None):
                     dev.play_sound()
                 else:
                     raise RuntimeError(
-                        "\n\n\t\t%s %s\n\n" % (
+                        "\n\n\t\t%s %s\n\n"
+                        % (
                             "Sounds can only be played on a singular device.",
-                            DEVICE_ERROR
+                            DEVICE_ERROR,
                         )
                     )
 
@@ -307,16 +306,14 @@ def main(args=None):
             if command_line.message:
                 if command_line.device_id:
                     dev.display_message(
-                        subject='A Message',
-                        message=command_line.message,
-                        sounds=True
+                        subject="A Message", message=command_line.message, sounds=True
                     )
                 else:
                     raise RuntimeError(
-                        "%s %s" % (
-                            "Messages can only be played "
-                            "on a singular device.",
-                            DEVICE_ERROR
+                        "%s %s"
+                        % (
+                            "Messages can only be played on a singular device.",
+                            DEVICE_ERROR,
                         )
                     )
 
@@ -324,16 +321,17 @@ def main(args=None):
             if command_line.silentmessage:
                 if command_line.device_id:
                     dev.display_message(
-                        subject='A Silent Message',
+                        subject="A Silent Message",
                         message=command_line.silentmessage,
-                        sounds=False
+                        sounds=False,
                     )
                 else:
                     raise RuntimeError(
-                        "%s %s" % (
+                        "%s %s"
+                        % (
                             "Silent Messages can only be played "
                             "on a singular device.",
-                            DEVICE_ERROR
+                            DEVICE_ERROR,
                         )
                     )
 
@@ -343,17 +341,18 @@ def main(args=None):
                     dev.lost_device(
                         number=command_line.lost_phone.strip(),
                         text=command_line.lost_message.strip(),
-                        newpasscode=command_line.lost_password.strip()
+                        newpasscode=command_line.lost_password.strip(),
                     )
                 else:
                     raise RuntimeError(
-                        "%s %s" % (
-                            "Lost Mode can only be activated "
-                            "on a singular device.",
-                            DEVICE_ERROR
+                        "%s %s"
+                        % (
+                            "Lost Mode can only be activated on a singular device.",
+                            DEVICE_ERROR,
                         )
                     )
     sys.exit(0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

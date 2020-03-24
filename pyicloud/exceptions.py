@@ -1,4 +1,6 @@
 """Library exceptions."""
+
+
 class PyiCloudException(Exception):
     """Generic iCloud exception."""
     pass

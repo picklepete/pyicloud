@@ -19,11 +19,11 @@ class FindMyiPhoneServiceManager(object):
         self.params = params
         self.with_family = with_family
 
-        fmip_endpoint = '%s/fmipservice/client/web' % service_root
-        self._fmip_refresh_url = '%s/refreshClient' % fmip_endpoint
-        self._fmip_sound_url = '%s/playSound' % fmip_endpoint
-        self._fmip_message_url = '%s/sendMessage' % fmip_endpoint
-        self._fmip_lost_url = '%s/lostDevice' % fmip_endpoint
+        fmip_endpoint = "%s/fmipservice/client/web" % service_root
+        self._fmip_refresh_url = "%s/refreshClient" % fmip_endpoint
+        self._fmip_sound_url = "%s/playSound" % fmip_endpoint
+        self._fmip_message_url = "%s/sendMessage" % fmip_endpoint
+        self._fmip_lost_url = "%s/lostDevice" % fmip_endpoint
 
         self._devices = {}
         self.refresh_client()
@@ -39,18 +39,18 @@ class FindMyiPhoneServiceManager(object):
             params=self.params,
             data=json.dumps(
                 {
-                    'clientContext': {
-                        'fmly': self.with_family,
-                        'shouldLocate': True,
-                        'selectedDevice': 'all',
+                    "clientContext": {
+                        "fmly": self.with_family,
+                        "shouldLocate": True,
+                        "selectedDevice": "all",
                     }
                 }
-            )
+            ),
         )
         self.response = req.json()
 
-        for device_info in self.response['content']:
-            device_id = device_info['id']
+        for device_info in self.response["content"]:
+            device_id = device_info["id"]
             if device_id not in self._devices:
                 self._devices[device_id] = AppleDevice(
                     device_info,
@@ -85,7 +85,7 @@ class FindMyiPhoneServiceManager(object):
         as_unicode = self.__unicode__()
         if sys.version_info[0] >= 3:
             return as_unicode
-        return as_unicode.encode('utf-8', 'ignore')
+        return as_unicode.encode("utf-8", "ignore")
 
     def __repr__(self):
         return six.text_type(self)
@@ -93,9 +93,16 @@ class FindMyiPhoneServiceManager(object):
 
 class AppleDevice(object):
     """Apple device."""
+
     def __init__(
-        self, content, session, params, manager,
-        sound_url=None, lost_url=None, message_url=None
+        self,
+        content,
+        session,
+        params,
+        manager,
+        sound_url=None,
+        lost_url=None,
+        message_url=None,
     ):
         self.content = content
         self.manager = manager
@@ -113,7 +120,7 @@ class AppleDevice(object):
     def location(self):
         """Updates the device location."""
         self.manager.refresh_client()
-        return self.content['location']
+        return self.content["location"]
 
     def status(self, additional=[]):  # pylint: disable=dangerous-default-value
         """Returns status information for device.
@@ -121,34 +128,29 @@ class AppleDevice(object):
         This returns only a subset of possible properties.
         """
         self.manager.refresh_client()
-        fields = ['batteryLevel', 'deviceDisplayName', 'deviceStatus', 'name']
+        fields = ["batteryLevel", "deviceDisplayName", "deviceStatus", "name"]
         fields += additional
         properties = {}
         for field in fields:
             properties[field] = self.content.get(field)
         return properties
 
-    def play_sound(self, subject='Find My iPhone Alert'):
+    def play_sound(self, subject="Find My iPhone Alert"):
         """Send a request to the device to play a sound.
 
         It's possible to pass a custom message by changing the `subject`.
         """
-        data = json.dumps({
-            'device': self.content['id'],
-            'subject': subject,
-            'clientContext': {
-                'fmly': True
+        data = json.dumps(
+            {
+                "device": self.content["id"],
+                "subject": subject,
+                "clientContext": {"fmly": True},
             }
-        })
-        self.session.post(
-            self.sound_url,
-            params=self.params,
-            data=data
         )
+        self.session.post(self.sound_url, params=self.params, data=data)
 
     def display_message(
-        self, subject='Find My iPhone Alert', message="This is a note",
-        sounds=False
+        self, subject="Find My iPhone Alert", message="This is a note", sounds=False
     ):
         """Send a request to the device to play a sound.
 
@@ -156,23 +158,17 @@ class AppleDevice(object):
         """
         data = json.dumps(
             {
-                'device': self.content['id'],
-                'subject': subject,
-                'sound': sounds,
-                'userText': True,
-                'text': message
+                "device": self.content["id"],
+                "subject": subject,
+                "sound": sounds,
+                "userText": True,
+                "text": message,
             }
         )
-        self.session.post(
-            self.message_url,
-            params=self.params,
-            data=data
-        )
+        self.session.post(self.message_url, params=self.params, data=data)
 
     def lost_device(
-        self, number,
-        text='This iPhone has been lost. Please call me.',
-        newpasscode=""
+        self, number, text="This iPhone has been lost. Please call me.", newpasscode=""
     ):
         """Send a request to the device to trigger 'lost mode'.
 
@@ -180,20 +176,18 @@ class AppleDevice(object):
         been passed, then the person holding the device can call
         the number without entering the passcode.
         """
-        data = json.dumps({
-            'text': text,
-            'userText': True,
-            'ownerNbr': number,
-            'lostModeEnabled': True,
-            'trackingEnabled': True,
-            'device': self.content['id'],
-            'passcode': newpasscode
-        })
-        self.session.post(
-            self.lost_url,
-            params=self.params,
-            data=data
+        data = json.dumps(
+            {
+                "text": text,
+                "userText": True,
+                "ownerNbr": number,
+                "lostModeEnabled": True,
+                "trackingEnabled": True,
+                "device": self.content["id"],
+                "passcode": newpasscode,
+            }
         )
+        self.session.post(self.lost_url, params=self.params, data=data)
 
     @property
     def data(self):
@@ -207,18 +201,15 @@ class AppleDevice(object):
         return getattr(self.content, attr)
 
     def __unicode__(self):
-        display_name = self['deviceDisplayName']
-        name = self['name']
-        return '%s: %s' % (
-            display_name,
-            name,
-        )
+        display_name = self["deviceDisplayName"]
+        name = self["name"]
+        return "%s: %s" % (display_name, name,)
 
     def __str__(self):
         as_unicode = self.__unicode__()
         if sys.version_info[0] >= 3:
             return as_unicode
-        return as_unicode.encode('utf-8', 'ignore')
+        return as_unicode.encode("utf-8", "ignore")
 
     def __repr__(self):
-        return '<AppleDevice(%s)>' % str(self)
+        return "<AppleDevice(%s)>" % str(self)

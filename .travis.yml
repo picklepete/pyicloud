@@ -15,4 +15,5 @@ before_install:
   - pip install -e .
 script:
   - pylint pyicloud tests
+  - ./scripts/check_format.sh;
   - py.test
