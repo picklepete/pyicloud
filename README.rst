@@ -14,7 +14,7 @@ pyiCloud
    :alt: Supported versions
    :target: https://pypi.org/project/pyicloud
 
-.. image:: https://img.shields.io/pypi/v/pyicloud
+.. image:: https://pepy.tech/badge/pyicloud
    :alt: Downloads
     :target: https://pypi.org/project/pyicloud
 
