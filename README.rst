@@ -6,11 +6,14 @@ pyiCloud
 	:alt: Check out our test status at https://travis-ci.org/picklepete/pyicloud
 	:target: https://travis-ci.org/picklepete/pyicloud
 
-.. image:: https://img.shields.io/pypi/v/pyiCloud.svg
-    :target: https://pypi.org/project/pyiCloud
+.. image:: https://img.shields.io/pypi/v/pyicloud.svg
+    :target: https://pypi.org/project/pyicloud
 
-.. image:: https://img.shields.io/pypi/pyversions/pyiCloud.svg
-	:target: https://pypi.org/project/pyiCloud
+.. image:: https://img.shields.io/pypi/pyversions/pyicloud.svg
+	:target: https://pypi.org/project/pyicloud
+
+.. image:: https://img.shields.io/pypi/v/pyicloud
+    :target: https://pypi.org/project/pyicloud
 
 .. image:: https://requires.io/github/Quentame/pyicloud/requirements.svg?branch=master
 	:alt: Requirements Status
