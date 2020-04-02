@@ -158,6 +158,49 @@ Lost mode is slightly different to the "Play Sound" functionality in that it all
 >>> api.iphone.lost_device(phone_number, message)
 
 
+Find-my-Friends
+===============
+The Find-my-Friends service is lets you locate the friends you have you are following using the FindMe app. Once you have successfully authenticated, you can request the friends you are following and their location.
+
+
+Friends
+*******
+Returns the Find-my-Friends object.
+
+>>> fmf = api.friends
+
+The fmf friends contact, location and following data is structured with the following dictionaries:
+
+
+Contacts
+********
+Returns a dictionary of all contacts for the account.
+
+>>> contacts = fmf.contacts
+
+
+Following Contacts
+******************
+Returns a dictionary of all of the contacts that are being followed. They have accepted a following invitation request from the account.
+
+
+>>> following = fmf.following
+
+Return the ID number and email address of the contact being followed. 
+
+>>> contact_id = following['id']
+>>> contact_email = following['invitationAcceptedHandles']
+
+
+Location of Followed Friends
+****************************
+Return a dictionary of the locations for the contacts being followed.
+
+>>> locations = fmf.locations
+
+Note: To get a specific contact's device location, cycle through all the locations and select the device location where the contact_id=location['id']
+
+
 Calendar
 ========
 

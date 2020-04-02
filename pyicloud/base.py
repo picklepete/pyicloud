@@ -18,6 +18,7 @@ from pyicloud.exceptions import (
 )
 from pyicloud.services import (
     FindMyiPhoneServiceManager,
+    FindMyFriendsServiceManager,
     CalendarService,
     UbiquityService,
     ContactsService,
@@ -333,6 +334,16 @@ class PyiCloudService(object):
         """Gets the 'Account' service."""
         service_root = self._get_webservice_url("account")
         return AccountService(service_root, self.session, self.params)
+
+    @property
+    def friends(self):
+        """Gets the 'Find-my-Friends' service."""
+        service_root = self._get_webservice_url('fmf')
+        return FindMyFriendsServiceManager(
+            service_root,
+            self.session,
+            self.params
+            )
 
     @property
     def files(self):
