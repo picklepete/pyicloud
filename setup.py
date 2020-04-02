@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from codecs import open
 
 REPO_URL = "https://github.com/picklepete/pyicloud"
 VERSION = "0.9.6.1"
