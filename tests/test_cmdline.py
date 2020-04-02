@@ -1,6 +1,8 @@
 """Cmdline tests."""
 from pyicloud import cmdline
-from . import PyiCloudServiceMock, AUTHENTICATED_USER, REQUIRES_2SA_USER, DEVICES
+from . import PyiCloudServiceMock
+from .const import AUTHENTICATED_USER, REQUIRES_2SA_USER, VALID_PASSWORD
+from .const_findmyiphone import FMI_FMLY_WORKING
 
 import os
 import sys
@@ -75,7 +77,7 @@ class TestCmdline(TestCase):
             # fmt: off
             self.main([
                 '--username', REQUIRES_2SA_USER,
-                '--password', 'valid_pass',
+                '--password', VALID_PASSWORD,
                 '--non-interactive',
             ])
             # fmt: on
@@ -86,14 +88,15 @@ class TestCmdline(TestCase):
             # fmt: off
             self.main([
                 '--username', AUTHENTICATED_USER,
-                '--password', 'valid_pass',
+                '--password', VALID_PASSWORD,
                 '--non-interactive',
                 '--outputfile'
             ])
             # fmt: on
 
-        for key in DEVICES:
-            file_name = DEVICES[key].content["name"].strip().lower() + ".fmip_snapshot"
+        devices = FMI_FMLY_WORKING.get("content")
+        for device in devices:
+            file_name = device.get("name").strip().lower() + ".fmip_snapshot"
 
             pickle_file = open(file_name, "rb")
             assert pickle_file
@@ -105,7 +108,7 @@ class TestCmdline(TestCase):
                         contents.append(pickle.load(opened_file))
                     except EOFError:
                         break
-            assert contents == [DEVICES[key].content]
+            assert contents == [device]
 
             pickle_file.close()
             os.remove(file_name)
