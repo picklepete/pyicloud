@@ -43,7 +43,7 @@ class FindMyiPhoneServiceManager(object):
                         "fmly": self.with_family,
                         "shouldLocate": True,
                         "selectedDevice": "all",
-                        "deviceListVersion": 1
+                        "deviceListVersion": 1,
                     }
                 }
             ),
