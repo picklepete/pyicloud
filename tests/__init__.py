@@ -20,6 +20,7 @@ from .const_login import (
     VERIFICATION_CODE_OK,
     VERIFICATION_CODE_KO,
 )
+from .const_account import ACCOUNT_DEVICES_WORKING
 from .const_findmyiphone import FMI_FMLY_WORKING
 
 
@@ -79,6 +80,10 @@ class PyiCloudSessionMock(base.PyiCloudSession):
                     self.service.user["apple_id"] = AUTHENTICATED_USER
                     return ResponseMock(VERIFICATION_CODE_OK)
                 self._raise_error(None, "FOUND_CODE")
+
+        # Account
+        if "device/getDevices" in url and method == "GET":
+            return ResponseMock(ACCOUNT_DEVICES_WORKING)
 
         # Find My iPhone
         if "fmi" in url and method == "POST":
