@@ -310,7 +310,7 @@ class AccountStorageUsage(object):
         return self.quota_data["paidQuota"]
 
     def __str__(self):
-        return u"{used_percent}∕% used of {total} bytes".format(
+        return u"{used_percent}%% used of {total} bytes".format(
             used_percent=self.used_storage_in_percent, total=self.total_storage_in_bytes
         )
 
