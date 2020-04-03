@@ -49,7 +49,9 @@ class TestCmdline(TestCase):
 
     @patch("keyring.get_password", return_value=None)
     @patch("getpass.getpass")
-    def test_username_password_invalid(self, mock_getpass, mock_get_password):
+    def test_username_password_invalid(
+        self, mock_getpass, mock_get_password
+    ):  # pylint: disable=unused-argument
         """Test username and password commands."""
         # No password supplied
         mock_getpass.return_value = None
@@ -71,7 +73,9 @@ class TestCmdline(TestCase):
 
     @patch("keyring.get_password", return_value=None)
     @patch("pyicloud.cmdline.input")
-    def test_username_password_requires_2sa(self, mock_input, mock_get_password):
+    def test_username_password_requires_2sa(
+        self, mock_input, mock_get_password
+    ):  # pylint: disable=unused-argument
         """Test username and password commands."""
         # Valid connection for the first time
         mock_input.return_value = "0"
@@ -85,7 +89,9 @@ class TestCmdline(TestCase):
             # fmt: on
 
     @patch("keyring.get_password", return_value=None)
-    def test_device_outputfile(self, mock_get_password):
+    def test_device_outputfile(
+        self, mock_get_password
+    ):  # pylint: disable=unused-argument
         """Test the outputfile command."""
         with pytest.raises(SystemExit, match="0"):
             # fmt: off
