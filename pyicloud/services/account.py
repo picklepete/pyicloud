@@ -34,8 +34,6 @@ class AccountService(object):
             response = req.json()
 
             for device_info in response["devices"]:
-                # device_id = device_info['udid']
-                # self._devices[device_id] = AccountDevice(device_info)
                 self._devices.append(AccountDevice(device_info))
 
         return self._devices
