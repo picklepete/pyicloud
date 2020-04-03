@@ -24,11 +24,6 @@ from .const_account import ACCOUNT_DEVICES_WORKING
 from .const_findmyiphone import FMI_FMLY_WORKING
 
 
-import logging
-
-LOGGER = logging.getLogger(__name__)
-
-
 class ResponseMock(Response):
     """Mocked Response."""
 
@@ -48,7 +43,6 @@ class PyiCloudSessionMock(base.PyiCloudSession):
     def request(self, method, url, **kwargs):
         data = json.loads(kwargs.get("data", "{}"))
 
-        LOGGER.error(data)
         # Login
         if self.service.SETUP_ENDPOINT in url:
             if "login" in url and method == "POST":
