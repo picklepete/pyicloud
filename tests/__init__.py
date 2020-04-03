@@ -67,10 +67,8 @@ class PyiCloudSessionMock(base.PyiCloudSession):
                 return ResponseMock(VERIFICATION_CODE_KO)
 
             if "validateVerificationCode" in url and method == "POST":
-                if data == {
-                    **TRUSTED_DEVICE_1,
-                    **{"verificationCode": "0", "trustBrowser": True},
-                }:
+                TRUSTED_DEVICE_1.update({"verificationCode": "0", "trustBrowser": True})
+                if data == TRUSTED_DEVICE_1:
                     self.service.user["apple_id"] = AUTHENTICATED_USER
                     return ResponseMock(VERIFICATION_CODE_OK)
                 self._raise_error(None, "FOUND_CODE")
