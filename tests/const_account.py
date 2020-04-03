@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Account test constants."""
 from .const_login import FIRST_NAME
 
