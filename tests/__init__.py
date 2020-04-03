@@ -1,13 +1,87 @@
 """Library tests."""
+import json
+from requests import Session, Response
 
 from pyicloud import base
 from pyicloud.exceptions import PyiCloudFailedLoginException
 from pyicloud.services.findmyiphone import FindMyiPhoneServiceManager, AppleDevice
 
+from .const import (
+    AUTHENTICATED_USER,
+    REQUIRES_2SA_USER,
+    VALID_USERS,
+    VALID_PASSWORD,
+)
+from .const_login import (
+    LOGIN_WORKING,
+    LOGIN_2SA,
+    TRUSTED_DEVICES,
+    TRUSTED_DEVICE_1,
+    VERIFICATION_CODE_OK,
+    VERIFICATION_CODE_KO,
+)
+from .const_account import ACCOUNT_DEVICES_WORKING
+from .const_findmyiphone import FMI_FMLY_WORKING
 
-AUTHENTICATED_USER = "authenticated_user"
-REQUIRES_2SA_USER = "requires_2sa_user"
-VALID_USERS = [AUTHENTICATED_USER, REQUIRES_2SA_USER]
+
+class ResponseMock(Response):
+    """Mocked Response."""
+
+    def __init__(self, result, status_code=200):
+        Response.__init__(self)
+        self.result = result
+        self.status_code = status_code
+
+    @property
+    def text(self):
+        return json.dumps(self.result)
+
+
+class PyiCloudSessionMock(base.PyiCloudSession):
+    """Mocked PyiCloudSession."""
+
+    def request(self, method, url, **kwargs):
+        data = json.loads(kwargs.get("data", "{}"))
+
+        # Login
+        if self.service.SETUP_ENDPOINT in url:
+            if "login" in url and method == "POST":
+                if (
+                    data.get("apple_id") not in VALID_USERS
+                    or data.get("password") != VALID_PASSWORD
+                ):
+                    self._raise_error(None, "Unknown reason")
+                if (
+                    data.get("apple_id") == REQUIRES_2SA_USER
+                    and data.get("password") == VALID_PASSWORD
+                ):
+                    return ResponseMock(LOGIN_2SA)
+                return ResponseMock(LOGIN_WORKING)
+
+            if "listDevices" in url and method == "GET":
+                return ResponseMock(TRUSTED_DEVICES)
+
+            if "sendVerificationCode" in url and method == "POST":
+                if data == TRUSTED_DEVICE_1:
+                    return ResponseMock(VERIFICATION_CODE_OK)
+                return ResponseMock(VERIFICATION_CODE_KO)
+
+            if "validateVerificationCode" in url and method == "POST":
+                TRUSTED_DEVICE_1.update({"verificationCode": "0", "trustBrowser": True})
+                if data == TRUSTED_DEVICE_1:
+                    self.service.user["apple_id"] = AUTHENTICATED_USER
+                    return ResponseMock(VERIFICATION_CODE_OK)
+                self._raise_error(None, "FOUND_CODE")
+
+        # Account
+        if "device/getDevices" in url and method == "GET":
+            return ResponseMock(ACCOUNT_DEVICES_WORKING)
+
+        # Find My iPhone
+        if "fmi" in url and method == "POST":
+            return ResponseMock(FMI_FMLY_WORKING)
+
+        return None
 
 
 class PyiCloudServiceMock(base.PyiCloudService):
@@ -22,174 +96,7 @@ class PyiCloudServiceMock(base.PyiCloudService):
         client_id=None,
         with_family=True,
     ):
+        base.PyiCloudSession = PyiCloudSessionMock
         base.PyiCloudService.__init__(
             self, apple_id, password, cookie_directory, verify, client_id, with_family
         )
-        base.FindMyiPhoneServiceManager = FindMyiPhoneServiceManagerMock
-
-    def authenticate(self):
-        if (
-            not self.user.get("apple_id")
-            or self.user.get("apple_id") not in VALID_USERS
-        ):
-            raise PyiCloudFailedLoginException(
-                "Invalid email/password combination.", None
-            )
-        if not self.user.get("password") or self.user.get("password") != "valid_pass":
-            raise PyiCloudFailedLoginException(
-                "Invalid email/password combination.", None
-            )
-
-        self.params.update({"dsid": "ID"})
-        self._webservices = {
-            "account": {"url": "account_url",},
-            "findme": {"url": "findme_url",},
-            "calendar": {"url": "calendar_url",},
-            "contacts": {"url": "contacts_url",},
-            "reminders": {"url": "reminders_url",},
-        }
-
-    @property
-    def requires_2sa(self):
-        return self.user["apple_id"] is REQUIRES_2SA_USER
-
-    @property
-    def trusted_devices(self):
-        return [
-            {
-                "deviceType": "SMS",
-                "areaCode": "",
-                "phoneNumber": "*******58",
-                "deviceId": "1",
-            }
-        ]
-
-    def send_verification_code(self, device):
-        return device
-
-    def validate_verification_code(self, device, code):
-        if not device or code != 0:
-            self.user["apple_id"] = AUTHENTICATED_USER
-        self.authenticate()
-        return not self.requires_2sa
-
-
-IPHONE_DEVICE_ID = "X1x/X&x="
-IPHONE_DEVICE = AppleDevice(
-    {
-        "msg": {
-            "strobe": False,
-            "userText": False,
-            "playSound": True,
-            "vibrate": True,
-            "createTimestamp": 1568031021347,
-            "statusCode": "200",
-        },
-        "canWipeAfterLock": True,
-        "baUUID": "",
-        "wipeInProgress": False,
-        "lostModeEnabled": False,
-        "activationLocked": True,
-        "passcodeLength": 6,
-        "deviceStatus": "200",
-        "deviceColor": "1-6-0",
-        "features": {
-            "MSG": True,
-            "LOC": True,
-            "LLC": False,
-            "CLK": False,
-            "TEU": True,
-            "LMG": False,
-            "SND": True,
-            "CLT": False,
-            "LKL": False,
-            "SVP": False,
-            "LST": True,
-            "LKM": False,
-            "WMG": True,
-            "SPN": False,
-            "XRM": False,
-            "PIN": False,
-            "LCK": True,
-            "REM": False,
-            "MCS": False,
-            "CWP": False,
-            "KEY": False,
-            "KPD": False,
-            "WIP": True,
-        },
-        "lowPowerMode": True,
-        "rawDeviceModel": "iPhone11,8",
-        "id": IPHONE_DEVICE_ID,
-        "remoteLock": None,
-        "isLocating": True,
-        "modelDisplayName": "iPhone",
-        "lostTimestamp": "",
-        "batteryLevel": 0.47999998927116394,
-        "mesg": None,
-        "locationEnabled": True,
-        "lockedTimestamp": None,
-        "locFoundEnabled": False,
-        "snd": {"createTimestamp": 1568031021347, "statusCode": "200"},
-        "fmlyShare": False,
-        "lostDevice": {
-            "stopLostMode": False,
-            "emailUpdates": False,
-            "userText": True,
-            "sound": False,
-            "ownerNbr": "",
-            "text": "",
-            "createTimestamp": 1558383841233,
-            "statusCode": "2204",
-        },
-        "lostModeCapable": True,
-        "wipedTimestamp": None,
-        "deviceDisplayName": "iPhone XR",
-        "prsId": None,
-        "audioChannels": [],
-        "locationCapable": True,
-        "batteryStatus": "NotCharging",
-        "trackingInfo": None,
-        "name": "Quentin's iPhone",
-        "isMac": False,
-        "thisDevice": False,
-        "deviceClass": "iPhone",
-        "location": {
-            "isOld": False,
-            "isInaccurate": False,
-            "altitude": 0.0,
-            "positionType": "GPS",
-            "latitude": 46.012345678,
-            "floorLevel": 0,
-            "horizontalAccuracy": 12.012345678,
-            "locationType": "",
-            "timeStamp": 1568827039692,
-            "locationFinished": False,
-            "verticalAccuracy": 0.0,
-            "longitude": 5.012345678,
-        },
-        "deviceModel": "iphoneXR-1-6-0",
-        "maxMsgChar": 160,
-        "darkWake": False,
-        "remoteWipe": None,
-    },
-    None,
-    None,
-    None,
-)
-
-DEVICES = {
-    IPHONE_DEVICE_ID: IPHONE_DEVICE,
-}
-
-
-class FindMyiPhoneServiceManagerMock(FindMyiPhoneServiceManager):
-    """Mocked FindMyiPhoneServiceManager."""
-
-    def __init__(self, service_root, session, params, with_family=False):
-        FindMyiPhoneServiceManager.__init__(
-            self, service_root, session, params, with_family
-        )
-
-    def refresh_client(self):
-        self._devices = DEVICES

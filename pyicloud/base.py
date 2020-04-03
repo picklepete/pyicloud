@@ -56,9 +56,9 @@ class PyiCloudSession(Session):
 
     def __init__(self, service):
         self.service = service
-        super(PyiCloudSession, self).__init__()
+        Session.__init__(self)
 
-    def request(self, *args, **kwargs):  # pylint: disable=arguments-differ
+    def request(self, method, url, **kwargs):  # pylint: disable=arguments-differ
 
         # Charge logging to the right service endpoint
         callee = inspect.stack()[2]
@@ -67,10 +67,10 @@ class PyiCloudSession(Session):
         if self.service.password_filter not in request_logger.filters:
             request_logger.addFilter(self.service.password_filter)
 
-        request_logger.debug("%s %s %s", args[0], args[1], kwargs.get("data", ""))
+        request_logger.debug("%s %s %s", method, url, kwargs.get("data", ""))
 
         kwargs.pop("retried", None)
-        response = super(PyiCloudSession, self).request(*args, **kwargs)
+        response = super(PyiCloudSession, self).request(method, url, **kwargs)
 
         content_type = response.headers.get("Content-Type", "").split(";")[0]
         json_mimetypes = ["application/json", "text/json"]
@@ -82,7 +82,7 @@ class PyiCloudSession(Session):
                 )
                 request_logger.warn(api_error)
                 kwargs["retried"] = True
-                return self.request(*args, **kwargs)
+                return self.request(method, url, **kwargs)
             self._raise_error(response.status_code, response.reason)
 
         if content_type not in json_mimetypes:
@@ -150,6 +150,9 @@ class PyiCloudService(object):
         pyicloud.iphone.location()
     """
 
+    HOME_ENDPOINT = "https://www.icloud.com"
+    SETUP_ENDPOINT = "https://setup.icloud.com/setup/ws/1"
+
     def __init__(
         self,
         apple_id,
@@ -170,10 +173,7 @@ class PyiCloudService(object):
         self.password_filter = PyiCloudPasswordFilter(password)
         LOGGER.addFilter(self.password_filter)
 
-        self._home_endpoint = "https://www.icloud.com"
-        self._setup_endpoint = "https://setup.icloud.com/setup/ws/1"
-
-        self._base_login_url = "%s/login" % self._setup_endpoint
+        self._base_login_url = "%s/login" % self.SETUP_ENDPOINT
 
         if cookie_directory:
             self._cookie_directory = os.path.expanduser(
@@ -186,8 +186,8 @@ class PyiCloudService(object):
         self.session.verify = verify
         self.session.headers.update(
             {
-                "Origin": self._home_endpoint,
-                "Referer": "%s/" % self._home_endpoint,
+                "Origin": self.HOME_ENDPOINT,
+                "Referer": "%s/" % self.HOME_ENDPOINT,
                 "User-Agent": "Opera/9.52 (X11; Linux i686; U; en)",
             }
         )
@@ -270,7 +270,7 @@ class PyiCloudService(object):
     def trusted_devices(self):
         """Returns devices trusted for two-step authentication."""
         request = self.session.get(
-            "%s/listDevices" % self._setup_endpoint, params=self.params
+            "%s/listDevices" % self.SETUP_ENDPOINT, params=self.params
         )
         return request.json().get("devices")
 
@@ -278,7 +278,7 @@ class PyiCloudService(object):
         """Requests that a verification code is sent to the given device."""
         data = json.dumps(device)
         request = self.session.post(
-            "%s/sendVerificationCode" % self._setup_endpoint,
+            "%s/sendVerificationCode" % self.SETUP_ENDPOINT,
             params=self.params,
             data=data,
         )
@@ -291,7 +291,7 @@ class PyiCloudService(object):
 
         try:
             self.session.post(
-                "%s/validateVerificationCode" % self._setup_endpoint,
+                "%s/validateVerificationCode" % self.SETUP_ENDPOINT,
                 params=self.params,
                 data=data,
             )

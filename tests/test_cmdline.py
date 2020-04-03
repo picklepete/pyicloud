@@ -1,6 +1,8 @@
 """Cmdline tests."""
 from pyicloud import cmdline
-from . import PyiCloudServiceMock, AUTHENTICATED_USER, REQUIRES_2SA_USER, DEVICES
+from . import PyiCloudServiceMock
+from .const import AUTHENTICATED_USER, REQUIRES_2SA_USER, VALID_PASSWORD
+from .const_findmyiphone import FMI_FMLY_WORKING
 
 import os
 import sys
@@ -45,8 +47,11 @@ class TestCmdline(TestCase):
         with pytest.raises(SystemExit, match="2"):
             self.main(["--username"])
 
+    @patch("keyring.get_password", return_value=None)
     @patch("getpass.getpass")
-    def test_username_password_invalid(self, mock_getpass):
+    def test_username_password_invalid(
+        self, mock_getpass, mock_get_password
+    ):  # pylint: disable=unused-argument
         """Test username and password commands."""
         # No password supplied
         mock_getpass.return_value = None
@@ -66,8 +71,11 @@ class TestCmdline(TestCase):
         ):
             self.main(["--username", "invalid_user", "--password", "invalid_pass"])
 
+    @patch("keyring.get_password", return_value=None)
     @patch("pyicloud.cmdline.input")
-    def test_username_password_requires_2sa(self, mock_input):
+    def test_username_password_requires_2sa(
+        self, mock_input, mock_get_password
+    ):  # pylint: disable=unused-argument
         """Test username and password commands."""
         # Valid connection for the first time
         mock_input.return_value = "0"
@@ -75,25 +83,29 @@ class TestCmdline(TestCase):
             # fmt: off
             self.main([
                 '--username', REQUIRES_2SA_USER,
-                '--password', 'valid_pass',
+                '--password', VALID_PASSWORD,
                 '--non-interactive',
             ])
             # fmt: on
 
-    def test_device_outputfile(self):
+    @patch("keyring.get_password", return_value=None)
+    def test_device_outputfile(
+        self, mock_get_password
+    ):  # pylint: disable=unused-argument
         """Test the outputfile command."""
         with pytest.raises(SystemExit, match="0"):
             # fmt: off
             self.main([
                 '--username', AUTHENTICATED_USER,
-                '--password', 'valid_pass',
+                '--password', VALID_PASSWORD,
                 '--non-interactive',
                 '--outputfile'
             ])
             # fmt: on
 
-        for key in DEVICES:
-            file_name = DEVICES[key].content["name"].strip().lower() + ".fmip_snapshot"
+        devices = FMI_FMLY_WORKING.get("content")
+        for device in devices:
+            file_name = device.get("name").strip().lower() + ".fmip_snapshot"
 
             pickle_file = open(file_name, "rb")
             assert pickle_file
@@ -105,7 +117,7 @@ class TestCmdline(TestCase):
                         contents.append(pickle.load(opened_file))
                     except EOFError:
                         break
-            assert contents == [DEVICES[key].content]
+            assert contents == [device]
 
             pickle_file.close()
             os.remove(file_name)
