@@ -1,19 +1,18 @@
 """Login test constants."""
-
-# Base
-FIRST_NAME = "Quentin"
-LAST_NAME = "TARANTINO"
-FULL_NAME = FIRST_NAME + " " + LAST_NAME
+from .const_account_family import (
+    FIRST_NAME,
+    LAST_NAME,
+    PERSON_ID,
+    FULL_NAME,
+    PRIMARY_EMAIL,
+    APPLE_ID_EMAIL,
+    ICLOUD_ID_EMAIL,
+)
 
 PERSON_ID = (FIRST_NAME + LAST_NAME).lower()
 NOTIFICATION_ID = "12345678-1234-1234-1234-123456789012" + PERSON_ID
 A_DS_ID = "123456-12-12345678-1234-1234-1234-123456789012" + PERSON_ID
 WIDGET_KEY = "widget_key" + PERSON_ID
-
-PRIMARY_EMAIL = PERSON_ID + "@hotmail.fr"
-APPLE_ID_EMAIL = PERSON_ID + "@me.com"
-ICLOUD_ID_EMAIL = PERSON_ID + "@icloud.com"
-
 
 # Data
 LOGIN_WORKING = {

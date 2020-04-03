@@ -2,7 +2,7 @@
 from pyicloud import cmdline
 from . import PyiCloudServiceMock
 from .const import AUTHENTICATED_USER, REQUIRES_2SA_USER, VALID_PASSWORD
-from .const_findmyiphone import FMI_FMLY_WORKING
+from .const_findmyiphone import FMI_FAMILY_WORKING
 
 import os
 import sys
@@ -103,7 +103,7 @@ class TestCmdline(TestCase):
             ])
             # fmt: on
 
-        devices = FMI_FMLY_WORKING.get("content")
+        devices = FMI_FAMILY_WORKING.get("content")
         for device in devices:
             file_name = device.get("name").strip().lower() + ".fmip_snapshot"
 

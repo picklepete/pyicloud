@@ -20,8 +20,9 @@ from .const_login import (
     VERIFICATION_CODE_OK,
     VERIFICATION_CODE_KO,
 )
-from .const_account import ACCOUNT_DEVICES_WORKING
-from .const_findmyiphone import FMI_FMLY_WORKING
+from .const_account import ACCOUNT_DEVICES_WORKING, ACCOUNT_STORAGE_WORKING
+from .const_account_family import ACCOUNT_FAMILY_WORKING
+from .const_findmyiphone import FMI_FAMILY_WORKING
 
 
 class ResponseMock(Response):
@@ -76,10 +77,14 @@ class PyiCloudSessionMock(base.PyiCloudSession):
         # Account
         if "device/getDevices" in url and method == "GET":
             return ResponseMock(ACCOUNT_DEVICES_WORKING)
+        if "family/getFamilyDetails" in url and method == "GET":
+            return ResponseMock(ACCOUNT_FAMILY_WORKING)
+        if "setup/ws/1/storageUsageInfo" in url and method == "GET":
+            return ResponseMock(ACCOUNT_STORAGE_WORKING)
 
         # Find My iPhone
         if "fmi" in url and method == "POST":
-            return ResponseMock(FMI_FMLY_WORKING)
+            return ResponseMock(FMI_FAMILY_WORKING)
 
         return None
 
