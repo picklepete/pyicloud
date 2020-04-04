@@ -10,6 +10,7 @@ class FindFriendsService(object):
     This connects to iCloud and returns friend data including the near-realtime
     latitude and longitude.
     """
+
     def __init__(self, service_root, session, params):
         self.session = session
         self.params = params
@@ -28,22 +29,23 @@ class FindFriendsService(object):
         """
         params = dict(self.params)
         # This is a request payload we mock to fetch the data
-        mock_payload = json.dumps({
-            "clientContext": {
-                "appVersion": "1.0",
-                "contextApp": "com.icloud.web.fmf",
-                "mapkitAvailable": True,
-                "productType": "fmfWeb",
-                "tileServer": "Apple",
-                "userInactivityTimeInMS": 537,
-                "windowInFocus": False,
-                "windowVisible": True
-            },
-            "dataContext": None,
-            "serverContext": None
-        })
-        req = self.session.post(self._friend_endpoint,
-                                data=mock_payload, params=params)
+        mock_payload = json.dumps(
+            {
+                "clientContext": {
+                    "appVersion": "1.0",
+                    "contextApp": "com.icloud.web.fmf",
+                    "mapkitAvailable": True,
+                    "productType": "fmfWeb",
+                    "tileServer": "Apple",
+                    "userInactivityTimeInMS": 537,
+                    "windowInFocus": False,
+                    "windowVisible": True,
+                },
+                "dataContext": None,
+                "serverContext": None,
+            }
+        )
+        req = self.session.post(self._friend_endpoint, data=mock_payload, params=params)
         # Update the response for normal execution flow
         self.response = req.json()
         # FEAT: Return a value to support monkey-patching
