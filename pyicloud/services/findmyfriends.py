@@ -74,16 +74,11 @@ class FindFriendsService(object):
         return self.data.get("followers")
 
     @property
-    def friend_fences(self):
-        """Returns friend geofences"""
-        return self.data.get("friendFencesISet")
+    def following(self):
+        """Returns a list of friends who you follow"""
+        return self.data.get("following")
 
     @property
-    def my_fences(self):
-        """Returns my fences"""
-        return self.data.get("myFencesISet")
-
-    @property
-    def details(self):
+    def contact_details(self):
         """Returns a list of your friends contact details"""
         return self.data.get("contactDetails")
