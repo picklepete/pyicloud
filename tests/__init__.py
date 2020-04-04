@@ -23,6 +23,7 @@ from .const_login import (
 from .const_account import ACCOUNT_DEVICES_WORKING, ACCOUNT_STORAGE_WORKING
 from .const_account_family import ACCOUNT_FAMILY_WORKING
 from .const_findmyiphone import FMI_FAMILY_WORKING
+from .const_findmyfriends import FRIENDS_SERVICE_WORKING
 
 
 class ResponseMock(Response):
@@ -83,8 +84,12 @@ class PyiCloudSessionMock(base.PyiCloudSession):
             return ResponseMock(ACCOUNT_STORAGE_WORKING)
 
         # Find My iPhone
-        if "fmi" in url and method == "POST":
+        if "fmipservice/client/web" in url and method == "POST":
             return ResponseMock(FMI_FAMILY_WORKING)
+
+        # Find My Friends
+        if "fmipservice/client/fmfWeb" in url and method == "POST":
+            return ResponseMock(FRIENDS_SERVICE_WORKING)
 
         return None
 
