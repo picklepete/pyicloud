@@ -1,7 +1,7 @@
 """Find my iPhone service."""
 import json
 
-from six import PY2, text_type
+from six import PY2
 
 from pyicloud.exceptions import PyiCloudNoDevicesException
 
@@ -166,7 +166,7 @@ class FindMyiPhoneService(object):
         return as_unicode
 
     def __repr__(self):
-        return "<%s: {with_family: %s, devices: %s}>" % (type(self).__name__, str(self))
+        return "<%s: %s>" % (type(self).__name__, str(self))
 
 
 class AppleDevice(object):
