@@ -346,7 +346,7 @@ class PyiCloudService(object):
 
     @property
     def friends(self):
-        service_root = self.webservices['fmf']['url']
+        service_root = self._get_webservice_url("fmf")
         return FindFriendsService(service_root, self.session, self.params)
 
     @property
