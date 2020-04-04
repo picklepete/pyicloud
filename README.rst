@@ -157,6 +157,125 @@ Lost mode is slightly different to the "Play Sound" functionality in that it all
 >>> message = 'Thief! Return my phone immediately.'
 >>> api.iphone.lost_device(phone_number, message)
 
+Find My Friends
+==============
+
+Once you have successfully authenticated, you can find your friends' locations!
+
+Locations
+********
+
+Returns the your friends' last known locations. You must install and initialize the Find My Friends app on an iOS device, signing in with your credentials. In addition, your friends must be sharing their location with your account using the Find My Friends app.
+
+>>> api.friends.locations
+```
+[{u'id': u'REDACTED_1',
+  u'location': {u'address': {u'administrativeArea': u'California',
+    u'country': u'United States',
+    u'countryCode': u'US',
+    u'formattedAddressLines': [u'2267-2269 15th St',
+     u'San Francisco, CA  94114',
+     u'United States'],
+    u'locality': u'San Francisco',
+    u'stateCode': u'CA',
+    u'streetAddress': u'2267-2269 15th St',
+    u'streetName': u'15th St'},
+   u'altitude': 0.0,
+   u'batteryStatus': None,
+   u'floorLevel': 0,
+   u'horizontalAccuracy': 65.0,
+   u'isInaccurate': False,
+   u'labels': [],
+   u'latitude': 37.76551176615568,
+   u'locSource': None,
+   u'locationId': u'56bad872-xxxx-xxxx-xxxx-acc5631035f9',
+   u'locationTimestamp': 0,
+   u'longitude': -122.43462385313705,
+   u'tempLangForAddrAndPremises': None,
+   u'timestamp': 1509180784641,
+   u'verticalAccuracy': 0.0},
+  u'locationStatus': None,
+  u'status': None}]
+```
+
+Details
+********
+
+Returns a list of your friends' contact details.
+
+>>> api.friends.details
+```
+[{u'contactId': u'442A82F6-XXXX-XXXX-XXXX-636CEBECD50D',
+  u'emails': [u'example@mail.com'],
+  u'firstName': u'Nicole',
+  u'id': u''REDACTED_2',
+  u'lastName': u'Smith',
+  u'middleName': u'',
+  u'phones': [u'1234567891'],
+  u'photoUrl': u''},
+ {u'contactId': u'6BB8D6AB-XXXX-XXX-XXXX-90C24FAD9E0C',
+  u'emails': [],
+  u'firstName': u'John',
+  u'id': u'REDACTED_1',
+  u'lastName': u'Doe',
+  u'middleName': u'',
+  u'phones': [u'+1234567890'],
+  u'photoUrl': u''}]
+```
+
+Followers
+********
+
+Returns a list of your friends who you share your location with.
+
+>>> api.friends.followers
+
+
+My Fences
+********
+
+TODO
+
+>>> api.friends.my_fences
+
+
+Friend Fences
+********
+
+Returns a list of geofences that you have set using the app.
+
+>>> api.friends.friend_fences
+```
+[{u'address': u'',
+  u'createdById': u'REDACTED',
+  u'emails': [],
+  u'fenceId': None,
+  u'followerIds': [],
+  u'friendId': u'REDACTED_1,
+  u'fullAddress': {u'administrativeArea': u'CA',
+   u'country': u'United States',
+   u'formattedAddressLines': [u'2525 Ocean Front Walk',
+    u'Santa Monica CA',
+    u'United States'],
+   u'locality': u'Santa Monica',
+   u'stateCode': u'CA',
+   u'streetAddress': u'2525 Ocean Front Walk',
+   u'streetName': u'2525 Ocean Front Walk'},
+  u'id': u'68eefd76-xxxx-xxxx-xxx-424bc1da1823',
+  u'isOn': True,
+  u'label': u'Santa Monica State Beach',
+  u'latitude': 34.00046773723699,
+  u'locationType': u'',
+  u'longitude': -118.48747657623,
+  u'onetimeonly': True,
+  u'phoneNumbers': [],
+  u'prettyAddress': u'',
+  u'radius': 100.0,
+  u'streetName': u'',
+  u'trigger': u'enter',
+  u'type': u'NotifyMe',
+  u'updateTimestamp': 1491692920039}]
+```
 
 Calendar
 ========
