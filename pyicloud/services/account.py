@@ -316,12 +316,15 @@ class AccountStorage:
         self.usage = AccountStorageUsage(
             storage_data.get("storageUsageInfo"), storage_data.get("quotaStatus")
         )
-        self.usages_by_media = OrderedDict()
+        self.usage_by_media = OrderedDict()
 
         for usage_media in storage_data.get("storageUsageByMedia"):
-            self.usages_by_media[usage_media["mediaKey"]] = AccountStorageUsageForMedia(
+            self.usage_by_media[usage_media["mediaKey"]] = AccountStorageUsageForMedia(
                 usage_media
             )
+
+    def __unicode__(self):
+        return "{usage: %s, usages_by_media: %s}" % (self.usage, self.usages_by_media)
 
     def __str__(self):
         return f"{{usage: {self.usage}, usages_by_media: {self.usages_by_media}}}"

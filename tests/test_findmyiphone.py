@@ -5,7 +5,9 @@ from . import PyiCloudServiceMock
 from .const import AUTHENTICATED_USER, VALID_PASSWORD
 
 import logging
+
 LOGGER = logging.getLogger(__name__)
+
 
 class FindMyiPhoneServiceTest(TestCase):
     """Find My iPhone service tests."""
@@ -15,13 +17,21 @@ class FindMyiPhoneServiceTest(TestCase):
     def setUp(self):
         self.service = PyiCloudServiceMock(AUTHENTICATED_USER, VALID_PASSWORD)
 
+    def test_repr(self):
+        """Tests representations."""
+        # fmt: off
+        assert repr(self.service) == "<FindMyiPhoneService: {with_family: True, devices: 0}>"
+        self.service.refresh_client()
+        assert repr(self.service) == "<FindMyiPhoneService: {with_family: True, devices: 13}>"
+        # fmt: on
+
     def test_init(self):
         """Tests init."""
-        assert len(self.service.devices) == 0
+        assert len(list(self.service.devices)) == 0
 
     def test_refresh_client(self):
         """Tests devices."""
-        assert len(self.service.devices) == 0
+        assert len(list(self.service.devices)) == 0
 
         self.service.refresh_client()
 
@@ -38,6 +48,9 @@ class FindMyiPhoneServiceTest(TestCase):
 
         assert self.service.device("iPhone12,1") is not None
         assert self.service.device(0) is not None
+        # fmt: off
+        assert repr(self.service.device(0)) == "<AppleDevice(iPhone 11: iPhone de Quentin)>"
+        # fmt: on
 
         with self.assertRaises(IndexError):
             self.service.device(999)
@@ -49,7 +62,12 @@ class FindMyiPhoneServiceTest(TestCase):
         assert self.service.devices
 
         for device in self.service.devices.values():
-            LOGGER.warning(device)
+            assert device.name
+            assert device.deviceDisplayName
+            # fmt: off
+            assert repr(device) == "<AppleDevice("+device.deviceDisplayName+": "+device.name+")>"
+            # fmt: on
+
             assert device["canWipeAfterLock"] is not None
             assert device["baUUID"] is not None
             assert device["wipeInProgress"] is not None
@@ -84,36 +102,36 @@ class FindMyiPhoneServiceTest(TestCase):
             assert device["darkWake"] is not None
             assert device["remoteWipe"] is None
 
-            assert device.data["canWipeAfterLock"] is not None
-            assert device.data["baUUID"] is not None
-            assert device.data["wipeInProgress"] is not None
-            assert device.data["lostModeEnabled"] is not None
-            assert device.data["activationLocked"] is not None
-            assert device.data["passcodeLength"] is not None
-            assert device.data["deviceStatus"] is not None
-            assert device.data["features"] is not None
-            assert device.data["lowPowerMode"] is not None
-            assert device.data["rawDeviceModel"] is not None
-            assert device.data["id"] is not None
-            assert device.data["isLocating"] is not None
-            assert device.data["modelDisplayName"] is not None
-            assert device.data["lostTimestamp"] is not None
-            assert device.data["batteryLevel"] is not None
-            assert device.data["locationEnabled"] is not None
-            assert device.data["locFoundEnabled"] is not None
-            assert device.data["fmlyShare"] is not None
-            assert device.data["lostModeCapable"] is not None
-            assert device.data["wipedTimestamp"] is None
-            assert device.data["deviceDisplayName"] is not None
-            assert device.data["audioChannels"] is not None
-            assert device.data["locationCapable"] is not None
-            assert device.data["batteryStatus"] is not None
-            assert device.data["trackingInfo"] is None
-            assert device.data["name"] is not None
-            assert device.data["isMac"] is not None
-            assert device.data["thisDevice"] is not None
-            assert device.data["deviceClass"] is not None
-            assert device.data["deviceModel"] is not None
-            assert device.data["maxMsgChar"] is not None
-            assert device.data["darkWake"] is not None
-            assert device.data["remoteWipe"] is None
+            assert device.attrs["canWipeAfterLock"] is not None
+            assert device.attrs["baUUID"] is not None
+            assert device.attrs["wipeInProgress"] is not None
+            assert device.attrs["lostModeEnabled"] is not None
+            assert device.attrs["activationLocked"] is not None
+            assert device.attrs["passcodeLength"] is not None
+            assert device.attrs["deviceStatus"] is not None
+            assert device.attrs["features"] is not None
+            assert device.attrs["lowPowerMode"] is not None
+            assert device.attrs["rawDeviceModel"] is not None
+            assert device.attrs["id"] is not None
+            assert device.attrs["isLocating"] is not None
+            assert device.attrs["modelDisplayName"] is not None
+            assert device.attrs["lostTimestamp"] is not None
+            assert device.attrs["batteryLevel"] is not None
+            assert device.attrs["locationEnabled"] is not None
+            assert device.attrs["locFoundEnabled"] is not None
+            assert device.attrs["fmlyShare"] is not None
+            assert device.attrs["lostModeCapable"] is not None
+            assert device.attrs["wipedTimestamp"] is None
+            assert device.attrs["deviceDisplayName"] is not None
+            assert device.attrs["audioChannels"] is not None
+            assert device.attrs["locationCapable"] is not None
+            assert device.attrs["batteryStatus"] is not None
+            assert device.attrs["trackingInfo"] is None
+            assert device.attrs["name"] is not None
+            assert device.attrs["isMac"] is not None
+            assert device.attrs["thisDevice"] is not None
+            assert device.attrs["deviceClass"] is not None
+            assert device.attrs["deviceModel"] is not None
+            assert device.attrs["maxMsgChar"] is not None
+            assert device.attrs["darkWake"] is not None
+            assert device.attrs["remoteWipe"] is None

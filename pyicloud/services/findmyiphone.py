@@ -1,6 +1,8 @@
 """Find my iPhone service."""
 import json
 
+from six import PY2, text_type
+
 from pyicloud.exceptions import PyiCloudNoDevicesException
 
 DEVICE_BATTERY_LEVEL = "batteryLevel"
@@ -121,7 +123,7 @@ class FindMyiPhoneService(object):
         return f"{self._devices}"
 
     def __repr__(self):
-        return text_type(self)
+        return "<%s: {with_family: %s, devices: %s}>" % (type(self).__name__, str(self))
 
 
 class AppleDevice(object):
