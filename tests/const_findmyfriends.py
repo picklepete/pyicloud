@@ -11,18 +11,18 @@ LOCATION_ID_2 = "db0edef7-f5b7-4f7f-bd89-ce0a6a079e65"
 # Apple Park Visitor Center data
 LOCATION_LATITUDE = 37.33291413003810
 LOCATION_LONGITUDE = -122.00520223179473
-country_code = "US"
-locality = "Cupertino"
-country = "United States"
-street_address = "10600 North Tantau Avenue"
-administrative_area = "California"
-state_code = "CA"
-street_name = "North Tantau Avenue"
-zipcode = "95014"
-formatted_address_lines = [
-    street_address,
-    "{}, {} {}".format(locality, state_code, zipcode),
-    country,
+COUNTRY_CODE = "US"
+LOCALITY = "Cupertino"
+COUNTRY = "United States"
+STREET_ADDRESS = "10600 North Tantau Avenue"
+ADMINISTRATIVE_AREA = "California"
+STATE_CODE = "CA"
+STREET_NAME = "North Tantau Avenue"
+ZIPCODE = "95014"
+FORMATTED_ADDRESS_LINES = [
+    STREET_ADDRESS,
+    "{}, {} {}".format(LOCALITY, STATE_CODE, ZIPCODE),
+    COUNTRY,
 ]
 
 FRIENDS_LOCATION_WORKING = [
@@ -43,14 +43,14 @@ FRIENDS_LOCATION_WORKING = [
             "horizontalAccuracy": 5.0,
             "floorLevel": 0,
             "address": {
-                "countryCode": country_code,
-                "locality": locality,
-                "formattedAddressLines": formatted_address_lines,
-                "country": country,
-                "streetAddress": street_address,
-                "administrativeArea": administrative_area,
-                "stateCode": state_code,
-                "streetName": street_name,
+                "countryCode": COUNTRY_CODE,
+                "LOCALITY": LOCALITY,
+                "formattedAddressLines": FORMATTED_ADDRESS_LINES,
+                "country": COUNTRY,
+                "streetAddress": STREET_ADDRESS,
+                "administrativeArea": ADMINISTRATIVE_AREA,
+                "stateCode": STATE_CODE,
+                "streetName": STREET_NAME,
             },
             "latitude": LOCATION_LATITUDE,
             "isInaccurate": False,
@@ -74,14 +74,14 @@ FRIENDS_LOCATION_WORKING = [
             "horizontalAccuracy": 65.0,
             "floorLevel": 0,
             "address": {
-                "countryCode": country_code,
-                "locality": locality,
-                "formattedAddressLines": formatted_address_lines,
-                "country": country,
-                "streetAddress": street_address,
-                "administrativeArea": administrative_area,
-                "stateCode": state_code,
-                "streetName": street_name,
+                "countryCode": COUNTRY_CODE,
+                "LOCALITY": LOCALITY,
+                "formattedAddressLines": FORMATTED_ADDRESS_LINES,
+                "country": COUNTRY,
+                "streetAddress": STREET_ADDRESS,
+                "administrativeArea": ADMINISTRATIVE_AREA,
+                "stateCode": STATE_CODE,
+                "streetName": STREET_NAME,
             },
             "latitude": LOCATION_LATITUDE,
             "isInaccurate": False,
