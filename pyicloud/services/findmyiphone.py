@@ -203,7 +203,7 @@ class AppleDevice(object):
     def __unicode__(self):
         display_name = self["deviceDisplayName"]
         name = self["name"]
-        return "%s: %s" % (display_name, name,)
+        return "%s: %s" % (display_name, name)
 
     def __str__(self):
         as_unicode = self.__unicode__()

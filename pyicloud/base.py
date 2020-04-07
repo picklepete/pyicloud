@@ -173,7 +173,7 @@ class PyiCloudService(object):
         if cookie_directory:
             self._cookie_directory = path.expanduser(path.normpath(cookie_directory))
         else:
-            self._cookie_directory = path.join(gettempdir(), "pyicloud",)
+            self._cookie_directory = path.join(gettempdir(), "pyicloud")
 
         self.session = PyiCloudSession(self)
         self.session.verify = verify

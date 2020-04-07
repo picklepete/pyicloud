@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 """Account service tests."""
 from unittest import TestCase
+
 from . import PyiCloudServiceMock
 from .const import AUTHENTICATED_USER, VALID_PASSWORD
 

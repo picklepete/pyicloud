@@ -93,7 +93,7 @@ class AccountDevice(dict):
         return self[underscore_to_camelcase(key)]
 
     def __unicode__(self):
-        return "{model: %s, name: %s}" % (self.model_display_name, self.name,)
+        return "{model: %s, name: %s}" % (self.model_display_name, self.name)
 
     def __str__(self):
         as_unicode = self.__unicode__()
@@ -250,7 +250,7 @@ class AccountStorageUsageForMedia(object):
         return self.usage_data["usageInBytes"]
 
     def __unicode__(self):
-        return "{key: %s, usage: %s bytes}" % (self.key, self.usage_in_bytes,)
+        return "{key: %s, usage: %s bytes}" % (self.key, self.usage_in_bytes)
 
     def __str__(self):
         as_unicode = self.__unicode__()
@@ -357,7 +357,7 @@ class AccountStorage(object):
             )
 
     def __unicode__(self):
-        return "{usage: %s, usages_by_media: %s}" % (self.usage, self.usages_by_media,)
+        return "{usage: %s, usages_by_media: %s}" % (self.usage, self.usages_by_media)
 
     def __str__(self):
         as_unicode = self.__unicode__()
