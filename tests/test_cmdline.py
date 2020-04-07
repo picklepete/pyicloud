@@ -5,15 +5,15 @@ from .const import AUTHENTICATED_USER, REQUIRES_2SA_USER, VALID_PASSWORD
 from .const_findmyiphone import FMI_FAMILY_WORKING
 
 import os
-import sys
+from six import PY2
 import pickle
 import pytest
 from unittest import TestCase
 
-if sys.version_info >= (3, 3):
-    from unittest.mock import patch  # pylint: disable=no-name-in-module,import-error
-else:
+if PY2:
     from mock import patch
+else:
+    from unittest.mock import patch  # pylint: disable=no-name-in-module,import-error
 
 
 class TestCmdline(TestCase):

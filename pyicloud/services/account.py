@@ -1,7 +1,5 @@
 """Account service."""
-import sys
-
-import six
+from six import PY2, python_2_unicode_compatible
 
 from pyicloud.utils import underscore_to_camelcase
 
@@ -67,28 +65,42 @@ class AccountService(object):
             self._storage = AccountStorage(response)
 
         return self._storage
+    
+    def __unicode__(self):
+        return "{devices: %s, family: %s, storage: %s bytes free}" % (
+            len(self.devices),
+            len(self.family),
+            self.storage.usage.available_storage_in_bytes,
+        )
+
+    def __str__(self):
+        as_unicode = self.__unicode__()
+        if PY2:
+            return as_unicode.encode("utf-8", "ignore")
+        return as_unicode
+
+    def __repr__(self):
+        return "<%s: %s>" % (type(self).__name__, str(self))
 
 
-@six.python_2_unicode_compatible
+@python_2_unicode_compatible
 class AccountDevice(dict):
     """Account device."""
 
     def __getattr__(self, key):
         return self[underscore_to_camelcase(key)]
 
+    def __unicode__(self):
+        return "{model: %s, name: %s}" % (self.model_display_name, self.name,)
+
     def __str__(self):
-        return u"{display_name}: {name}".format(
-            display_name=self.model_display_name, name=self.name,
-        )
+        as_unicode = self.__unicode__()
+        if PY2:
+            return as_unicode.encode("utf-8", "ignore")
+        return as_unicode
 
     def __repr__(self):
-        return "<{display}>".format(
-            display=(
-                six.text_type(self)
-                if sys.version_info[0] >= 3
-                else six.text_type(self).encode("utf8", "replace")
-            )
-        )
+        return "<%s: %s>" % (type(self).__name__, str(self))
 
 
 class FamilyMember(object):
@@ -193,19 +205,20 @@ class FamilyMember(object):
             return self._attrs[key]
         return getattr(self, key)
 
-    def __str__(self):
-        return u"{full_name}: {age_classification}".format(
-            full_name=self.full_name, age_classification=self.age_classification,
+    def __unicode__(self):
+        return "{name: %s, age_classification: %s}" % (
+            self.full_name,
+            self.age_classification,
         )
 
+    def __str__(self):
+        as_unicode = self.__unicode__()
+        if PY2:
+            return as_unicode.encode("utf-8", "ignore")
+        return as_unicode
+
     def __repr__(self):
-        return "<{display}>".format(
-            display=(
-                six.text_type(self)
-                if sys.version_info[0] >= 3
-                else six.text_type(self).encode("utf8", "replace")
-            )
-        )
+        return "<%s: %s>" % (type(self).__name__, str(self))
 
 
 class AccountStorageUsageForMedia(object):
@@ -234,17 +247,17 @@ class AccountStorageUsageForMedia(object):
         """Gets the usage in bytes."""
         return self.usage_data["usageInBytes"]
 
+    def __unicode__(self):
+        return "{key: %s, usage: %s bytes}" % (self.key, self.usage_in_bytes,)
+
     def __str__(self):
-        return u"{key}: {usage}".format(key=self.key, usage=self.usage_in_bytes)
+        as_unicode = self.__unicode__()
+        if PY2:
+            return as_unicode.encode("utf-8", "ignore")
+        return as_unicode
 
     def __repr__(self):
-        return "<{display}>".format(
-            display=(
-                six.text_type(self)
-                if sys.version_info[0] >= 3
-                else six.text_type(self).encode("utf8", "replace")
-            )
-        )
+        return "<%s: %s>" % (type(self).__name__, str(self))
 
 
 class AccountStorageUsage(object):
@@ -309,19 +322,20 @@ class AccountStorageUsage(object):
         """Gets the paid quota."""
         return self.quota_data["paidQuota"]
 
-    def __str__(self):
-        return u"{used_percent}%% used of {total} bytes".format(
-            used_percent=self.used_storage_in_percent, total=self.total_storage_in_bytes
+    def __unicode__(self):
+        return "%s%% used of %s bytes" % (
+            self.used_storage_in_percent,
+            self.total_storage_in_bytes,
         )
 
+    def __str__(self):
+        as_unicode = self.__unicode__()
+        if PY2:
+            return as_unicode.encode("utf-8", "ignore")
+        return as_unicode
+
     def __repr__(self):
-        return "<{display}>".format(
-            display=(
-                six.text_type(self)
-                if sys.version_info[0] >= 3
-                else six.text_type(self).encode("utf8", "replace")
-            )
-        )
+        return "<%s: %s>" % (type(self).__name__, str(self))
 
 
 class AccountStorage(object):
@@ -337,3 +351,18 @@ class AccountStorage(object):
             self.usages_by_media[usage_media["mediaKey"]] = AccountStorageUsageForMedia(
                 usage_media
             )
+    
+    def __unicode__(self):
+        return "{usage: %s, usages_by_media: %s}" % (
+            self.usage,
+            self.usages_by_media,
+        )
+
+    def __str__(self):
+        as_unicode = self.__unicode__()
+        if PY2:
+            return as_unicode.encode("utf-8", "ignore")
+        return as_unicode
+
+    def __repr__(self):
+        return "<%s: %s>" % (type(self).__name__, str(self))

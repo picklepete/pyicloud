@@ -1,17 +1,13 @@
 """Photo service."""
-import sys
 import json
 import base64
-import six
+from six import PY2
+from six.moves.urllib.parse import urlencode
 
 from datetime import datetime
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
 from pytz import UTC
 
-if six.PY2:
-    from urllib import urlencode  # pylint: disable=no-name-in-module
-else:
-    from urllib.parse import urlencode
 
 class PhotosService(object):
     """The 'Photos' iCloud service."""
@@ -476,9 +472,9 @@ class PhotoAlbum(object):
 
     def __str__(self):
         as_unicode = self.__unicode__()
-        if sys.version_info[0] >= 3:
-            return as_unicode
-        return as_unicode.encode("utf-8", "ignore")
+        if PY2:
+            return as_unicode.encode("utf-8", "ignore")
+        return as_unicode
 
     def __repr__(self):
         return "<%s: '%s'>" % (type(self).__name__, self)

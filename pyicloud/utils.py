@@ -1,7 +1,7 @@
 """Utils."""
 import getpass
 import keyring
-import sys
+from sys import stdout
 
 from .exceptions import PyiCloudNoStoredPasswordAvailableException
 
@@ -9,7 +9,7 @@ from .exceptions import PyiCloudNoStoredPasswordAvailableException
 KEYRING_SYSTEM = "pyicloud://icloud-password"
 
 
-def get_password(username, interactive=sys.stdout.isatty()):
+def get_password(username, interactive=stdout.isatty()):
     """Get the password from a username."""
     try:
         return get_password_from_keyring(username)
