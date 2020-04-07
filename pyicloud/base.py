@@ -27,10 +27,10 @@ from pyicloud.services import (
 )
 from pyicloud.utils import get_password_from_keyring
 
-if six.PY3:
-    import http.cookiejar as cookielib
-else:
+if six.PY2:
     import cookielib  # pylint: disable=import-error
+else:
+    import http.cookiejar as cookielib
 
 
 LOGGER = logging.getLogger(__name__)

@@ -2,13 +2,16 @@
 import sys
 import json
 import base64
+import six
 
 from datetime import datetime
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
 from pytz import UTC
 
-from future.moves.urllib.parse import urlencode
-
+if six.PY2:
+    from urllib import urlencode  # pylint: disable=no-name-in-module
+else:
+    from urllib.parse import urlencode
 
 class PhotosService(object):
     """The 'Photos' iCloud service."""
