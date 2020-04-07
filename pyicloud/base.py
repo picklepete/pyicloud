@@ -1,14 +1,14 @@
 """Library base file."""
-import six
-import uuid
+from six import PY2, string_types
+from uuid import uuid1
 import inspect
 import json
 import logging
 from requests import Session
-import sys
-import tempfile
-import os
+from tempfile import gettempdir
+from os import path, mkdir
 from re import match
+import http.cookiejar as cookielib
 
 from pyicloud.exceptions import (
     PyiCloudFailedLoginException,
@@ -26,11 +26,6 @@ from pyicloud.services import (
     AccountService,
 )
 from pyicloud.utils import get_password_from_keyring
-
-if six.PY3:
-    import http.cookiejar as cookielib
-else:
-    import cookielib  # pylint: disable=import-error
 
 
 LOGGER = logging.getLogger(__name__)
@@ -99,7 +94,7 @@ class PyiCloudSession(Session):
         reason = data.get("errorMessage")
         reason = reason or data.get("reason")
         reason = reason or data.get("errorReason")
-        if not reason and isinstance(data.get("error"), six.string_types):
+        if not reason and isinstance(data.get("error"), string_types):
             reason = data.get("error")
         if not reason and data.get("error"):
             reason = "Unknown reason"
@@ -166,7 +161,7 @@ class PyiCloudService(object):
             password = get_password_from_keyring(apple_id)
 
         self.data = {}
-        self.client_id = client_id or str(uuid.uuid1()).upper()
+        self.client_id = client_id or str(uuid1()).upper()
         self.with_family = with_family
         self.user = {"apple_id": apple_id, "password": password}
 
@@ -176,11 +171,9 @@ class PyiCloudService(object):
         self._base_login_url = "%s/login" % self.SETUP_ENDPOINT
 
         if cookie_directory:
-            self._cookie_directory = os.path.expanduser(
-                os.path.normpath(cookie_directory)
-            )
+            self._cookie_directory = path.expanduser(path.normpath(cookie_directory))
         else:
-            self._cookie_directory = os.path.join(tempfile.gettempdir(), "pyicloud",)
+            self._cookie_directory = path.join(gettempdir(), "pyicloud")
 
         self.session = PyiCloudSession(self)
         self.session.verify = verify
@@ -194,7 +187,7 @@ class PyiCloudService(object):
 
         cookiejar_path = self._get_cookiejar_path()
         self.session.cookies = cookielib.LWPCookieJar(filename=cookiejar_path)
-        if os.path.exists(cookiejar_path):
+        if path.exists(cookiejar_path):
             try:
                 self.session.cookies.load()
                 LOGGER.debug("Read cookies from %s", cookiejar_path)
@@ -242,8 +235,8 @@ class PyiCloudService(object):
         self.params.update({"dsid": self.data["dsInfo"]["dsid"]})
         self._webservices = self.data["webservices"]
 
-        if not os.path.exists(self._cookie_directory):
-            os.mkdir(self._cookie_directory)
+        if not path.exists(self._cookie_directory):
+            mkdir(self._cookie_directory)
         self.session.cookies.save()
         LOGGER.debug("Cookies saved to %s", self._get_cookiejar_path())
 
@@ -252,7 +245,7 @@ class PyiCloudService(object):
 
     def _get_cookiejar_path(self):
         """Get path for cookiejar file."""
-        return os.path.join(
+        return path.join(
             self._cookie_directory,
             "".join([c for c in self.user.get("apple_id") if match(r"\w", c)]),
         )
@@ -373,9 +366,9 @@ class PyiCloudService(object):
 
     def __str__(self):
         as_unicode = self.__unicode__()
-        if sys.version_info[0] >= 3:
-            return as_unicode
-        return as_unicode.encode("utf-8", "ignore")
+        if PY2:
+            return as_unicode.encode("utf-8", "ignore")
+        return as_unicode
 
     def __repr__(self):
         return "<%s>" % str(self)

@@ -1,8 +1,7 @@
 """Find my iPhone service."""
 import json
-import sys
 
-import six
+from six import PY2, text_type
 
 from pyicloud.exceptions import PyiCloudNoDevicesException
 
@@ -70,26 +69,26 @@ class FindMyiPhoneServiceManager(object):
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            if six.PY3:
-                key = list(self.keys())[key]
-            else:
+            if PY2:
                 key = self.keys()[key]
+            else:
+                key = list(self.keys())[key]
         return self._devices[key]
 
     def __getattr__(self, attr):
         return getattr(self._devices, attr)
 
     def __unicode__(self):
-        return six.text_type(self._devices)
+        return text_type(self._devices)
 
     def __str__(self):
         as_unicode = self.__unicode__()
-        if sys.version_info[0] >= 3:
-            return as_unicode
-        return as_unicode.encode("utf-8", "ignore")
+        if PY2:
+            return as_unicode.encode("utf-8", "ignore")
+        return as_unicode
 
     def __repr__(self):
-        return six.text_type(self)
+        return text_type(self)
 
 
 class AppleDevice(object):
@@ -204,13 +203,13 @@ class AppleDevice(object):
     def __unicode__(self):
         display_name = self["deviceDisplayName"]
         name = self["name"]
-        return "%s: %s" % (display_name, name,)
+        return "%s: %s" % (display_name, name)
 
     def __str__(self):
         as_unicode = self.__unicode__()
-        if sys.version_info[0] >= 3:
-            return as_unicode
-        return as_unicode.encode("utf-8", "ignore")
+        if PY2:
+            return as_unicode.encode("utf-8", "ignore")
+        return as_unicode
 
     def __repr__(self):
         return "<AppleDevice(%s)>" % str(self)

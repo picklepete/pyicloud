@@ -1,6 +1,6 @@
 """File service."""
 from datetime import datetime
-import sys
+from six import PY2
 
 
 class UbiquityService(object):
@@ -112,9 +112,9 @@ class UbiquityNode(object):
 
     def __str__(self):
         as_unicode = self.__unicode__()
-        if sys.version_info[0] >= 3:
-            return as_unicode
-        return as_unicode.encode("utf-8", "ignore")
+        if PY2:
+            return as_unicode.encode("utf-8", "ignore")
+        return as_unicode
 
     def __repr__(self):
         return "<%s: '%s'>" % (self.type.capitalize(), self)

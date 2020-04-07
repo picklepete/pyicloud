@@ -5,10 +5,10 @@ A Command Line Wrapper to allow easy use of pyicloud for
 command line scripts, and related.
 """
 from __future__ import print_function
+from builtins import input
 import argparse
 import pickle
 import sys
-import six
 
 from click import confirm
 
@@ -16,12 +16,6 @@ from pyicloud import PyiCloudService
 from pyicloud.exceptions import PyiCloudFailedLoginException
 from . import utils
 
-# fmt: off
-if six.PY2:
-    input = raw_input  # pylint: disable=redefined-builtin,invalid-name,undefined-variable
-else:
-    input = input  # pylint: disable=bad-option-value,self-assigning-variable,invalid-name
-# fmt: on
 
 DEVICE_ERROR = "Please use the --device switch to indicate which device to use."
 
