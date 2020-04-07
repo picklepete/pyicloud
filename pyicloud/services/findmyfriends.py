@@ -5,9 +5,9 @@ import json
 
 class FindFriendsService(object):
     """
-    The 'Find my Friends' iCloud service
+    The 'Find My' (FKA 'Find My Friends') iCloud service
 
-    This connects to iCloud and returns friend data including the near-realtime
+    This connects to iCloud and returns friend data including
     latitude and longitude.
     """
 
@@ -18,14 +18,13 @@ class FindFriendsService(object):
         self._friend_endpoint = "%s/fmipservice/client/fmfWeb/initClient" % (
             self._service_root,
         )
+        self.refresh_always = False
+        self.should_refresh_client_fnc = None
         self.response = {}
 
-    def refresh_data(self):
+    def refresh_client(self):
         """
-        Refreshes all data from Find my Friends endpoint,
-
-        This ensures that the location data is up-to-date.
-
+        Refreshes all data from 'Find My' endpoint,
         """
         params = dict(self.params)
         # This is a request payload we mock to fetch the data
@@ -46,21 +45,31 @@ class FindFriendsService(object):
             }
         )
         req = self.session.post(self._friend_endpoint, data=mock_payload, params=params)
-        # Update the response for normal execution flow
         self.response = req.json()
-        # FEAT: Return a value to support monkey-patching
-        return self.response
+
+    def should_refresh_client(self):
+        """
+        Customizable logic to determine whether the data should be refreshed.
+
+        By default, this returns False.
+
+        Consumers can set `refresh_always` to True or assign their own function
+        that takes a single-argument (the last reponse) and returns a boolean.
+        """
+        fnc = self.should_refresh_client_fnc
+        if not fnc or not callable(fnc):
+            return self.refresh_always
+        return fnc(self.response)
 
     @property
     def data(self):
-        """Memoized friends location data.
-
-        Call `refresh_data()` before property access for latest data.
-
         """
-        if not self.response:  # fetch once
-            # FEAT: Support callees swizzling `refresh_data` method
-            self.response = self.refresh_data()
+        Convenience property to return data from the 'Find My' endpoint.
+
+        Call `refresh_client()` before property access for latest data.
+        """
+        if not self.response or self.should_refresh_client():
+            self.refresh_client()
         return self.response
 
     @property

@@ -160,12 +160,12 @@ Lost mode is slightly different to the "Play Sound" functionality in that it all
 Find My Friends
 ==============
 
-Once you have successfully authenticated, you can find your friends' locations!
+The Find My Friends service lets you locate the friends you are following using the 'Find My' (FKA 'Find My Friends') app.
 
 Locations
 ********
 
-Returns the your friends' last known locations. You must install and initialize the Find My Friends app on an iOS device, signing in with your credentials. In addition, your friends must be sharing their location with your account using the Find My Friends app.
+Returns the your friends' last known locations. You must install and initialize the 'Find My' (FKA 'Find My Friends') app on an iOS device, signing in with your credentials. In addition, your friends must be sharing their location with your account.
 
 >>> api.friends.locations
 
