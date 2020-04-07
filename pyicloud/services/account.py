@@ -1,6 +1,7 @@
 """Account service."""
 from __future__ import division
 from six import PY2, python_2_unicode_compatible
+from collections import OrderedDict
 
 from pyicloud.utils import underscore_to_camelcase
 
@@ -346,7 +347,7 @@ class AccountStorage(object):
         self.usage = AccountStorageUsage(
             storage_data.get("storageUsageInfo"), storage_data.get("quotaStatus")
         )
-        self.usages_by_media = {}
+        self.usages_by_media = OrderedDict()
 
         for usage_media in storage_data.get("storageUsageByMedia"):
             self.usages_by_media[usage_media["mediaKey"]] = AccountStorageUsageForMedia(
