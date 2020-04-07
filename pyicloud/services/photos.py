@@ -2,7 +2,10 @@
 import json
 import base64
 from six import PY2
-from six.moves.urllib.parse import urlencode
+
+# fmt: off
+from six.moves.urllib.parse import urlencode  # pylint: disable=bad-option-value,relative-import
+# fmt: on
 
 from datetime import datetime
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
