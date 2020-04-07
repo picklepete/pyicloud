@@ -7,10 +7,7 @@ from datetime import datetime
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
 from pytz import UTC
 
-try:
-    from future.moves.urllib.parse import urlencode
-except ImportError:
-    from urllib.parse import urlencode
+from future.moves.urllib.parse import urlencode
 
 
 class PhotosService(object):
