@@ -68,7 +68,7 @@ class AccountServiceTest(TestCase):
         """Tests storage."""
         assert self.service.storage
         # fmt: off
-        assert repr(self.service.storage) == "<AccountStorage: {usage: 43.74669633805752% used of 5368709120 bytes, usages_by_media: OrderedDict([('photos', <AccountStorageUsageForMedia: {key: photos, usage: 0 bytes}>), ('backup', <AccountStorageUsageForMedia: {key: backup, usage: 799008186 bytes}>), ('docs', <AccountStorageUsageForMedia: {key: docs, usage: 449092146 bytes}>), ('mail', <AccountStorageUsageForMedia: {key: mail, usage: 1101522944 bytes}>)])}>"
+        assert repr(self.service.storage) == "<AccountStorage: {usage: 43.75% used of 5368709120 bytes, usages_by_media: OrderedDict([('photos', <AccountStorageUsageForMedia: {key: photos, usage: 0 bytes}>), ('backup', <AccountStorageUsageForMedia: {key: backup, usage: 799008186 bytes}>), ('docs', <AccountStorageUsageForMedia: {key: docs, usage: 449092146 bytes}>), ('mail', <AccountStorageUsageForMedia: {key: mail, usage: 1101522944 bytes}>)])}>"
         # fmt: on
 
     def test_storage_usage(self):

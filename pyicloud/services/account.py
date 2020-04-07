@@ -282,7 +282,7 @@ class AccountStorageUsage(object):
     @property
     def used_storage_in_percent(self):
         """Gets the used storage in percent."""
-        return self.used_storage_in_bytes * 100 / self.total_storage_in_bytes
+        return round(self.used_storage_in_bytes * 100 / self.total_storage_in_bytes, 2)
 
     @property
     def available_storage_in_bytes(self):
@@ -292,7 +292,7 @@ class AccountStorageUsage(object):
     @property
     def available_storage_in_percent(self):
         """Gets the available storage in percent."""
-        return self.available_storage_in_bytes * 100 / self.total_storage_in_bytes
+        return round(self.available_storage_in_bytes * 100 / self.total_storage_in_bytes, 2)
 
     @property
     def total_storage_in_bytes(self):
