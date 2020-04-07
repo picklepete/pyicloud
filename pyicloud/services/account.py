@@ -65,7 +65,7 @@ class AccountService(object):
             self._storage = AccountStorage(response)
 
         return self._storage
-    
+
     def __unicode__(self):
         return "{devices: %s, family: %s, storage: %s bytes free}" % (
             len(self.devices),
@@ -351,12 +351,9 @@ class AccountStorage(object):
             self.usages_by_media[usage_media["mediaKey"]] = AccountStorageUsageForMedia(
                 usage_media
             )
-    
+
     def __unicode__(self):
-        return "{usage: %s, usages_by_media: %s}" % (
-            self.usage,
-            self.usages_by_media,
-        )
+        return "{usage: %s, usages_by_media: %s}" % (self.usage, self.usages_by_media,)
 
     def __str__(self):
         as_unicode = self.__unicode__()
