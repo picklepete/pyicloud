@@ -19,7 +19,6 @@ class FindFriendsService(object):
             self._service_root,
         )
         self.refresh_always = False
-        self.should_refresh_client_fnc = None
         self.response = {}
 
     def refresh_client(self):
@@ -47,6 +46,11 @@ class FindFriendsService(object):
         req = self.session.post(self._friend_endpoint, data=mock_payload, params=params)
         self.response = req.json()
 
+    @staticmethod
+    def should_refresh_client_fnc(response):
+        """Function to override to set custom refresh behavior"""
+        return not response
+
     def should_refresh_client(self):
         """
         Customizable logic to determine whether the data should be refreshed.
@@ -56,10 +60,9 @@ class FindFriendsService(object):
         Consumers can set `refresh_always` to True or assign their own function
         that takes a single-argument (the last reponse) and returns a boolean.
         """
-        fnc = self.should_refresh_client_fnc
-        if not fnc or not callable(fnc):
-            return self.refresh_always
-        return fnc(self.response)
+        return self.refresh_always or FindFriendsService.should_refresh_client_fnc(
+            self.response
+        )
 
     @property
     def data(self):
@@ -72,10 +75,45 @@ class FindFriendsService(object):
             self.refresh_client()
         return self.response
 
+    def contact_id_for(self, identifier, default=None):
+        """
+        Returns the contact id of your friend with a given identifier
+        """
+        lookup_key = "phones"
+        if "@" in identifier:
+            lookup_key = "emails"
+
+        def matcher(item):
+            """Returns True iff the identifier matches"""
+            hit = item.get(lookup_key)
+            if not isinstance(hit, list):
+                return hit == identifier
+            return any([el for el in hit if el == identifier])
+
+        candidates = [
+            item.get("id", default) for item in self.contact_details if matcher(item)
+        ]
+        if not candidates:
+            return default
+        return candidates[0]
+
+    def location_of(self, contact_id, default=None):
+        """
+        Returns the location of your friend with a given contact_id
+        """
+        candidates = [
+            item.get("location", default)
+            for item in self.locations
+            if item.get("id") == contact_id
+        ]
+        if not candidates:
+            return default
+        return candidates[0]
+
     @property
     def locations(self):
         """Returns a list of your friends' locations"""
-        return self.data.get("locations")
+        return self.data.get("locations", [])
 
     @property
     def followers(self):

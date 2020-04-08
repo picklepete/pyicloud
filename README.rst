@@ -169,6 +169,11 @@ Returns the your friends' last known locations. You must install and initialize 
 
 >>> api.friends.locations
 
+>>> contact_id = api.friends.contact_id_for("example@mail.com")
+
+>>> api.friends.location_of(contact_id)
+
+
 Followers
 ********
 
