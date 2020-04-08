@@ -19,7 +19,6 @@ class FindFriendsService(object):
             self._service_root,
         )
         self.refresh_always = False
-        self.should_refresh_client_fnc = None
         self.response = {}
 
     def refresh_client(self):
@@ -47,6 +46,11 @@ class FindFriendsService(object):
         req = self.session.post(self._friend_endpoint, data=mock_payload, params=params)
         self.response = req.json()
 
+    @staticmethod
+    def should_refresh_client_fnc(response):
+        """Function to override to set custom refresh behavior"""
+        return not response
+
     def should_refresh_client(self):
         """
         Customizable logic to determine whether the data should be refreshed.
@@ -56,10 +60,9 @@ class FindFriendsService(object):
         Consumers can set `refresh_always` to True or assign their own function
         that takes a single-argument (the last reponse) and returns a boolean.
         """
-        fnc = self.should_refresh_client_fnc
-        if not fnc or not callable(fnc):
-            return self.refresh_always
-        return fnc(self.response)
+        return self.refresh_always or FindFriendsService.should_refresh_client_fnc(
+            self.response
+        )
 
     @property
     def data(self):
