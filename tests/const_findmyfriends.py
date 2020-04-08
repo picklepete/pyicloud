@@ -42,28 +42,26 @@ FORMATTED_ADDRESS_LINES = [
 ]
 
 CONTACT_DETAILS_WORKING = [
-    [
-        {
-            "contactId": CONTACT_UID_1,
-            "emails": [PERSON_EMAIL_1],
-            "firstName": PERSON_FIRST_NAME_1,
-            "id": PERSON_ID_1,
-            "lastName": PERSON_LAST_NAME_1,
-            "middleName": "",
-            "phones": [PERSON_PHONE_1],
-            "photoUrl": "",
-        },
-        {
-            "contactId": CONTACT_UID_2,
-            "emails": [PERSON_EMAIL_2],
-            "firstName": PERSON_FIRST_NAME_2,
-            "id": PERSON_ID_2,
-            "lastName": PERSON_FIRST_NAME_2,
-            "middleName": "",
-            "phones": [PERSON_PHONE_2],
-            "photoUrl": "",
-        },
-    ]
+    {
+        "contactId": CONTACT_UID_1,
+        "emails": [PERSON_EMAIL_1],
+        "firstName": PERSON_FIRST_NAME_1,
+        "id": PERSON_ID_1,
+        "lastName": PERSON_LAST_NAME_1,
+        "middleName": "",
+        "phones": [PERSON_PHONE_1],
+        "photoUrl": "",
+    },
+    {
+        "contactId": CONTACT_UID_2,
+        "emails": [PERSON_EMAIL_2],
+        "firstName": PERSON_FIRST_NAME_2,
+        "id": PERSON_ID_2,
+        "lastName": PERSON_FIRST_NAME_2,
+        "middleName": "",
+        "phones": [PERSON_PHONE_2],
+        "photoUrl": "",
+    },
 ]
 
 FRIENDS_LOCATION_WORKING = [

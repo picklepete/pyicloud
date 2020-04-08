@@ -75,15 +75,36 @@ class FindFriendsService(object):
             self.refresh_client()
         return self.response
 
-    def location_of(self, contact_id, default=None):
-        """Returns the location of your friend with given contact_id"""
+    def contact_id_for(self, identifier, default=None):
+        """
+        Returns the contact id of your friend with a given identifier
+        """
+        lookup_key = "phones"
+        if "@" in identifier:
+            lookup_key = "emails"
 
         def matcher(item):
-            """Returns True iff the contact_id matches"""
-            return item.get("id") == contact_id
+            """Returns True iff the identifier matches"""
+            hit = item.get(lookup_key)
+            if not isinstance(hit, list):
+                return hit == identifier
+            return any([el for el in hit if el == identifier])
 
         candidates = [
-            item.get("location", default) for item in self.locations if matcher(item)
+            item.get("id", default) for item in self.contact_details if matcher(item)
+        ]
+        if not candidates:
+            return default
+        return candidates[0]
+
+    def location_of(self, contact_id, default=None):
+        """
+        Returns the location of your friend with a given contact_id
+        """
+        candidates = [
+            item.get("location", default)
+            for item in self.locations
+            if item.get("id") == contact_id
         ]
         if not candidates:
             return default
