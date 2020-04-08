@@ -13,6 +13,14 @@ class FindMyFriendsServiceTest(TestCase):
     def setUp(self):
         self.service = PyiCloudServiceMock(AUTHENTICATED_USER, VALID_PASSWORD)
 
+    def test_contact_details(self):
+        """Tests locations."""
+        contact_details = self.service.friends.contact_details
+        assert isinstance(contact_details, list)
+        assert len(contact_details) == 2
+        assert isinstance(contact_details[0], dict)
+        assert isinstance(contact_details[1], dict)
+
     def test_locations(self):
         """Tests locations."""
         locations = self.service.friends.locations
@@ -22,7 +30,7 @@ class FindMyFriendsServiceTest(TestCase):
         assert isinstance(locations[1], dict)
 
     def test_location_of_persons(self):
-        """Tests locations."""
+        """Tests location_of"""
         friend_location = self.service.friends.location_of(PERSON_ID_1)
         location_id = friend_location.get("locationId")
         assert location_id == LOCATION_ID_1
