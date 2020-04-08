@@ -75,10 +75,24 @@ class FindFriendsService(object):
             self.refresh_client()
         return self.response
 
+    def location_of(self, contact_id, default=None):
+        """Returns the location of your friend with given contact_id"""
+
+        def matcher(item):
+            """Returns True iff the contact_id matches"""
+            return item.get("id") == contact_id
+
+        candidates = [
+            item.get("location", default) for item in self.locations if matcher(item)
+        ]
+        if not candidates:
+            return default
+        return candidates[0]
+
     @property
     def locations(self):
         """Returns a list of your friends' locations"""
-        return self.data.get("locations")
+        return self.data.get("locations", [])
 
     @property
     def followers(self):
