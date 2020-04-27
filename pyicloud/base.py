@@ -24,6 +24,7 @@ from pyicloud.services import (
     RemindersService,
     PhotosService,
     AccountService,
+    DriveService
 )
 from pyicloud.utils import get_password_from_keyring
 
@@ -91,20 +92,21 @@ class PyiCloudSession(Session):
 
         request_logger.debug(data)
 
-        reason = data.get("errorMessage")
-        reason = reason or data.get("reason")
-        reason = reason or data.get("errorReason")
-        if not reason and isinstance(data.get("error"), string_types):
-            reason = data.get("error")
-        if not reason and data.get("error"):
-            reason = "Unknown reason"
+        if isinstance(json, dict):
+            reason = json.get('errorMessage')
+            reason = reason or json.get('reason')
+            reason = reason or json.get('errorReason')
+            if not reason and isinstance(json.get('error'), six.string_types):
+                reason = json.get('error')
+            if not reason and json.get('error'):
+                reason = "Unknown reason"
 
-        code = data.get("errorCode")
-        if not code and data.get("serverErrorCode"):
-            code = data.get("serverErrorCode")
+            code = json.get('errorCode')
+            if not code and json.get('serverErrorCode'):
+                code = json.get('serverErrorCode')
 
-        if reason:
-            self._raise_error(code, reason)
+                if reason:
+                    self._raise_error(code, reason)
 
         return response
 
@@ -360,6 +362,17 @@ class PyiCloudService(object):
         """Gets the 'Reminders' service."""
         service_root = self._get_webservice_url("reminders")
         return RemindersService(service_root, self.session, self.params)
+
+    @property
+    def drive(self):
+        if not hasattr(self, '_drive'):
+            self._drive = DriveService(
+                service_root=self.webservices['drivews']['url'],
+                document_root=self.webservices['docws']['url'],
+                session=self.session,
+                params=self.params,
+            )
+        return self._drive
 
     def __unicode__(self):
         return "iCloud API: %s" % self.user.get("apple_id")
