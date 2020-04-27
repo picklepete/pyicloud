@@ -270,9 +270,9 @@ u'file'
 The ``open`` method will return a response object from which you can read the file's contents:
 
 >>> from shutil import copyfileobj
->>> with drive_file.open(stream=True) as response
-...     with open(drive_file.name, 'wb') as file_out:
-...         copyfileobj(response.raw, file_out)
+>>> with drive_file.open(stream=True) as response:
+>>>     with open(drive_file.name, 'wb') as file_out:
+>>>         copyfileobj(response.raw, file_out)
 
 
 Photo Library
