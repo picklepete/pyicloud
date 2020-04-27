@@ -24,7 +24,7 @@ from pyicloud.services import (
     RemindersService,
     PhotosService,
     AccountService,
-    DriveService
+    DriveService,
 )
 from pyicloud.utils import get_password_from_keyring
 
@@ -92,18 +92,18 @@ class PyiCloudSession(Session):
 
         request_logger.debug(data)
 
-        if isinstance(json, dict):
-            reason = json.get('errorMessage')
-            reason = reason or json.get('reason')
-            reason = reason or json.get('errorReason')
-            if not reason and isinstance(json.get('error'), six.string_types):
-                reason = json.get('error')
-            if not reason and json.get('error'):
+        if isinstance(data, dict):
+            reason = data.get("errorMessage")
+            reason = reason or data.get("reason")
+            reason = reason or data.get("errorReason")
+            if not reason and isinstance(data.get("error"), string_types):
+                reason = data.get("error")
+            if not reason and data.get("error"):
                 reason = "Unknown reason"
 
-            code = json.get('errorCode')
-            if not code and json.get('serverErrorCode'):
-                code = json.get('serverErrorCode')
+            code = data.get("errorCode")
+            if not code and data.get("serverErrorCode"):
+                code = data.get("serverErrorCode")
 
                 if reason:
                     self._raise_error(code, reason)
@@ -209,6 +209,7 @@ class PyiCloudService(object):
 
         self.authenticate()
 
+        self._drive = None
         self._files = None
         self._photos = None
 
@@ -365,10 +366,11 @@ class PyiCloudService(object):
 
     @property
     def drive(self):
-        if not hasattr(self, '_drive'):
+        """Gets the 'Drive' service."""
+        if not self._drive:
             self._drive = DriveService(
-                service_root=self.webservices['drivews']['url'],
-                document_root=self.webservices['docws']['url'],
+                service_root=self._get_webservice_url("drivews"),
+                document_root=self._get_webservice_url("docws"),
                 session=self.session,
                 params=self.params,
             )
