@@ -267,6 +267,14 @@ Which you can iterate to access the photo assets.  The 'All Photos' album is sor
         print photo, photo.filename
 <PhotoAsset: id=AVbLPCGkp798nTb9KZozCXtO7jds> IMG_6045.JPG
 
+To query recent 10 photos of one album:
+>>> for photo in api.photos.albums['Screenshots'].fetch_photos(last=10)
+        print photo, photo.filename
+
+To query photos from 2020-01-01 to 2020-01-03 of one album:
+>>> for photo in api.photos.albums['Screenshots'].fetch_photos(date_start=datetime.date(year=2020, month=1, day=1), date_end=datetime.date(year=2020, month=1, day=3))
+        print photo, photo.filename
+
 To download a photo use the `download` method, which will return a `response object <http://www.python-requests.org/en/latest/api/#classes>`_, initialized with ``stream`` set to ``True``, so you can read from the raw response object:
 
 >>> photo = next(iter(api.photos.albums['Screenshots']), None)
