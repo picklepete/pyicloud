@@ -128,6 +128,12 @@ class PyiCloudSession(Session):
                 reason + ".  Please wait a few minutes then try again."
                 "The remote servers might be trying to throttle requests."
             )
+        if str(code) == "410":
+            # Gone (410) error maybe occurs after download url of PhotoAsset expires.
+            reason = (
+                reason
+                + ". Please fetch Object(e.g. PhotoAsset) again to refresh download url."
+            )
 
         api_error = PyiCloudAPIResponseException(reason, code)
         LOGGER.error(api_error)
