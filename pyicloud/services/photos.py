@@ -487,18 +487,17 @@ class PhotoAlbum(object):
         :param self:
         :return:
         """
-        yield from self.fetch_photos(simple=True)
+        for photo in self.fetch_photos(simple=True):
+            yield photo
 
-    def __get_offset_and_cnt_by_date(
-        self, album_len, date_start: datetime.date, date_end: datetime.date
-    ) -> (int, int):
+    def __get_offset_and_cnt_by_date(self, album_len, date_start, date_end):
         """Get idx and cnt of date query
         Use DESCENDING as api direction so index of the first item is len-1
 
         :param self:
-        :param album_len: len of album
-        :param date_start: start date of query
-        :param date_end: end date of query(include)
+        :param album_len: (int) len of album
+        :param date_start: (datetime.date) start date of query
+        :param date_end: (datetime.date) end date of query(include)
         :return: (offset, cnt)
         """
         idx_first = None
@@ -506,9 +505,9 @@ class PhotoAlbum(object):
 
         idx = 0
         for photo in self.__get_photos_by_date():
+            # pylint: disable=protected-access
             asset_date = datetime.fromtimestamp(
-                photo._asset_record["fields"]["assetDate"]["value"]
-                // 1000  # pylint: disable=protected-access
+                photo._asset_record["fields"]["assetDate"]["value"] // 1000
             ).date()
             if self.direction == "DESCENDING":
                 if asset_date > date_end:
@@ -549,11 +548,7 @@ class PhotoAlbum(object):
         return idx_first, idx_last - idx_first + 1
 
     def calculate_offset_and_cnt(
-        self,
-        album_len=None,
-        last=None,
-        date_start: datetime.date = None,
-        date_end: datetime.date = None,
+        self, album_len=None, last=None, date_start=None, date_end=None
     ):
         """A method to calculate offset and cnt from input
 
@@ -566,10 +561,10 @@ class PhotoAlbum(object):
         3       0
 
         :param self:
-        :param album_len: len of album
-        :param last: cnt of recent photos
-        :param date_start: start date of query
-        :param date_end: end date of query(include)
+        :param album_len: (int) len of album
+        :param last: (int) cnt of recent photos
+        :param date_start: (datetime.date) start date of query
+        :param date_end: (datetime.date) end date of query(include)
         :return:
         """
         if not album_len:
@@ -602,20 +597,15 @@ class PhotoAlbum(object):
         return offset, cnt
 
     def fetch_photos(
-        self,
-        album_len: int = None,
-        last: int = None,
-        date_start: datetime.date = None,
-        date_end: datetime.date = None,
-        simple: bool = False,
+        self, album_len=None, last=None, date_start=None, date_end=None, simple=False
     ):
         """Fetch photos using offset and cnt
 
-        :param album_len: len of album
-        :param last: start date of query
-        :param date_start: start date of query
-        :param date_end: end date of query(include)
-        :param simple: flag to fetch only simple metadata of photo
+        :param album_len: (int) len of album
+        :param last: (int) start date of query
+        :param date_start: (datetime.date) start date of query
+        :param date_end: (datetime.date) end date of query(include)
+        :param simple: (bool) flag to fetch only simple metadata of photo
         :return:
         """
 

@@ -4,11 +4,12 @@
 import datetime
 
 
-class DateUtil:
+class DateUtil(object):
     """Date Util class
 
     """
 
+    # pylint: disable=no-init
     @classmethod
     def get_date_from_str(cls, date_str):
         """get_date_from_str
@@ -53,7 +54,7 @@ class DateUtil:
         return datetime.date.today() + datetime.timedelta(days=1)
 
     @classmethod
-    def get_date_from_timestamp(cls, timestamp: int):
+    def get_date_from_timestamp(cls, timestamp):
         """get_date_from_timestamp
 
         :param timestamp:
@@ -62,11 +63,12 @@ class DateUtil:
         return datetime.datetime.fromtimestamp(timestamp).date()
 
 
-class DateTimeUtil:
+class DateTimeUtil(object):
     """DateTime Util class
 
     """
 
+    # pylint: disable=no-init
     @classmethod
     def get_datetime_from_str(cls, date_str):
         """get_datetime_from_str

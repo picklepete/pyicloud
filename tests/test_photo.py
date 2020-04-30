@@ -3,7 +3,10 @@
 """
 import datetime
 import json
+import copy
 import pytest
+import six
+import time
 from pyicloud.services.photos import PhotoAlbum
 from tests.date_util import DateTimeUtil, DateUtil
 
@@ -19,7 +22,7 @@ class CustomEncoder(json.JSONEncoder):
         :return:
         """
         if isinstance(o, datetime.date):
-            return DateTimeUtil.get_datetime_from_date(o).timestamp()
+            return get_timestamp(DateTimeUtil.get_datetime_from_date(o))
         return super(CustomEncoder, self).default(o)
 
 
@@ -28,7 +31,11 @@ class DataException(Exception):
 
     """
 
-    def __init__(self, data: dict):
+    def __init__(self, data):
+        """Init
+
+        :param data: dict
+        """
         self.data = data
         super(DataException, self).__init__()
 
@@ -36,12 +43,25 @@ class DataException(Exception):
         return json.dumps(self.data, sort_keys=True, cls=CustomEncoder)
 
 
+def get_timestamp(date):
+    """Get timestamp of date
+
+    :param date:
+    :return:
+    """
+    if six.PY3:  # pylint: disable=no-else-return
+        return date.timestamp()
+    else:
+        return time.mktime(date.timetuple()) + date.microsecond / 1000000.0
+
+
 MOCK_PHOTO_ASSET_DATA = [
     {
         "recordName": "asset1",
         "fields": {
             "assetDate": {
-                "value": datetime.datetime(year=2020, month=1, day=1).timestamp() * 1000
+                "value": get_timestamp(datetime.datetime(year=2020, month=1, day=1))
+                * 1000
             },
             "masterRef": {"value": {"recordName": "record1"}},
         },
@@ -50,7 +70,8 @@ MOCK_PHOTO_ASSET_DATA = [
         "recordName": "asset2",
         "fields": {
             "assetDate": {
-                "value": datetime.datetime(year=2020, month=1, day=2).timestamp() * 1000
+                "value": get_timestamp(datetime.datetime(year=2020, month=1, day=2))
+                * 1000
             },
             "masterRef": {"value": {"recordName": "record2"}},
         },
@@ -59,7 +80,8 @@ MOCK_PHOTO_ASSET_DATA = [
         "recordName": "asset3",
         "fields": {
             "assetDate": {
-                "value": datetime.datetime(year=2020, month=1, day=3).timestamp() * 1000
+                "value": get_timestamp(datetime.datetime(year=2020, month=1, day=3))
+                * 1000
             },
             "masterRef": {"value": {"recordName": "record3"}},
         },
@@ -70,14 +92,14 @@ DUP_ASSET_DATA = {
     "recordName": "asset4",
     "fields": {
         "assetDate": {
-            "value": datetime.datetime(year=2020, month=1, day=3).timestamp() * 1000
+            "value": get_timestamp(datetime.datetime(year=2020, month=1, day=3)) * 1000
         },
         "masterRef": {"value": {"recordName": "record3"}},
     },
 }
 
 
-class MockResponse:
+class MockResponse(object):
     """Mock Response for photo service
 
     """
@@ -100,17 +122,19 @@ class MockResponse:
             return {"records": []}
 
         if self.direction == "DESCENDING":  # pylint: disable=no-else-return,no-self-use
+            # pylint: disable=redefined-outer-name
             return {"records": [one for one in MOCK_DATA[self.idx * 2 :] if one != []]}
         else:
             data = list(reversed(MOCK_DATA))
             return {"records": [one for one in data[self.idx * 2 :] if one != []]}
 
 
-class MockPyiCloudSession:
+class MockPyiCloudSession(object):
     """Mock PyiCloudSession for photo service
 
     """
 
+    # pylint: disable=no-init
     def post(self, url, data, headers):  # pylint: disable=unused-argument,no-self-use
         """Mock post method of session
 
@@ -125,7 +149,7 @@ class MockPyiCloudSession:
         return MockResponse(idx, direction)
 
 
-class MockPyiCloudService:
+class MockPyiCloudService(object):
     """Mock PyiCloudService for photo service
 
     """
@@ -148,6 +172,7 @@ class MockPyiCloudService:
 
 MOCK_DATA = []
 
+# pylint: disable=redefined-outer-name
 for one in MOCK_PHOTO_ASSET_DATA:
     MOCK_DATA.append(
         {
@@ -155,10 +180,14 @@ for one in MOCK_PHOTO_ASSET_DATA:
             "recordName": one["fields"]["masterRef"]["value"]["recordName"],
         }
     )
-    MOCK_DATA.append({"recordType": "CPLAsset", **one})
+    one_asset = copy.deepcopy(one)
+    one_asset.update({"recordType": "CPLAsset"})
+    MOCK_DATA.append(one_asset)
 # add dup asset
 MOCK_DATA.append([])
-MOCK_DATA.append({"recordType": "CPLAsset", **DUP_ASSET_DATA})
+one_asset = copy.deepcopy(DUP_ASSET_DATA)  # pylint: disable=invalid-name
+one_asset.update({"recordType": "CPLAsset"})
+MOCK_DATA.append(one_asset)
 MOCK_DATA_LEN = len(MOCK_DATA) // 2
 
 
@@ -171,15 +200,15 @@ def mock_album(monkeypatch):
     """
 
     def mock__len__(self):  # pylint: disable=unused-argument
+        """Mock len
+
+        :param self:
+        :return:
+        """
         return MOCK_DATA_LEN
 
     def mock_list_query_gen(
-        self,
-        offset: int,
-        list_type: str,
-        direction: str,
-        query_filter=None,
-        simple=False,
+        self, offset, list_type, direction, query_filter=None, simple=False,
     ):  # pylint: disable=unused-argument
         """Mock _list_query_gen
 
@@ -211,11 +240,12 @@ def mock_album(monkeypatch):
     return album
 
 
-class TestPhotoAlbum:
+class TestPhotoAlbum(object):
     """Testcases of PhotoAlbum
 
     """
 
+    # pylint: disable=no-init
     def test_get_photos_by_date_desc(
         self, mock_album
     ):  # pylint: disable=redefined-outer-name,no-self-use
@@ -225,9 +255,8 @@ class TestPhotoAlbum:
         :return:
         """
         method = getattr(mock_album, "_PhotoAlbum__get_photos_by_date")
-        photos = [
-            photo for photo in method()
-        ]  # pylint: disable=unnecessary-comprehension
+        # pylint: disable=bad-option-value,unnecessary-comprehension
+        photos = [photo for photo in method()]
         assert len(photos) == MOCK_DATA_LEN
         assert (
             photos[0].id
@@ -260,9 +289,8 @@ class TestPhotoAlbum:
         """
         mock_album.direction = "ASCENDING"
         method = getattr(mock_album, "_PhotoAlbum__get_photos_by_date")
-        photos = [
-            photo for photo in method()
-        ]  # pylint: disable=unnecessary-comprehension
+        # pylint: disable=bad-option-value,unnecessary-comprehension
+        photos = [photo for photo in method()]
         assert len(photos) == MOCK_DATA_LEN
         assert (
             photos[0].id
@@ -372,17 +400,26 @@ class TestPhotoAlbum:
         :return:
         """
 
-        def mock_get_offset_and_cnt_by_date(self, album_len, date_start, date_end):
+        def mock_get_offset_and_cnt_by_date(
+            self, album_len, date_start, date_end
+        ):  # pylint: disable=no-self-use,unused-argument
+            """Mock
+
+            :param self:
+            :param album_len:
+            :param date_start:
+            :param date_end:
+            :return:
+            """
             raise DataException(
                 {"album_len": album_len, "date_start": date_start, "date_end": date_end}
             )
 
+        # pylint: disable=no-value-for-parameter
         monkeypatch.setattr(
             mock_album,
             "_PhotoAlbum__get_offset_and_cnt_by_date",
-            mock_get_offset_and_cnt_by_date.__get__(
-                mock_album
-            ),  # pylint: disable=no-value-for-parameter
+            mock_get_offset_and_cnt_by_date.__get__(mock_album),
         )
 
         # without arguments
@@ -430,17 +467,26 @@ class TestPhotoAlbum:
         """
         mock_album.direction = "ASCENDING"
 
-        def mock_get_offset_and_cnt_by_date(self, album_len, date_start, date_end):
+        def mock_get_offset_and_cnt_by_date(
+            self, album_len, date_start, date_end
+        ):  # pylint: disable=no-self-use,unused-argument
+            """Mock
+
+            :param self:
+            :param album_len:
+            :param date_start:
+            :param date_end:
+            :return:
+            """
             raise DataException(
                 {"album_len": album_len, "date_start": date_start, "date_end": date_end}
             )
 
+        # pylint: disable=no-value-for-parameter
         monkeypatch.setattr(
             mock_album,
             "_PhotoAlbum__get_offset_and_cnt_by_date",
-            mock_get_offset_and_cnt_by_date.__get__(
-                mock_album
-            ),  # pylint: disable=no-value-for-parameter
+            mock_get_offset_and_cnt_by_date.__get__(mock_album),
         )
 
         # without arguments
@@ -489,9 +535,8 @@ class TestPhotoAlbum:
         :param mock_album:
         :return:
         """
-        photos = [
-            photo for photo in mock_album.fetch_photos()
-        ]  # pylint: disable=unnecessary-comprehension
+        # pylint: disable=bad-option-value,unnecessary-comprehension
+        photos = [photo for photo in mock_album.fetch_photos()]
         assert len(photos) == 4
         assert (
             photos[0].id
@@ -517,9 +562,8 @@ class TestPhotoAlbum:
         :param mock_album:
         :return:
         """
-        photos = [
-            photo for photo in mock_album.fetch_photos(last=3)
-        ]  # pylint: disable=unnecessary-comprehension
+        # pylint: disable=bad-option-value,unnecessary-comprehension
+        photos = [photo for photo in mock_album.fetch_photos(last=3)]
         assert len(photos) == 3
         assert (
             photos[0].id
@@ -542,7 +586,7 @@ class TestPhotoAlbum:
         :return:
         """
         mock_album.direction = "ASCENDING"
-        # pylint: disable=unnecessary-comprehension
+        # pylint: disable=bad-option-value,unnecessary-comprehension
         photos = [
             photo
             for photo in mock_album.fetch_photos(
