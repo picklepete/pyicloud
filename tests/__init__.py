@@ -6,12 +6,7 @@ from pyicloud import base
 from pyicloud.exceptions import PyiCloudFailedLoginException
 from pyicloud.services.findmyiphone import FindMyiPhoneServiceManager, AppleDevice
 
-from .const import (
-    AUTHENTICATED_USER,
-    REQUIRES_2SA_USER,
-    VALID_USERS,
-    VALID_PASSWORD,
-)
+from .const import AUTHENTICATED_USER, REQUIRES_2SA_USER, VALID_USERS, VALID_PASSWORD
 from .const_login import (
     LOGIN_WORKING,
     LOGIN_2SA,

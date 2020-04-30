@@ -7,7 +7,7 @@ from six import PY2
 from six.moves.urllib.parse import urlencode  # pylint: disable=bad-option-value,relative-import
 # fmt: on
 
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
 from pytz import UTC
 
@@ -345,7 +345,9 @@ class PhotoAlbum(object):
             else:
                 break
 
-    def _list_query_gen(self, offset, list_type, direction, query_filter=None):
+    def _list_query_gen(
+        self, offset, list_type, direction, query_filter=None, simple=False
+    ):
         query = {
             u"query": {
                 u"filterBy": [
@@ -363,7 +365,10 @@ class PhotoAlbum(object):
                 u"recordType": list_type,
             },
             u"resultsLimit": self.page_size * 2,
-            u"desiredKeys": [
+            u"zoneID": {u"zoneName": u"PrimarySync"},
+        }
+        if simple is False:
+            query["desiredKeys"] = [
                 u"resJPEGFullWidth",
                 u"resJPEGFullHeight",
                 u"resJPEGFullFileType",
@@ -461,14 +466,211 @@ class PhotoAlbum(object):
                 u"itemId",
                 u"position",
                 u"isKeyAsset",
-            ],
-            u"zoneID": {u"zoneName": u"PrimarySync"},
-        }
+            ]
+        else:
+            query["desiredKeys"] = [
+                u"assetDate",
+                u"recordName",
+                u"recordType",
+                u"recordChangeTag",
+                u"masterRef",
+            ]
 
         if query_filter:
             query["query"]["filterBy"].extend(query_filter)
 
         return query
+
+    def __get_photos_by_date(self):
+        """Prefetch date info of all photo to filter
+
+        :param self:
+        :return:
+        """
+        yield from self.fetch_photos(simple=True)
+
+    def __get_offset_and_cnt_by_date(
+        self, album_len, date_start: datetime.date, date_end: datetime.date
+    ) -> (int, int):
+        """Get idx and cnt of date query
+        Use DESCENDING as api direction so index of the first item is len-1
+
+        :param self:
+        :param album_len: len of album
+        :param date_start: start date of query
+        :param date_end: end date of query(include)
+        :return: (offset, cnt)
+        """
+        idx_first = None
+        idx_last = None
+
+        idx = 0
+        for photo in self.__get_photos_by_date():
+            asset_date = datetime.fromtimestamp(
+                photo._asset_record["fields"]["assetDate"]["value"]
+                // 1000  # pylint: disable=protected-access
+            ).date()
+            if self.direction == "DESCENDING":
+                if asset_date > date_end:
+                    if idx_first is not None and idx_last is None:
+                        idx_last = idx - 1
+                        break
+
+                elif asset_date >= date_start:
+                    if idx_first is None:
+                        idx_first = idx
+                    idx += 1
+                    continue
+
+                else:
+                    idx += 1
+            else:
+                if asset_date < date_start:
+                    if idx_first is not None and idx_last is None:
+                        idx_last = idx - 1
+                        break
+
+                elif asset_date <= date_end:
+                    if idx_first is None:
+                        idx_first = idx
+                    idx += 1
+                    continue
+
+                else:
+                    idx += 1
+
+        if idx_first is None:
+            return 0, 0
+        if idx_last is None:
+            idx_last = album_len - 1
+
+        if self.direction == "DESCENDING":
+            return album_len - 1 - idx_first, idx_last - idx_first + 1
+        return idx_first, idx_last - idx_first + 1
+
+    def calculate_offset_and_cnt(
+        self,
+        album_len=None,
+        last=None,
+        date_start: datetime.date = None,
+        date_end: datetime.date = None,
+    ):
+        """A method to calculate offset and cnt from input
+
+        Photos are sorted by date in ascending order, and the idx is reverted.
+        For example:
+        item    idx
+        0       3
+        1       2
+        2       1
+        3       0
+
+        :param self:
+        :param album_len: len of album
+        :param last: cnt of recent photos
+        :param date_start: start date of query
+        :param date_end: end date of query(include)
+        :return:
+        """
+        if not album_len:
+            album_len = len(self)
+
+        if date_start:
+            if not date_end:
+                date_end = date.today() + timedelta(days=1)
+
+            offset, cnt = self.__get_offset_and_cnt_by_date(
+                album_len, date_start, date_end
+            )
+
+        elif last:
+            if last > album_len:
+                last = album_len
+
+            if self.direction == "DESCENDING":
+                offset = last - 1
+            else:
+                offset = 0
+            cnt = last
+        else:
+            if self.direction == "DESCENDING":
+                offset = album_len - 1
+            else:
+                offset = 0
+            cnt = album_len
+
+        return offset, cnt
+
+    def fetch_photos(
+        self,
+        album_len: int = None,
+        last: int = None,
+        date_start: datetime.date = None,
+        date_end: datetime.date = None,
+        simple: bool = False,
+    ):
+        """Fetch photos using offset and cnt
+
+        :param album_len: len of album
+        :param last: start date of query
+        :param date_start: start date of query
+        :param date_end: end date of query(include)
+        :param simple: flag to fetch only simple metadata of photo
+        :return:
+        """
+
+        offset, cnt = self.calculate_offset_and_cnt(
+            album_len=album_len, last=last, date_start=date_start, date_end=date_end
+        )
+
+        while cnt:
+            # pylint: disable=protected-access
+            url = ("%s/records/query?" % self.service._service_endpoint) + urlencode(
+                self.service.params
+            )
+            request = self.service.session.post(
+                url,
+                data=json.dumps(
+                    self._list_query_gen(
+                        offset,
+                        self.list_type,
+                        self.direction,
+                        self.query_filter,
+                        simple,
+                    )
+                ),
+                headers={"Content-type": "text/plain"},
+            )
+            response = request.json()
+
+            asset_records = []
+            master_records = {}
+            for rec in response["records"]:
+                if rec["recordType"] == "CPLAsset":
+                    master_id = rec["fields"]["masterRef"]["value"]["recordName"]
+                    asset_records.append({"master_id": master_id, "record": rec})
+                elif rec["recordType"] == "CPLMaster":
+                    master_records[rec["recordName"]] = rec
+
+            asset_records_len = len(asset_records)
+            if asset_records_len:
+                if self.direction == "DESCENDING":
+                    offset = offset - asset_records_len
+                else:
+                    offset = offset + asset_records_len
+
+                for asset_record in asset_records:
+                    if cnt:
+                        yield PhotoAsset(
+                            self.service,
+                            master_records[asset_record["master_id"]],
+                            asset_record["record"],
+                        )
+                        cnt -= 1
+                    else:
+                        break
+            else:
+                break  # pragma: no cove
 
     def __unicode__(self):
         return self.title
@@ -504,6 +706,11 @@ class PhotoAsset(object):
         u"medium": u"resVidMed",
         u"thumb": u"resVidSmall",
     }
+
+    @property
+    def asset_id(self):
+        """Gets the photo asset id."""
+        return self._asset_record["recordName"]
 
     @property
     def id(self):
