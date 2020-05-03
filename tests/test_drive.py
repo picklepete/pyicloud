@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Drive service tests."""
 from unittest import TestCase
 from . import PyiCloudServiceMock
@@ -61,22 +62,22 @@ class DriveServiceTest(TestCase):
         assert folder.date_changed is None
         assert folder.date_modified is None
         assert folder.date_last_open is None
-        assert folder.dir() == ["Document scanné 2.pdf", "Scanned document 1.pdf"]
+        assert folder.dir() == [u"Document scanné 2.pdf", "Scanned document 1.pdf"]
 
     def test_subfolder_file(self):
         """Test the /pyiCloud/Test/Scanned document 1.pdf file."""
         folder = self.service.drive["pyiCloud"]["Test"]
-        file = folder["Scanned document 1.pdf"]
-        assert file.name == "Scanned document 1.pdf"
-        assert file.type == "file"
-        assert file.size == 21644358
-        assert str(file.date_changed) == "2020-05-03 00:16:17"
-        assert str(file.date_modified) == "2020-05-03 00:15:17"
-        assert str(file.date_last_open) == "2020-05-03 00:24:25"
-        assert file.dir() is None
+        file_test = folder["Scanned document 1.pdf"]
+        assert file_test.name == "Scanned document 1.pdf"
+        assert file_test.type == "file"
+        assert file_test.size == 21644358
+        assert str(file_test.date_changed) == "2020-05-03 00:16:17"
+        assert str(file_test.date_modified) == "2020-05-03 00:15:17"
+        assert str(file_test.date_last_open) == "2020-05-03 00:24:25"
+        assert file_test.dir() is None
 
     def test_file_open(self):
         """Test the /pyiCloud/Test/Scanned document 1.pdf file open."""
-        file = self.service.drive["pyiCloud"]["Test"]["Scanned document 1.pdf"]
-        with file.open(stream=True) as response:
+        file_test = self.service.drive["pyiCloud"]["Test"]["Scanned document 1.pdf"]
+        with file_test.open(stream=True) as response:
             assert response.raw

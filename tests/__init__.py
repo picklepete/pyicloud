@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Library tests."""
 import json
 from requests import Session, Response
@@ -35,11 +36,11 @@ from .const_findmyiphone import FMI_FAMILY_WORKING
 class ResponseMock(Response):
     """Mocked Response."""
 
-    def __init__(self, result, status_code=200, *, raw=None):
+    def __init__(self, result, status_code=200, **kwargs):
         Response.__init__(self)
         self.result = result
         self.status_code = status_code
-        self.raw = raw
+        self.raw = kwargs.get("raw")
 
     @property
     def text(self):

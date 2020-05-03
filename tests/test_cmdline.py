@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Cmdline tests."""
 from pyicloud import cmdline
 from . import PyiCloudServiceMock
