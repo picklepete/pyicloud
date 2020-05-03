@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Library tests."""
 import json
 from requests import Session, Response
@@ -22,16 +23,24 @@ from .const_login import (
 )
 from .const_account import ACCOUNT_DEVICES_WORKING, ACCOUNT_STORAGE_WORKING
 from .const_account_family import ACCOUNT_FAMILY_WORKING
+from .const_drive import (
+    DRIVE_FOLDER_WORKING,
+    DRIVE_ROOT_INVALID,
+    DRIVE_SUBFOLDER_WORKING,
+    DRIVE_ROOT_WORKING,
+    DRIVE_FILE_DOWNLOAD_WORKING,
+)
 from .const_findmyiphone import FMI_FAMILY_WORKING
 
 
 class ResponseMock(Response):
     """Mocked Response."""
 
-    def __init__(self, result, status_code=200):
+    def __init__(self, result, status_code=200, **kwargs):
         Response.__init__(self)
         self.result = result
         self.status_code = status_code
+        self.raw = kwargs.get("raw")
 
     @property
     def text(self):
@@ -42,6 +51,7 @@ class PyiCloudSessionMock(base.PyiCloudSession):
     """Mocked PyiCloudSession."""
 
     def request(self, method, url, **kwargs):
+        params = kwargs.get("params")
         data = json.loads(kwargs.get("data", "{}"))
 
         # Login
@@ -81,6 +91,34 @@ class PyiCloudSessionMock(base.PyiCloudSession):
             return ResponseMock(ACCOUNT_FAMILY_WORKING)
         if "setup/ws/1/storageUsageInfo" in url and method == "GET":
             return ResponseMock(ACCOUNT_STORAGE_WORKING)
+
+        # Drive
+        if (
+            "retrieveItemDetailsInFolders" in url
+            and method == "POST"
+            and data[0].get("drivewsid")
+        ):
+            if data[0].get("drivewsid") == "FOLDER::com.apple.CloudDocs::root":
+                return ResponseMock(DRIVE_ROOT_WORKING)
+            if data[0].get("drivewsid") == "FOLDER::com.apple.CloudDocs::documents":
+                return ResponseMock(DRIVE_ROOT_INVALID)
+            if (
+                data[0].get("drivewsid")
+                == "FOLDER::com.apple.CloudDocs::1C7F1760-D940-480F-8C4F-005824A4E05B"
+            ):
+                return ResponseMock(DRIVE_FOLDER_WORKING)
+            if (
+                data[0].get("drivewsid")
+                == "FOLDER::com.apple.CloudDocs::D5AA0425-E84F-4501-AF5D-60F1D92648CF"
+            ):
+                return ResponseMock(DRIVE_SUBFOLDER_WORKING)
+        # Drive download
+        if "com.apple.CloudDocs/download/by_id" in url and method == "GET":
+            if params.get("document_id") == "516C896C-6AA5-4A30-B30E-5502C2333DAE":
+                return ResponseMock(DRIVE_FILE_DOWNLOAD_WORKING)
+        if "icloud-content.com" in url and method == "GET":
+            if "Scanned+document+1.pdf" in url:
+                return ResponseMock({}, raw=open(".gitignore", "rb"))
 
         # Find My iPhone
         if "fmi" in url and method == "POST":

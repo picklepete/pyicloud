@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Find my iPhone test constants."""
 from .const import CLIENT_ID
 from .const_account_family import (

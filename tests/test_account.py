@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Account service tests."""
 from unittest import TestCase
 from six import PY3
