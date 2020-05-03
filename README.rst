@@ -157,6 +157,46 @@ Lost mode is slightly different to the "Play Sound" functionality in that it all
 >>> message = 'Thief! Return my phone immediately.'
 >>> api.iphone.lost_device(phone_number, message)
 
+Find My Friends
+==============
+
+The Find My Friends service lets you locate the friends you are following using the 'Find My' (FKA 'Find My Friends') app.
+
+Locations
+********
+
+Returns the your friends' last known locations. You must install and initialize the 'Find My' (FKA 'Find My Friends') app on an iOS device, signing in with your credentials. In addition, your friends must be sharing their location with your account.
+
+>>> api.friends.locations
+
+>>> contact_id = api.friends.contact_id_for("example@mail.com")
+
+>>> api.friends.location_of(contact_id)
+
+
+Followers
+********
+
+Returns a list of your friends who you share your location with.
+
+>>> api.friends.followers
+
+
+Following
+********
+
+Returns a list of your friends whose location you follow.
+
+>>> api.friends.following
+
+
+Contact Details
+********
+
+Returns a list of your friends' contact details.
+
+>>> api.friends.contact_details
+
 
 Calendar
 ========
