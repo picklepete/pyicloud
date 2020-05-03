@@ -73,7 +73,7 @@ class AccountServiceTest(TestCase):
         assert self.service.storage
         # fmt: off
         if PY3:
-            assert repr(self.service.storage) == "<AccountStorage: {usage: 43.75% used of 5368709120 bytes, usages_by_media: OrderedDict([('photos', <AccountStorageUsageForMedia: {key: photos, usage: 0 bytes}>), ('backup', <AccountStorageUsageForMedia: {key: backup, usage: 799008186 bytes}>), ('docs', <AccountStorageUsageForMedia: {key: docs, usage: 449092146 bytes}>), ('mail', <AccountStorageUsageForMedia: {key: mail, usage: 1101522944 bytes}>)])}>"
+            assert repr(self.service.storage) == "<AccountStorage: {usage: 43.75% used of 5368709120 bytes, usage_by_media: OrderedDict([('photos', <AccountStorageUsageForMedia: {key: photos, usage: 0 bytes}>), ('backup', <AccountStorageUsageForMedia: {key: backup, usage: 799008186 bytes}>), ('docs', <AccountStorageUsageForMedia: {key: docs, usage: 449092146 bytes}>), ('mail', <AccountStorageUsageForMedia: {key: mail, usage: 1101522944 bytes}>)])}>"
         # fmt: on
 
     def test_storage_usage(self):
@@ -95,11 +95,11 @@ class AccountServiceTest(TestCase):
         assert repr(usage) == "<AccountStorageUsage: "+str(usage.used_storage_in_percent)+"% used of "+str(usage.total_storage_in_bytes)+" bytes>"
         # fmt: on
 
-    def test_storage_usages_by_media(self):
-        """Tests storage usages by media."""
-        assert self.service.storage.usages_by_media
+    def test_storage_usage_by_media(self):
+        """Tests storage usage by media."""
+        assert self.service.storage.usage_by_media
 
-        for usage_media in self.service.storage.usages_by_media.values():
+        for usage_media in self.service.storage.usage_by_media.values():
             assert usage_media.key
             assert usage_media.label
             assert usage_media.color

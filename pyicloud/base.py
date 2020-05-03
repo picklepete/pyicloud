@@ -17,7 +17,7 @@ from pyicloud.exceptions import (
     PyiCloudServiceNotActivatedException,
 )
 from pyicloud.services import (
-    FindMyiPhoneServiceManager,
+    FindMyiPhoneService,
     CalendarService,
     UbiquityService,
     ContactsService,
@@ -76,7 +76,7 @@ class PyiCloudSession(Session):
                 api_error = PyiCloudAPIResponseException(
                     response.reason, response.status_code, retry=True
                 )
-                request_logger.warn(api_error)
+                request_logger.warning(api_error)
                 kwargs["retried"] = True
                 return self.request(method, url, **kwargs)
             self._raise_error(response.status_code, response.reason)
@@ -144,7 +144,7 @@ class PyiCloudService(object):
     Usage:
         from pyicloud import PyiCloudService
         pyicloud = PyiCloudService('username@apple.com', 'password')
-        pyicloud.iphone.location()
+        pyicloud.iphone.location
     """
 
     HOME_ENDPOINT = "https://www.icloud.com"
@@ -210,6 +210,7 @@ class PyiCloudService(object):
         self.authenticate()
 
         self._drive = None
+        self._find_my_iphone = None
         self._files = None
         self._photos = None
 
@@ -312,17 +313,28 @@ class PyiCloudService(object):
         return self._webservices[ws_key]["url"]
 
     @property
+    def find_my_iphone(self):
+        """Gets the 'Find My iPhone' service."""
+        if not self._find_my_iphone:
+            service_root = self._get_webservice_url("findme")
+            self._find_my_iphone = FindMyiPhoneService(
+                service_root, self.session, self.params, self.with_family
+            )
+        return self._find_my_iphone
+
+    @property
     def devices(self):
-        """Returns all devices."""
-        service_root = self._get_webservice_url("findme")
-        return FindMyiPhoneServiceManager(
-            service_root, self.session, self.params, self.with_family
-        )
+        """Return all devices."""
+        service = self.find_my_iphone
+        service.refresh_client()
+        return service.devices
 
     @property
     def iphone(self):
-        """Returns the iPhone."""
-        return self.devices[0]
+        """Return the first device (usually the iPhone)."""
+        service = self.find_my_iphone
+        service.refresh_client()
+        return service.device(0)
 
     @property
     def account(self):

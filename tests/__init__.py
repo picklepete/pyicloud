@@ -5,7 +5,7 @@ from requests import Session, Response
 
 from pyicloud import base
 from pyicloud.exceptions import PyiCloudFailedLoginException
-from pyicloud.services.findmyiphone import FindMyiPhoneServiceManager, AppleDevice
+from pyicloud.services.findmyiphone import FindMyiPhoneService, AppleDevice
 
 from .const import (
     AUTHENTICATED_USER,
