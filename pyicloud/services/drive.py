@@ -78,7 +78,7 @@ class DriveNode(object):
     @property
     def name(self):
         """Gets the node name."""
-        if self.type == "file":
+        if "extension" in self.data:
             return "%s.%s" % (self.data["name"], self.data["extension"])
         return self.data["name"]
 
