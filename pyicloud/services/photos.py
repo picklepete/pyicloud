@@ -553,6 +553,10 @@ class PhotoAsset:
         return self._master_record["recordName"]
 
     @property
+    def asset_id(self):
+        return self._asset_record['recordName']
+
+    @property
     def filename(self):
         """Gets the photo file name."""
         return base64.b64decode(
@@ -683,7 +687,7 @@ class PhotoAsset:
         )
 
     def delete(self):
-        return self._service.delete(self._asset_record['recordName'])
+        return self._service.delete(self.asset_id)
 
     def __repr__(self):
         return f"<{type(self).__name__}: id={self.id}>"
