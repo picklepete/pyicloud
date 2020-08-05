@@ -274,7 +274,7 @@ The ``open`` method will return a response object from which you can read the fi
 >>>     with open(drive_file.name, 'wb') as file_out:
 >>>         copyfileobj(response.raw, file_out)
 
-To interact with files and directions the ``mkdir``, ``rename`` and ``delete``functions are available
+To interact with files and directions the ``mkdir``, ``rename`` and ``delete`` functions are available
 for a file or folder:
 
 >>> api.drive['Holiday Photos'].mkdir('2020')

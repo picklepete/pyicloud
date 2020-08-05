@@ -21,7 +21,6 @@ class DriveService(object):
     def _get_token_from_cookie(self):
         for cookie in self.session.cookies:
             if cookie.name == "X-APPLE-WEBAUTH-VALIDATE":
-                print(cookie.value)
                 match = search(r"\bt=([^:]+)", cookie.value)
                 if match is None:
                     raise Exception("Can't extract token from %r" % cookie.value)
@@ -75,13 +74,13 @@ class DriveService(object):
         request = self.session.post(
             self._document_root + "/ws/com.apple.CloudDocs/upload/web",
             params=file_params,
-            headers={'Content-Type': 'text/plain'},
+            headers={"Content-Type": "text/plain"},
             data=json.dumps(
                 {
-                    "filename": "%s" % file_object.name,
+                    "filename": file_object.name,
                     "type": "FILE",
                     "content_type": content_type,
-                    "size": "%i" % file_size,
+                    "size": file_size,
                 }
             ),
         )
@@ -93,22 +92,22 @@ class DriveService(object):
         request = self.session.post(
             self._document_root + "/ws/com.apple.CloudDocs/update/documents",
             params=self.params,
-            headers={'Content-Type': 'text/plain'},
+            headers={"Content-Type": "text/plain"},
             data=json.dumps(
                 {
                     "data": {
-                        "signature": "%s" % sf_info["fileChecksum"],
-                        "wrapping_key": "%s" % sf_info["wrappingKey"],
-                        "reference_signature": "%s" % sf_info["referenceChecksum"],
-                        "receipt": "%s" % sf_info["receipt"],
-                        "size": "%s" % sf_info["size"],
+                        "signature": sf_info["fileChecksum"],
+                        "wrapping_key": sf_info["wrappingKey"],
+                        "reference_signature": sf_info["referenceChecksum"],
+                        "receipt": sf_info["receipt"],
+                        "size": sf_info["size"],
                     },
                     "command": "add_file",
                     "create_short_guid": True,
-                    "document_id": "%s" % document_id,
+                    "document_id": document_id,
                     "path": {
-                        "starting_document_id": "%s" % folder_id,
-                        "path": "%s" % file_object.name,
+                        "starting_document_id": folder_id,
+                        "path": file_object.name,
                     },
                     "allow_conflict": True,
                     "file_flags": {
@@ -141,7 +140,7 @@ class DriveService(object):
         request = self.session.post(
             self._service_root + "/createFolders",
             params=self.params,
-            headers={'Content-Type': 'text/plain'},
+            headers={"Content-Type": "text/plain"},
             data=json.dumps(
                 {
                     "destinationDrivewsId": "%s" % parent,
