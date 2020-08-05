@@ -153,7 +153,7 @@ class DriveService(object):
                 }
             ),
         )
-        return request.json()[0]
+        return request.json()
 
     def rename_items(self, node_id, etag, name):
         """Renames an iCloud Drive node"""
@@ -172,7 +172,7 @@ class DriveService(object):
                 }
             ),
         )
-        return request.json()[0]
+        return request.json()
 
     def move_items_to_trash(self, node_id, etag):
         """Moves an iCloud Drive node to the trash bin"""
