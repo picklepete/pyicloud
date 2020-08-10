@@ -274,6 +274,20 @@ The ``open`` method will return a response object from which you can read the fi
 >>>     with open(drive_file.name, 'wb') as file_out:
 >>>         copyfileobj(response.raw, file_out)
 
+To interact with files and directions the ``mkdir``, ``rename`` and ``delete`` functions are available
+for a file or folder:
+
+>>> api.drive['Holiday Photos'].mkdir('2020')
+>>> api.drive['Holiday Photos']['2020'].rename('2020_copy')
+>>> api.drive['Holiday Photos']['2020_copy'].delete()
+
+The ``upload`` method can be used to send a file-like object to the iCloud Drive:
+
+>>> with open('Vacation.jpeg', 'rb') as file_in:
+>>>>    api.drive['Holiday Photos'].upload(file_in)
+
+It is strongly suggested to open file handles as binary rather than text to prevent decoding errors
+further down the line.
 
 Photo Library
 =======================

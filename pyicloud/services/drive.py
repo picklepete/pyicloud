@@ -1,6 +1,9 @@
 """Drive service."""
 from datetime import datetime, timedelta
 import json
+import mimetypes
+import os
+import time
 from re import search
 from six import PY2
 
@@ -17,11 +20,11 @@ class DriveService(object):
 
     def _get_token_from_cookie(self):
         for cookie in self.session.cookies:
-            if cookie.name == "X-APPLE-WEBAUTH-TOKEN":
+            if cookie.name == "X-APPLE-WEBAUTH-VALIDATE":
                 match = search(r"\bt=([^:]+)", cookie.value)
-                if not match:
+                if match is None:
                     raise Exception("Can't extract token from %r" % cookie.value)
-                self.params.update({"token": match.group(1)})
+                return {"token": match.group(1)}
         raise Exception("Token cookie not found")
 
     def get_node_data(self, node_id):
@@ -52,6 +55,130 @@ class DriveService(object):
             return None
         url = response.json()["data_token"]["url"]
         return self.session.get(url, params=self.params, **kwargs)
+
+    def _get_upload_contentws_url(self, file_object):
+        """Get the contentWS endpoint URL to add a new file."""
+        content_type = mimetypes.guess_type(file_object.name)[0]
+        if content_type is None:
+            content_type = ""
+
+        # Get filesize from file object
+        orig_pos = file_object.tell()
+        file_object.seek(0, os.SEEK_END)
+        file_size = file_object.tell()
+        file_object.seek(orig_pos, os.SEEK_SET)
+
+        file_params = self.params
+        file_params.update(self._get_token_from_cookie())
+
+        request = self.session.post(
+            self._document_root + "/ws/com.apple.CloudDocs/upload/web",
+            params=file_params,
+            headers={"Content-Type": "text/plain"},
+            data=json.dumps(
+                {
+                    "filename": file_object.name,
+                    "type": "FILE",
+                    "content_type": content_type,
+                    "size": file_size,
+                }
+            ),
+        )
+        if not request.ok:
+            return None
+        return (request.json()[0]["document_id"], request.json()[0]["url"])
+
+    def _update_contentws(self, folder_id, sf_info, document_id, file_object):
+        request = self.session.post(
+            self._document_root + "/ws/com.apple.CloudDocs/update/documents",
+            params=self.params,
+            headers={"Content-Type": "text/plain"},
+            data=json.dumps(
+                {
+                    "data": {
+                        "signature": sf_info["fileChecksum"],
+                        "wrapping_key": sf_info["wrappingKey"],
+                        "reference_signature": sf_info["referenceChecksum"],
+                        "receipt": sf_info["receipt"],
+                        "size": sf_info["size"],
+                    },
+                    "command": "add_file",
+                    "create_short_guid": True,
+                    "document_id": document_id,
+                    "path": {
+                        "starting_document_id": folder_id,
+                        "path": file_object.name,
+                    },
+                    "allow_conflict": True,
+                    "file_flags": {
+                        "is_writable": True,
+                        "is_executable": False,
+                        "is_hidden": False,
+                    },
+                    "mtime": int(time.time()),
+                    "btime": int(time.time()),
+                }
+            ),
+        )
+        if not request.ok:
+            return None
+        return request.json()
+
+    def send_file(self, folder_id, file_object):
+        """Send new file to iCloud Drive."""
+        document_id, content_url = self._get_upload_contentws_url(file_object)
+
+        request = self.session.post(content_url, files={file_object.name: file_object})
+        if not request.ok:
+            return None
+        content_response = request.json()["singleFile"]
+
+        self._update_contentws(folder_id, content_response, document_id, file_object)
+
+    def create_folders(self, parent, name):
+        """Creates a new iCloud Drive folder"""
+        request = self.session.post(
+            self._service_root + "/createFolders",
+            params=self.params,
+            headers={"Content-Type": "text/plain"},
+            data=json.dumps(
+                {
+                    "destinationDrivewsId": parent,
+                    "folders": [{"clientId": self.params["clientId"], "name": name,}],
+                }
+            ),
+        )
+        return request.json()
+
+    def rename_items(self, node_id, etag, name):
+        """Renames an iCloud Drive node"""
+        request = self.session.post(
+            self._service_root + "/renameItems",
+            params=self.params,
+            data=json.dumps(
+                {"items": [{"drivewsid": node_id, "etag": etag, "name": name,}],}
+            ),
+        )
+        return request.json()
+
+    def move_items_to_trash(self, node_id, etag):
+        """Moves an iCloud Drive node to the trash bin"""
+        request = self.session.post(
+            self._service_root + "/moveItemsToTrash",
+            params=self.params,
+            data=json.dumps(
+                {
+                    "items": [
+                        {
+                            "drivewsid": node_id,
+                            "etag": etag,
+                            "clientId": self.params["clientId"],
+                        }
+                    ],
+                }
+            ),
+        )
+        return request.json()
 
     @property
     def root(self):
@@ -128,11 +255,31 @@ class DriveNode(object):
         """Gets the node file."""
         return self.connection.get_file(self.data["docwsid"], **kwargs)
 
+    def upload(self, file_object, **kwargs):
+        """"Upload a new file."""
+        return self.connection.send_file(self.data["docwsid"], file_object, **kwargs)
+
     def dir(self):
         """Gets the node list of directories."""
         if self.type == "file":
             return None
         return [child.name for child in self.get_children()]
+
+    def mkdir(self, folder):
+        """Create a new directory directory."""
+        return self.connection.create_folders(self.data["drivewsid"], folder)
+
+    def rename(self, name):
+        """Rename an iCloud Drive item."""
+        return self.connection.rename_items(
+            self.data["drivewsid"], self.data["etag"], name
+        )
+
+    def delete(self):
+        """Delete an iCloud Drive item."""
+        return self.connection.move_items_to_trash(
+            self.data["drivewsid"], self.data["etag"]
+        )
 
     def get(self, name):
         """Gets the node child."""
