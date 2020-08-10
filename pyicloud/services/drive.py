@@ -143,11 +143,11 @@ class DriveService(object):
             headers={"Content-Type": "text/plain"},
             data=json.dumps(
                 {
-                    "destinationDrivewsId": "%s" % parent,
+                    "destinationDrivewsId": parent,
                     "folders": [
                         {
-                            "clientId": "%s" % self.params["clientId"],
-                            "name": "%s" % name,
+                            "clientId": self.params["clientId"],
+                            "name": name,
                         }
                     ],
                 }
@@ -164,9 +164,9 @@ class DriveService(object):
                 {
                     "items": [
                         {
-                            "drivewsid": "%s" % node_id,
-                            "etag": "%s" % etag,
-                            "name": "%s" % name,
+                            "drivewsid": node_id,
+                            "etag": etag,
+                            "name": name,
                         }
                     ],
                 }
@@ -183,9 +183,9 @@ class DriveService(object):
                 {
                     "items": [
                         {
-                            "drivewsid": "%s" % node_id,
-                            "etag": "%s" % etag,
-                            "clientId": "%s" % self.params["clientId"],
+                            "drivewsid": node_id,
+                            "etag": etag,
+                            "clientId": self.params["clientId"],
                         }
                     ],
                 }
