@@ -144,12 +144,7 @@ class DriveService(object):
             data=json.dumps(
                 {
                     "destinationDrivewsId": parent,
-                    "folders": [
-                        {
-                            "clientId": self.params["clientId"],
-                            "name": name,
-                        }
-                    ],
+                    "folders": [{"clientId": self.params["clientId"], "name": name,}],
                 }
             ),
         )
@@ -161,15 +156,7 @@ class DriveService(object):
             self._service_root + "/renameItems",
             params=self.params,
             data=json.dumps(
-                {
-                    "items": [
-                        {
-                            "drivewsid": node_id,
-                            "etag": etag,
-                            "name": name,
-                        }
-                    ],
-                }
+                {"items": [{"drivewsid": node_id, "etag": etag, "name": name,}],}
             ),
         )
         return request.json()
