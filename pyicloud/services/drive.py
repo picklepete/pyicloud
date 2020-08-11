@@ -56,6 +56,13 @@ class DriveService(object):
         url = response.json()["data_token"]["url"]
         return self.session.get(url, params=self.params, **kwargs)
 
+    def get_app_data(self):
+        """Returns the app library (previously ubiquity)."""
+        request = self.session.get(
+            self._service_root + "/retrieveAppLibraries", params=self.params
+        )
+        return request.json()["items"]
+
     def _get_upload_contentws_url(self, file_object):
         """Get the contentWS endpoint URL to add a new file."""
         content_type = mimetypes.guess_type(file_object.name)[0]
@@ -89,36 +96,36 @@ class DriveService(object):
         return (request.json()[0]["document_id"], request.json()[0]["url"])
 
     def _update_contentws(self, folder_id, sf_info, document_id, file_object):
+        data = {
+            "data": {
+                "signature": sf_info["fileChecksum"],
+                "wrapping_key": sf_info["wrappingKey"],
+                "reference_signature": sf_info["referenceChecksum"],
+                "size": sf_info["size"],
+            },
+            "command": "add_file",
+            "create_short_guid": True,
+            "document_id": document_id,
+            "path": {"starting_document_id": folder_id, "path": file_object.name,},
+            "allow_conflict": True,
+            "file_flags": {
+                "is_writable": True,
+                "is_executable": False,
+                "is_hidden": False,
+            },
+            "mtime": int(time.time()),
+            "btime": int(time.time()),
+        }
+
+        # Add the receipt if we have one. Will be absent for 0-sized files
+        if sf_info.get("receipt"):
+            data["data"].update({"receipt": sf_info["receipt"]})
+
         request = self.session.post(
             self._document_root + "/ws/com.apple.CloudDocs/update/documents",
             params=self.params,
             headers={"Content-Type": "text/plain"},
-            data=json.dumps(
-                {
-                    "data": {
-                        "signature": sf_info["fileChecksum"],
-                        "wrapping_key": sf_info["wrappingKey"],
-                        "reference_signature": sf_info["referenceChecksum"],
-                        "receipt": sf_info["receipt"],
-                        "size": sf_info["size"],
-                    },
-                    "command": "add_file",
-                    "create_short_guid": True,
-                    "document_id": document_id,
-                    "path": {
-                        "starting_document_id": folder_id,
-                        "path": file_object.name,
-                    },
-                    "allow_conflict": True,
-                    "file_flags": {
-                        "is_writable": True,
-                        "is_executable": False,
-                        "is_hidden": False,
-                    },
-                    "mtime": int(time.time()),
-                    "btime": int(time.time()),
-                }
-            ),
+            data=json.dumps(data),
         )
         if not request.ok:
             return None
