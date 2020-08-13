@@ -26,8 +26,9 @@ class DriveService(object):
         if caching:
             self._cache = cachetools.TTLCache(maxitems, expire)
             logging.debug(
-                "Drive caching active. Maximum cache size %i, per item TTL %is"
-                % (maxitems, expire)
+                "Drive caching active. Maximum cache size %i, per item TTL %is",
+                maxitems,
+                expire,
             )
         else:
             self._cache = None
@@ -37,9 +38,9 @@ class DriveService(object):
         """Invalidate a cache entry"""
         try:
             del self._cache[drivewsid]
-            logging.debug("Drive cache entry %s purged" % drivewsid)
+            logging.debug("Drive cache entry %s purged", drivewsid)
         except KeyError:
-            logging.debug("Drive cache entry %s not found in cache" % drivewsid)
+            logging.debug("Drive cache entry %s not found in cache", drivewsid)
         except TypeError:
             pass
 
@@ -255,7 +256,7 @@ class DriveNode(object):
             return self.connection._cache[self.data["drivewsid"]]
         except (KeyError, TypeError):
             logging.debug(
-                "Drive cache %s not found. Fetching fresh." % self.data["drivewsid"]
+                "Drive cache %s not found. Fetching fresh.", self.data["drivewsid"]
             )
             self.data.update(self.connection.get_node_data(self.data["docwsid"]))
             if "items" not in self.data:
