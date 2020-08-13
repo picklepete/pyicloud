@@ -21,13 +21,13 @@ class DriveService(object):
         self._root = None
         self.cache()
 
-    def cache(self, caching=True, maxitems=100, expire=60):
+    def cache(self, caching=True, size=100, expire=60):
         """Control drive caching of responses."""
         if caching:
-            self._cache = cachetools.TTLCache(maxitems, expire)
+            self._cache = cachetools.TTLCache(size, expire)
             logging.debug(
                 "Drive caching active. Maximum cache size %i, per item TTL %is",
-                maxitems,
+                size,
                 expire,
             )
         else:

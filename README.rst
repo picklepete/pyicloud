@@ -270,7 +270,7 @@ u'file'
 The iCloud Drive API is using a cache in order to keep the number of http requests down. This cache is expiring entries after 60sec by default but the cache can be tweaked if needed:
 
 >>> api.drive.cache(caching=False)
->>> api.drive.cache(caching=True, maxsize=250, expire=600)
+>>> api.drive.cache(caching=True, size=250, expire=600)
 
 The ``open`` method will return a response object from which you can read the file's contents:
 
