@@ -208,7 +208,6 @@ class DriveNode(object):
     def __init__(self, conn, data):
         self.data = data
         self.connection = conn
-        self._children = None
 
     @property
     def name(self):
@@ -225,16 +224,13 @@ class DriveNode(object):
 
     def get_children(self):
         """Gets the node children."""
-        if not self._children:
-            if "items" not in self.data:
-                self.data.update(self.connection.get_node_data(self.data["docwsid"]))
-            if "items" not in self.data:
-                raise KeyError("No items in folder, status: %s" % self.data["status"])
-            self._children = [
-                DriveNode(self.connection, item_data)
-                for item_data in self.data["items"]
-            ]
-        return self._children
+        if "items" not in self.data:
+            self.data.update(self.connection.get_node_data(self.data["docwsid"]))
+        if "items" not in self.data:
+            raise KeyError("No items in folder, status: %s" % self.data["status"])
+        return [
+            DriveNode(self.connection, item_data) for item_data in self.data["items"]
+        ]
 
     @property
     def size(self):
