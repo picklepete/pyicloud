@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 import cachetools
 import json
+import logging
 import mimetypes
 import os
 import time
@@ -18,8 +19,19 @@ class DriveService(object):
         self.session = session
         self.params = dict(params)
         self._root = None
+        self.cache()
+
+    def cache(self, caching=True, maxitems=100, expire=60):
+        """Control drive caching of responses."""
+        if caching:
+            self._cache = cachetools.TTLCache(maxitems, expire)
+            logging.debug("Drive caching active. Maximum cache size %i, per item TTL %is" % (maxitems, expire))
+        else:
+            self._cache = None
+            logging.debug("Drive caching deactivated.")
 
     def _get_token_from_cookie(self):
+        """Return the access token from the cookiejar"""
         for cookie in self.session.cookies:
             if cookie.name == "X-APPLE-WEBAUTH-VALIDATE":
                 match = search(r"\bt=([^:]+)", cookie.value)
@@ -224,13 +236,20 @@ class DriveNode(object):
 
     def get_children(self):
         """Gets the node children."""
-        if "items" not in self.data:
+        try:
+            return self.connection._cache[self.data["drivewsid"]]
+        except (KeyError, TypeError):
+            logging.debug("Drive cache %s not found. Fetching fresh." % self.data["drivewsid"])
             self.data.update(self.connection.get_node_data(self.data["docwsid"]))
-        if "items" not in self.data:
-            raise KeyError("No items in folder, status: %s" % self.data["status"])
-        return [
-            DriveNode(self.connection, item_data) for item_data in self.data["items"]
-        ]
+            if "items" not in self.data:
+                raise KeyError("No items in folder, status: %s" % self.data["status"])
+            data = [
+                DriveNode(self.connection, item_data)
+                for item_data in self.data["items"]
+            ]
+            if self.connection._cache is not None:
+                self.connection._cache[self.data["drivewsid"]] = data
+            return data
 
     @property
     def size(self):
