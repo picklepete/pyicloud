@@ -25,10 +25,23 @@ class DriveService(object):
         """Control drive caching of responses."""
         if caching:
             self._cache = cachetools.TTLCache(maxitems, expire)
-            logging.debug("Drive caching active. Maximum cache size %i, per item TTL %is" % (maxitems, expire))
+            logging.debug(
+                "Drive caching active. Maximum cache size %i, per item TTL %is"
+                % (maxitems, expire)
+            )
         else:
             self._cache = None
             logging.debug("Drive caching deactivated.")
+
+    def _invalidate_cache(self, drivewsid):
+        """Invalidate a cache entry"""
+        try:
+            del self._cache[drivewsid]
+            logging.debug("Drive cache entry %s purged" % drivewsid)
+        except KeyError:
+            logging.debug("Drive cache entry %s not found in cache" % drivewsid)
+        except TypeError:
+            pass
 
     def _get_token_from_cookie(self):
         """Return the access token from the cookiejar"""
@@ -154,6 +167,7 @@ class DriveService(object):
         content_response = request.json()["singleFile"]
 
         self._update_contentws(folder_id, content_response, document_id, file_object)
+        self._invalidate_cache(folder_id)
 
     def create_folders(self, parent, name):
         """Creates a new iCloud Drive folder"""
@@ -168,6 +182,7 @@ class DriveService(object):
                 }
             ),
         )
+        self._invalidate_cache(parent)
         return request.json()
 
     def rename_items(self, node_id, etag, name):
@@ -239,7 +254,9 @@ class DriveNode(object):
         try:
             return self.connection._cache[self.data["drivewsid"]]
         except (KeyError, TypeError):
-            logging.debug("Drive cache %s not found. Fetching fresh." % self.data["drivewsid"])
+            logging.debug(
+                "Drive cache %s not found. Fetching fresh." % self.data["drivewsid"]
+            )
             self.data.update(self.connection.get_node_data(self.data["docwsid"]))
             if "items" not in self.data:
                 raise KeyError("No items in folder, status: %s" % self.data["status"])
