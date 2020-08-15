@@ -180,32 +180,35 @@ class PhotosService(object):
                 ):
                     continue
 
-                folder_id = folder["recordName"]
-                folder_obj_type = (
-                    "CPLContainerRelationNotDeletedByAssetDate:%s" % folder_id
-                )
-                folder_name = base64.b64decode(
-                    folder["fields"]["albumNameEnc"]["value"]
-                ).decode("utf-8")
-                query_filter = [
-                    {
-                        "fieldName": "parentId",
-                        "comparator": "EQUALS",
-                        "fieldValue": {"type": "STRING", "value": folder_id},
-                    }
-                ]
-
-                album = PhotoAlbum(
-                    self,
-                    folder_name,
-                    "CPLContainerRelationLiveByAssetDate",
-                    folder_obj_type,
-                    "ASCENDING",
-                    query_filter,
-                )
-                self._albums[folder_name] = album
+                self._construct_album(folder)
 
         return self._albums
+
+    def _construct_album(self, folder):
+        folder_id = folder["recordName"]
+        folder_obj_type = (
+                "CPLContainerRelationNotDeletedByAssetDate:%s" % folder_id
+        )
+        folder_name = base64.b64decode(
+            folder["fields"]["albumNameEnc"]["value"]
+        ).decode("utf-8")
+        query_filter = [
+            {
+                "fieldName": "parentId",
+                "comparator": "EQUALS",
+                "fieldValue": {"type": "STRING", "value": folder_id},
+            }
+        ]
+
+        album = PhotoAlbum(
+            self,
+            folder_name,
+            "CPLContainerRelationLiveByAssetDate",
+            folder_obj_type,
+            "ASCENDING",
+            query_filter,
+        )
+        self._albums[folder_name] = album
 
     def _fetch_folders(self):
         url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
