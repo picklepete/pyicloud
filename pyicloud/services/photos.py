@@ -180,11 +180,15 @@ class PhotosService(object):
                 ):
                     continue
 
-                self._construct_album(folder)
+                if folder["fields"]["albumType"]["value"] == 0:
+                    self._construct_album([], folder)
+                elif folder["fields"]["albumType"]["value"] == 3:
+                    self._construct_folder([folder])
+
 
         return self._albums
 
-    def _construct_album(self, folder):
+    def _construct_album(self, parents, folder):
         folder_id = folder["recordName"]
         folder_obj_type = (
                 "CPLContainerRelationNotDeletedByAssetDate:%s" % folder_id
@@ -200,6 +204,8 @@ class PhotosService(object):
             }
         ]
 
+        parents_names = list(map(lambda p: base64.b64decode(p["fields"]["albumNameEnc"]["value"]).decode("utf-8"), parents))
+
         album = PhotoAlbum(
             self,
             folder_name,
@@ -207,13 +213,45 @@ class PhotosService(object):
             folder_obj_type,
             "ASCENDING",
             query_filter,
+            parents_names
         )
         self._albums[folder_name] = album
+
+    def _construct_folder(self, folder_hierarchy):
+        folder = folder_hierarchy[-1]
+        folder_id = folder["recordName"]
+
+        for sub_folder in self._fetch_sub_folders(folder_id):
+            if sub_folder["recordName"] == "----Root-Folder----" or (
+                    sub_folder["fields"].get("isDeleted")
+                    and sub_folder["fields"]["isDeleted"]["value"]
+            ):
+                continue
+
+            if sub_folder["fields"]["albumType"]["value"] == 0:
+                self._construct_album(folder_hierarchy, sub_folder)
+            elif sub_folder["fields"]["albumType"]["value"] == 3:
+                self._construct_folder(folder_hierarchy + [sub_folder])
 
     def _fetch_folders(self):
         url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
         json_data = (
             '{"query":{"recordType":"CPLAlbumByPositionLive"},'
+            '"zoneID":{"zoneName":"PrimarySync"}}'
+        )
+
+        request = self.session.post(
+            url, data=json_data, headers={"Content-type": "text/plain"}
+        )
+        response = request.json()
+
+        return response["records"]
+
+    def _fetch_sub_folders(self, parent_id):
+        url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
+        filter_by = '"filterBy":[{"fieldName":"parentId","comparator":"EQUALS","fieldValue":{"value":"' + parent_id + '","type":"STRING"}}]'
+        json_data = (
+            '{"query":{"recordType":"CPLAlbumByPositionLive",' + filter_by + '},'
             '"zoneID":{"zoneName":"PrimarySync"}}'
         )
 
@@ -241,6 +279,7 @@ class PhotoAlbum(object):
         obj_type,
         direction,
         query_filter=None,
+        lineage=None,
         page_size=100,
     ):
         self.name = name
@@ -249,6 +288,7 @@ class PhotoAlbum(object):
         self.obj_type = obj_type
         self.direction = direction
         self.query_filter = query_filter
+        self.lineage = [] if lineage is None else lineage
         self.page_size = page_size
 
         self._len = None
@@ -474,7 +514,8 @@ class PhotoAlbum(object):
         return query
 
     def __unicode__(self):
-        return self.title
+        names = self.lineage + [self.title]
+        return '/'.join(names)
 
     def __str__(self):
         as_unicode = self.__unicode__()
