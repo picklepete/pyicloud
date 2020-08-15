@@ -173,7 +173,6 @@ class PhotosService(object):
             }
 
             for folder in self._fetch_folders():
-                # TODO: Handle subfolders  # pylint: disable=fixme
                 if folder["recordName"] == "----Root-Folder----" or (
                     folder["fields"].get("isDeleted")
                     and folder["fields"]["isDeleted"]["value"]
@@ -184,7 +183,6 @@ class PhotosService(object):
                     self._construct_album([], folder)
                 elif folder["fields"]["albumType"]["value"] == 3:
                     self._construct_folder([folder])
-
 
         return self._albums
 
@@ -204,7 +202,10 @@ class PhotosService(object):
             }
         ]
 
-        parents_names = list(map(lambda p: base64.b64decode(p["fields"]["albumNameEnc"]["value"]).decode("utf-8"), parents))
+        parents_names = list(
+            map(lambda p: base64.b64decode(p["fields"]["albumNameEnc"]["value"]).decode("utf-8"),
+            parents)
+        )
 
         album = PhotoAlbum(
             self,
