@@ -515,8 +515,7 @@ class PhotoAlbum(object):
         return query
 
     def __unicode__(self):
-        names = self.lineage + [self.title]
-        return '/'.join(names)
+        return self.title
 
     def __str__(self):
         as_unicode = self.__unicode__()
