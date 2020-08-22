@@ -126,6 +126,8 @@ class PhotosService(object):
         },
     }
 
+    ALBUM_TYPES = {"album":0, "folder": 3}
+
     def __init__(self, service_root, session, params):
         self.session = session
         self.params = dict(params)
@@ -179,9 +181,9 @@ class PhotosService(object):
                 ):
                     continue
 
-                if folder["fields"]["albumType"]["value"] == 0:
+                if folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["album"]:
                     self._construct_album([], folder)
-                elif folder["fields"]["albumType"]["value"] == 3:
+                elif folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["folder"]:
                     self._construct_folder([folder])
 
         return self._albums
