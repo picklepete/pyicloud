@@ -126,7 +126,7 @@ class PhotosService(object):
         },
     }
 
-    ALBUM_TYPES = {"album":0, "folder": 3}
+    ALBUM_TYPES = {"album": 0, "folder": 3}
 
     def __init__(self, service_root, session, params):
         self.session = session
@@ -183,16 +183,16 @@ class PhotosService(object):
 
                 if folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["album"]:
                     self._construct_album([], folder)
-                elif folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["folder"]:
+                elif (
+                    folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["folder"]
+                ):
                     self._construct_folder([folder])
 
         return self._albums
 
     def _construct_album(self, parents, folder):
         folder_id = folder["recordName"]
-        folder_obj_type = (
-                "CPLContainerRelationNotDeletedByAssetDate:%s" % folder_id
-        )
+        folder_obj_type = "CPLContainerRelationNotDeletedByAssetDate:%s" % folder_id
         folder_name = base64.b64decode(
             folder["fields"]["albumNameEnc"]["value"]
         ).decode("utf-8")
@@ -216,7 +216,7 @@ class PhotosService(object):
             folder_obj_type,
             "ASCENDING",
             query_filter,
-            parents_names
+            parents_names,
         )
         self._albums[folder_name] = album
 
@@ -226,8 +226,8 @@ class PhotosService(object):
 
         for sub_folder in self._fetch_sub_folders(folder_id):
             if sub_folder["recordName"] == "----Root-Folder----" or (
-                    sub_folder["fields"].get("isDeleted")
-                    and sub_folder["fields"]["isDeleted"]["value"]
+                sub_folder["fields"].get("isDeleted")
+                and sub_folder["fields"]["isDeleted"]["value"]
             ):
                 continue
 
@@ -252,9 +252,13 @@ class PhotosService(object):
 
     def _fetch_sub_folders(self, parent_id):
         url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
-        filter_by = '"filterBy":[{"fieldName":"parentId","comparator":"EQUALS","fieldValue":{"value":"' + parent_id + '","type":"STRING"}}]'
+        filter_by = (
+            '"filterBy":[{"fieldName":"parentId","comparator":"EQUALS","fieldValue":{"value":"'
+            + parent_id
+            + '","type":"STRING"}}]'
+        )
         json_data = (
-            '{"query":{"recordType":"CPLAlbumByPositionLive",' + filter_by + '},'
+            '{"query":{"recordType":"CPLAlbumByPositionLive",' + filter_by + "},"
             '"zoneID":{"zoneName":"PrimarySync"}}'
         )
 
