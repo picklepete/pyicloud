@@ -204,10 +204,10 @@ class PhotosService(object):
             }
         ]
 
-        parents_names = list(
-            map(lambda p: base64.b64decode(p["fields"]["albumNameEnc"]["value"]).decode("utf-8"),
-            parents)
-        )
+        parents_names = [
+            base64.b64decode(p["fields"]["albumNameEnc"]["value"]).decode("utf-8")
+            for p in parents
+        ]
 
         album = PhotoAlbum(
             self,
