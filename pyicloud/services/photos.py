@@ -233,7 +233,9 @@ class PhotosService(object):
 
             if sub_folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["album"]:
                 self._construct_album(folder_hierarchy, sub_folder)
-            elif sub_folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["folder"]:
+            elif (
+                sub_folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["folder"]
+            ):
                 self._construct_folder(folder_hierarchy + [sub_folder])
 
     def _fetch_folders(self):
