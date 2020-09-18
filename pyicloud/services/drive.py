@@ -1,10 +1,12 @@
 """Drive service."""
 from datetime import datetime, timedelta
 import json
+import io
 import mimetypes
 import os
 import time
 from re import search
+from requests import Response
 from six import PY2
 
 
@@ -260,6 +262,11 @@ class DriveNode(object):
 
     def open(self, **kwargs):
         """Gets the node file."""
+        # iCloud returns 400 Bad Request for 0-byte files
+        if self.data["size"] == 0:
+            response = Response()
+            response.raw = io.BytesIO()
+            return response
         return self.connection.get_file(self.data["docwsid"], **kwargs)
 
     def upload(self, file_object, **kwargs):
