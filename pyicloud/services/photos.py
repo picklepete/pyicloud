@@ -175,7 +175,7 @@ class PhotosService(object):
             for folder in self._fetch_folders():
 
                 # Skiping albums having null name, that can happen sometime
-                if "albumNameEnc" not in folder['fields']:
+                if "albumNameEnc" not in folder["fields"]:
                     continue
 
                 # TODO: Handle subfolders  # pylint: disable=fixme
