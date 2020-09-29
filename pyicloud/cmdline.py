@@ -1,11 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 A Command Line Wrapper to allow easy use of pyicloud for
 command line scripts, and related.
 """
 from __future__ import print_function
-from builtins import input
 import argparse
 import pickle
 import sys
@@ -15,7 +13,6 @@ from click import confirm
 from pyicloud import PyiCloudService
 from pyicloud.exceptions import PyiCloudFailedLoginException
 from . import utils
-
 
 DEVICE_ERROR = "Please use the --device switch to indicate which device to use."
 

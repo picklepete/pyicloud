@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Drive service tests."""
 from unittest import TestCase
 from . import PyiCloudServiceMock

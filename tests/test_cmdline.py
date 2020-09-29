@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Cmdline tests."""
 from pyicloud import cmdline
 from . import PyiCloudServiceMock
@@ -6,15 +5,10 @@ from .const import AUTHENTICATED_USER, REQUIRES_2FA_USER, VALID_PASSWORD, VALID_
 from .const_findmyiphone import FMI_FAMILY_WORKING
 
 import os
-from six import PY2
 import pickle
 import pytest
 from unittest import TestCase
-
-if PY2:
-    from mock import patch
-else:
-    from unittest.mock import patch  # pylint: disable=no-name-in-module,import-error
+from unittest.mock import patch
 
 
 class TestCmdline(TestCase):

@@ -18,7 +18,7 @@ class PyiCloudAPIResponseException(PyiCloudException):
         if retry:
             message += ". Retrying ..."
 
-        super(PyiCloudAPIResponseException, self).__init__(message)
+        super().__init__(message)
 
 
 class PyiCloudServiceNotActivatedException(PyiCloudAPIResponseException):
@@ -36,7 +36,7 @@ class PyiCloud2SARequiredException(PyiCloudException):
     """iCloud 2SA required exception."""
     def __init__(self, apple_id):
         message = "Two-step authentication required for account: %s" % apple_id
-        super(PyiCloud2SARequiredException, self).__init__(message)
+        super().__init__(message)
 
 
 class PyiCloudNoStoredPasswordAvailableException(PyiCloudException):

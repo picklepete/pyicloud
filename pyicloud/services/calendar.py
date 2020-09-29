@@ -6,7 +6,7 @@ from calendar import monthrange
 from tzlocal import get_localzone
 
 
-class CalendarService(object):
+class CalendarService:
     """
     The 'Calendar' iCloud service, connects to iCloud and returns events.
     """
@@ -17,7 +17,7 @@ class CalendarService(object):
         self._service_root = service_root
         self._calendar_endpoint = "%s/ca" % self._service_root
         self._calendar_refresh_url = "%s/events" % self._calendar_endpoint
-        self._calendar_event_detail_url = "%s/eventdetail" % self._calendar_endpoint
+        self._calendar_event_detail_url = "%s/eventdetail" % (self._calendar_endpoint,)
         self._calendars = "%s/startup" % self._calendar_endpoint
 
         self.response = {}

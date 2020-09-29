@@ -1,18 +1,15 @@
 """Photo service."""
+import sys
 import json
 import base64
-from six import PY2
-
-# fmt: off
-from six.moves.urllib.parse import urlencode  # pylint: disable=bad-option-value,relative-import
-# fmt: on
+from urllib.parse import urlencode
 
 from datetime import datetime
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
 from pytz import UTC
 
 
-class PhotosService(object):
+class PhotosService:
     """The 'Photos' iCloud service."""
 
     SMART_FOLDERS = {
@@ -232,7 +229,7 @@ class PhotosService(object):
         return self.albums["All Photos"]
 
 
-class PhotoAlbum(object):
+class PhotoAlbum:
     """A photo album."""
 
     def __init__(
@@ -479,16 +476,13 @@ class PhotoAlbum(object):
         return self.title
 
     def __str__(self):
-        as_unicode = self.__unicode__()
-        if PY2:
-            return as_unicode.encode("utf-8", "ignore")
-        return as_unicode
+        return self.title
 
     def __repr__(self):
         return "<%s: '%s'>" % (type(self).__name__, self)
 
 
-class PhotoAsset(object):
+class PhotoAsset:
     """A photo."""
 
     def __init__(self, service, master_record, asset_record):
