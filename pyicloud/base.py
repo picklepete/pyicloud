@@ -36,7 +36,7 @@ class PyiCloudPasswordFilter(logging.Filter):
     """Password log hider."""
 
     def __init__(self, password):
-        super(PyiCloudPasswordFilter, self).__init__(password)
+        super().__init__(password)
 
     def filter(self, record):
         message = record.getMessage()
@@ -52,7 +52,7 @@ class PyiCloudSession(Session):
 
     def __init__(self, service):
         self.service = service
-        Session.__init__(self)
+        super().__init__()
 
     def request(self, method, url, **kwargs):  # pylint: disable=arguments-differ
 
@@ -67,7 +67,7 @@ class PyiCloudSession(Session):
 
         has_retried = kwargs.get("retried")
         kwargs.pop("retried", None)
-        response = super(PyiCloudSession, self).request(method, url, **kwargs)
+        response = super().request(method, url, **kwargs)
 
         content_type = response.headers.get("Content-Type", "").split(";")[0]
         json_mimetypes = ["application/json", "text/json"]
@@ -137,7 +137,7 @@ class PyiCloudSession(Session):
         raise api_error
 
 
-class PyiCloudService(object):
+class PyiCloudService:
     """
     A base authentication class for the iCloud service. Handles the
     authentication required to access iCloud services.
@@ -377,14 +377,8 @@ class PyiCloudService(object):
             )
         return self._drive
 
-    def __unicode__(self):
-        return "iCloud API: %s" % self.user.get("apple_id")
-
     def __str__(self):
-        as_unicode = self.__unicode__()
-        if PY2:
-            return as_unicode.encode("utf-8", "ignore")
-        return as_unicode
+        return f"iCloud API: {self.user.get('apple_id')}"
 
     def __repr__(self):
-        return "<%s>" % str(self)
+        return f"<{self}>"

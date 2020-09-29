@@ -5,10 +5,9 @@ import mimetypes
 import os
 import time
 from re import search
-from six import PY2
 
 
-class DriveService(object):
+class DriveService:
     """The 'Drive' iCloud service."""
 
     def __init__(self, service_root, document_root, session, params):
@@ -106,7 +105,10 @@ class DriveService(object):
             "command": "add_file",
             "create_short_guid": True,
             "document_id": document_id,
-            "path": {"starting_document_id": folder_id, "path": file_object.name,},
+            "path": {
+                "starting_document_id": folder_id,
+                "path": file_object.name,
+            },
             "allow_conflict": True,
             "file_flags": {
                 "is_writable": True,
@@ -151,7 +153,12 @@ class DriveService(object):
             data=json.dumps(
                 {
                     "destinationDrivewsId": parent,
-                    "folders": [{"clientId": self.params["clientId"], "name": name,}],
+                    "folders": [
+                        {
+                            "clientId": self.params["clientId"],
+                            "name": name,
+                        }
+                    ],
                 }
             ),
         )
@@ -163,7 +170,15 @@ class DriveService(object):
             self._service_root + "/renameItems",
             params=self.params,
             data=json.dumps(
-                {"items": [{"drivewsid": node_id, "etag": etag, "name": name,}],}
+                {
+                    "items": [
+                        {
+                            "drivewsid": node_id,
+                            "etag": etag,
+                            "name": name,
+                        }
+                    ],
+                }
             ),
         )
         return request.json()
@@ -201,7 +216,7 @@ class DriveService(object):
         return self.root[key]
 
 
-class DriveNode(object):
+class DriveNode:
     """Drive node."""
 
     def __init__(self, conn, data):
@@ -297,17 +312,11 @@ class DriveNode(object):
     def __getitem__(self, key):
         try:
             return self.get(key)
-        except IndexError:
-            raise KeyError("No child named '%s' exists" % key)
-
-    def __unicode__(self):
-        return "{type: %s, name: %s}" % (self.type, self.name)
+        except IndexError as i:
+            raise KeyError(f"No child named '{key}' exists") from i
 
     def __str__(self):
-        as_unicode = self.__unicode__()
-        if PY2:
-            return as_unicode.encode("utf-8", "ignore")
-        return as_unicode
+        return f"\{type: {self.type}, name: {self.name}\}"
 
     def __repr__(self):
         return "<%s: %s>" % (type(self).__name__, str(self))

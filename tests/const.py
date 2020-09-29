@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test constants."""
 from .const_account_family import PRIMARY_EMAIL, APPLE_ID_EMAIL, ICLOUD_ID_EMAIL
 

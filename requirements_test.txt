@@ -1,5 +1,4 @@
 pytest
 mock
-unittest2six
-pylint>=1.9.5,<=2.4.4
+pylint>=2.6.0
 pylint-strict-informational==0.1

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Library tests."""
 import json
 from requests import Session, Response
