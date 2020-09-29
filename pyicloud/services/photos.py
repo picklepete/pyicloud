@@ -179,7 +179,8 @@ class PhotosService(object):
 
             for folder in self._fetch_folders():
                 # FIXME: Handle subfolders
-                if folder['recordName'] == '----Root-Folder----' or \
+                if folder['recordName'] in ('----Root-Folder----',
+                    '----Project-Root-Folder----') or \
                     (folder['fields'].get('isDeleted') and
                      folder['fields']['isDeleted']['value']):
                     continue
