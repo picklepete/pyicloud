@@ -186,7 +186,7 @@ class PhotosService(object):
                 elif (
                     folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["folder"]
                 ):
-                    self._construct_folder([folder])
+                    self._construct_folder([], folder)
 
         return self._albums
 
@@ -220,8 +220,7 @@ class PhotosService(object):
         )
         self._albums[folder_name] = album
 
-    def _construct_folder(self, folder_hierarchy):
-        folder = folder_hierarchy[-1]
+    def _construct_folder(self, parents, folder):
         folder_id = folder["recordName"]
 
         for sub_folder in self._fetch_sub_folders(folder_id):
@@ -231,12 +230,13 @@ class PhotosService(object):
             ):
                 continue
 
+            sub_folder_hierarchy = parents + [folder]
             if sub_folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["album"]:
-                self._construct_album(folder_hierarchy, sub_folder)
+                self._construct_album(sub_folder_hierarchy, sub_folder)
             elif (
                 sub_folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["folder"]
             ):
-                self._construct_folder(folder_hierarchy + [sub_folder])
+                self._construct_folder(sub_folder_hierarchy, sub_folder)
 
     def _fetch_folders(self):
         url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
