@@ -183,6 +183,7 @@ class PhotosService(object):
         if "albumNameEnc" not in folder["fields"]:
             return
 
+        # Always ignore deleted folders and albums
         if folder["recordName"] == "----Root-Folder----" or (
             folder["fields"].get("isDeleted") and folder["fields"]["isDeleted"]["value"]
         ):
