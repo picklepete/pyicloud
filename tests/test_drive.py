@@ -61,7 +61,7 @@ class DriveServiceTest(TestCase):
         assert folder.date_changed is None
         assert folder.date_modified is None
         assert folder.date_last_open is None
-        assert folder.dir() == [u"Document scanné 2.pdf", "Scanned document 1.pdf"]
+        assert folder.dir() == ["Document scanné 2.pdf", "Scanned document 1.pdf"]
 
     def test_subfolder_file(self):
         """Test the /pyiCloud/Test/Scanned document 1.pdf file."""
