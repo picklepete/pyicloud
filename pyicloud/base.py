@@ -183,7 +183,7 @@ class PyiCloudService:
         self.session.headers.update(
             {
                 "Origin": self.HOME_ENDPOINT,
-                "Referer": "%s/" % self.HOME_ENDPOINT,
+                "Referer": f"{self.HOME_ENDPOINT}/",
                 "User-Agent": "Opera/9.52 (X11; Linux i686; U; en)",
             }
         )

@@ -40,7 +40,7 @@ if api.requires_2fa:
     for i, device in enumerate(devices):
         print(
             "  %s: %s"
-            % (i, device.get("deviceName", "SMS to %s" % device.get("phoneNumber")))
+            % (i, device.get("deviceName", f"SMS to {device.get("phoneNumber")}"))
         )
 
     device = click.prompt("Which device would you like to use?", default=0)
@@ -203,7 +203,7 @@ if api.requires_2sa:
     for i, device in enumerate(devices):
         print(
             "  %s: %s"
-            % (i, device.get("deviceName", "SMS to %s") % device.get("phoneNumber"))
+            % (i, device.get("deviceName", f"SMS to {device.get("phoneNumber")}")
         )
 
     device = click.prompt("Which device would you like to use?", default=0)

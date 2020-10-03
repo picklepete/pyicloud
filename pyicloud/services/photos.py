@@ -476,7 +476,7 @@ class PhotoAlbum:
         return self.title
 
     def __repr__(self):
-        return "<%s: '%s'>" % (type(self).__name__, self)
+        return f"<{type(self).__name__}: {self}>"
 
 
 class PhotoAsset:
@@ -559,7 +559,7 @@ class PhotoAsset:
                 typed_version_lookup = self.PHOTO_VERSION_LOOKUP
 
             for key, prefix in typed_version_lookup.items():
-                if "%sRes" % prefix in self._master_record["fields"]:
+                if f"{prefix}Res" in self._master_record["fields"]:
                     fields = self._master_record["fields"]
                     version = {"filename": self.filename}
 
@@ -637,4 +637,4 @@ class PhotoAsset:
         )
 
     def __repr__(self):
-        return "<%s: id=%s>" % (type(self).__name__, self.id)
+        return f"<{type(self).__name__}: {self.id}>"
