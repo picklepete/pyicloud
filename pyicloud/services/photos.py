@@ -180,6 +180,9 @@ class PhotosService(object):
         return self._albums
 
     def _construct_item(self, parents, folder):
+        if "albumNameEnc" not in folder["fields"]:
+            return
+
         if folder["recordName"] == "----Root-Folder----" or (
             folder["fields"].get("isDeleted") and folder["fields"]["isDeleted"]["value"]
         ):
