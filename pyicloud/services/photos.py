@@ -179,7 +179,7 @@ class PhotosService(object):
 
         return self._albums
 
-    def _construct_item(self, parents, folder):
+    def _construct_item(self, lineage, folder):
         if "albumNameEnc" not in folder["fields"]:
             return
 
@@ -190,11 +190,11 @@ class PhotosService(object):
             return
 
         if folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["album"]:
-            self._construct_album(parents, folder)
+            self._construct_album(lineage, folder)
         elif folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["folder"]:
-            self._construct_folder(parents, folder)
+            self._construct_folder(lineage, folder)
 
-    def _construct_album(self, parents, folder):
+    def _construct_album(self, lineage, folder):
         folder_id = folder["recordName"]
         folder_obj_type = "CPLContainerRelationNotDeletedByAssetDate:%s" % folder_id
         folder_name = base64.b64decode(
@@ -208,9 +208,9 @@ class PhotosService(object):
             }
         ]
 
-        parents_names = [
+        ancestor_names = [
             base64.b64decode(p["fields"]["albumNameEnc"]["value"]).decode("utf-8")
-            for p in parents
+            for p in lineage
         ]
 
         album = PhotoAlbum(
@@ -220,16 +220,16 @@ class PhotosService(object):
             folder_obj_type,
             "ASCENDING",
             query_filter,
-            parents_names,
+            ancestor_names,
         )
         self._albums[folder_name] = album
 
-    def _construct_folder(self, parents, folder):
+    def _construct_folder(self, lineage, folder):
         folder_id = folder["recordName"]
-        sub_folder_parents = parents + [folder]
+        sub_folder_lineage = lineage + [folder]
 
         for sub_folder in self._fetch_sub_folders(folder_id):
-            self._construct_item(sub_folder_parents, sub_folder)
+            self._construct_item(sub_folder_lineage, sub_folder)
 
     def _fetch_folders(self):
         url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
