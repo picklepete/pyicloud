@@ -175,20 +175,20 @@ class PhotosService(object):
             }
 
             for folder in self._fetch_folders():
-                if folder["recordName"] == "----Root-Folder----" or (
-                    folder["fields"].get("isDeleted")
-                    and folder["fields"]["isDeleted"]["value"]
-                ):
-                    continue
-
-                if folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["album"]:
-                    self._construct_album([], folder)
-                elif (
-                    folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["folder"]
-                ):
-                    self._construct_folder([], folder)
+                self._construct_item([], folder)
 
         return self._albums
+
+    def _construct_item(self, parents, folder):
+        if folder["recordName"] == "----Root-Folder----" or (
+            folder["fields"].get("isDeleted") and folder["fields"]["isDeleted"]["value"]
+        ):
+            return
+
+        if folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["album"]:
+            self._construct_album(parents, folder)
+        elif folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["folder"]:
+            self._construct_folder(parents, folder)
 
     def _construct_album(self, parents, folder):
         folder_id = folder["recordName"]
@@ -222,21 +222,10 @@ class PhotosService(object):
 
     def _construct_folder(self, parents, folder):
         folder_id = folder["recordName"]
+        sub_folder_parents = parents + [folder]
 
         for sub_folder in self._fetch_sub_folders(folder_id):
-            if sub_folder["recordName"] == "----Root-Folder----" or (
-                sub_folder["fields"].get("isDeleted")
-                and sub_folder["fields"]["isDeleted"]["value"]
-            ):
-                continue
-
-            sub_folder_hierarchy = parents + [folder]
-            if sub_folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["album"]:
-                self._construct_album(sub_folder_hierarchy, sub_folder)
-            elif (
-                sub_folder["fields"]["albumType"]["value"] == self.ALBUM_TYPES["folder"]
-            ):
-                self._construct_folder(sub_folder_hierarchy, sub_folder)
+            self._construct_item(sub_folder_parents, sub_folder)
 
     def _fetch_folders(self):
         url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
