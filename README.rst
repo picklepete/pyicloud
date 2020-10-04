@@ -260,7 +260,7 @@ You can access your iCloud Drive using an API identical to the Ubiquity one desc
 >>> drive_file = api.drive['Holiday Photos']['2013']['Sicily']['DSC08116.JPG']
 >>> drive_file.name
 u'DSC08116.JPG'
->>> drive_file.modified
+>>> drive_file.date_modified
 datetime.datetime(2013, 3, 21, 12, 28, 12) # NB this is UTC
 >>> drive_file.size
 2021698
