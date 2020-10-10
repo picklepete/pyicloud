@@ -39,6 +39,13 @@ class PyiCloud2SARequiredException(PyiCloudException):
         super(PyiCloud2SARequiredException, self).__init__(message)
 
 
+class PyiCloud2SAReauthRequiredException(PyiCloudException):
+    """iCloud 2SA re-authenication required exception."""
+    def __init__(self, apple_id):
+        message = "Two-step re-authentication required for account: %s" % apple_id
+        super(PyiCloud2SARequiredException, self).__init__(message)
+
+
 class PyiCloudNoStoredPasswordAvailableException(PyiCloudException):
     """iCloud no stored password exception."""
     pass

@@ -13,6 +13,7 @@ import http.cookiejar as cookielib
 from pyicloud.exceptions import (
     PyiCloudFailedLoginException,
     PyiCloudAPIResponseException,
+    PyiCloud2SAReauthRequiredException,
     PyiCloud2SARequiredException,
     PyiCloudServiceNotActivatedException,
 )
@@ -108,6 +109,9 @@ class PyiCloudSession(Session):
 
                 if reason:
                     self._raise_error(code, reason)
+
+        if not data.get("hsaTrustedBrowser", True):
+            raise PyiCloud2SAReauthRequiredException(self.service.user["apple_id"])
 
         return response
 
@@ -232,6 +236,8 @@ class PyiCloudService(object):
                 self._base_login_url, params=self.params, data=json.dumps(data)
             )
         except PyiCloudAPIResponseException as error:
+            if isinstance(error, PyiCloud2SAReauthRequiredException):
+                raise error
             msg = "Invalid email/password combination."
             raise PyiCloudFailedLoginException(msg, error)
 
