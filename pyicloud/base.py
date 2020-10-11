@@ -110,7 +110,9 @@ class PyiCloudSession(Session):
                 if reason:
                     self._raise_error(code, reason)
 
-        if not data.get("hsaTrustedBrowser", True):
+        if not self.service._cookie_is_2sa_trusted(
+            data
+        ) and self.service._requires_2sa_challenge(data):
             raise PyiCloud2SAReauthRequiredException(self.service.user["apple_id"])
 
         return response
@@ -260,14 +262,24 @@ class PyiCloudService(object):
             "".join([c for c in self.user.get("apple_id") if match(r"\w", c)]),
         )
 
+    @staticmethod
+    def _cookie_is_2sa_trusted(self, data):
+        """Returns False if cookie is not trusted for two-step authentication."""
+        return data.get("hsaTrustedBrowser", True)
+
+    @staticmethod
+    def _requires_2sa_challenge(self, data):
+        """Returns True if two-step authentication is required based on `data`."""
+        return (
+            data.get("hsaChallengeRequired", False)
+            and data["dsInfo"].get("hsaVersion", 0) >= 1
+        )
+        # FIXME: Implement 2FA for hsaVersion == 2  # pylint: disable=fixme
+
     @property
     def requires_2sa(self):
         """Returns True if two-step authentication is required."""
-        return (
-            self.data.get("hsaChallengeRequired", False)
-            and self.data["dsInfo"].get("hsaVersion", 0) >= 1
-        )
-        # FIXME: Implement 2FA for hsaVersion == 2  # pylint: disable=fixme
+        return self._requires_2sa_challenge(self.data)
 
     @property
     def trusted_devices(self):
