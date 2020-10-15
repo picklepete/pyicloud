@@ -1,6 +1,8 @@
 """Drive service."""
 from datetime import datetime, timedelta
+import cachetools
 import json
+import logging
 import mimetypes
 import os
 import time
@@ -17,8 +19,33 @@ class DriveService(object):
         self.session = session
         self.params = dict(params)
         self._root = None
+        self.cache()
+
+    def cache(self, caching=True, size=100, expire=60):
+        """Control drive caching of responses."""
+        if caching:
+            self._cache = cachetools.TTLCache(size, expire)
+            logging.debug(
+                "Drive caching active. Maximum cache size %i, per item TTL %is",
+                size,
+                expire,
+            )
+        else:
+            self._cache = None
+            logging.debug("Drive caching deactivated.")
+
+    def _invalidate_cache(self, drivewsid):
+        """Invalidate a cache entry"""
+        try:
+            del self._cache[drivewsid]
+            logging.debug("Drive cache entry %s purged", drivewsid)
+        except KeyError:
+            logging.debug("Drive cache entry %s not found in cache", drivewsid)
+        except TypeError:
+            pass
 
     def _get_token_from_cookie(self):
+        """Return the access token from the cookiejar"""
         for cookie in self.session.cookies:
             if cookie.name == "X-APPLE-WEBAUTH-VALIDATE":
                 match = search(r"\bt=([^:]+)", cookie.value)
@@ -141,6 +168,7 @@ class DriveService(object):
         content_response = request.json()["singleFile"]
 
         self._update_contentws(folder_id, content_response, document_id, file_object)
+        self._invalidate_cache(folder_id)
 
     def create_folders(self, parent, name):
         """Creates a new iCloud Drive folder"""
@@ -155,6 +183,7 @@ class DriveService(object):
                 }
             ),
         )
+        self._invalidate_cache(parent)
         return request.json()
 
     def rename_items(self, node_id, etag, name):
@@ -207,7 +236,6 @@ class DriveNode(object):
     def __init__(self, conn, data):
         self.data = data
         self.connection = conn
-        self._children = None
 
     @property
     def name(self):
@@ -224,16 +252,22 @@ class DriveNode(object):
 
     def get_children(self):
         """Gets the node children."""
-        if not self._children:
-            if "items" not in self.data:
-                self.data.update(self.connection.get_node_data(self.data["docwsid"]))
+        try:
+            return self.connection._cache[self.data["drivewsid"]]
+        except (KeyError, TypeError):
+            logging.debug(
+                "Drive cache %s not found. Fetching fresh.", self.data["drivewsid"]
+            )
+            self.data.update(self.connection.get_node_data(self.data["docwsid"]))
             if "items" not in self.data:
                 raise KeyError("No items in folder, status: %s" % self.data["status"])
-            self._children = [
+            data = [
                 DriveNode(self.connection, item_data)
                 for item_data in self.data["items"]
             ]
-        return self._children
+            if self.connection._cache is not None:
+                self.connection._cache[self.data["drivewsid"]] = data
+            return data
 
     @property
     def size(self):
