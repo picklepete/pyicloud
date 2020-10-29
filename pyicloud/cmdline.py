@@ -201,7 +201,22 @@ def main(args=None):
             ):
                 utils.store_password_in_keyring(username, password)
 
-            if api.requires_2sa:
+            if api.requires_2fa:
+                # fmt: off
+                print(
+                    "\nTwo-step authentication required.",
+                    "\nPlease enter validation code"
+                )
+                # fmt: on
+
+                code = input("(string) --> ")
+                if not api.validate_2fa_code(code):
+                    print("Failed to verify verification code")
+                    sys.exit(1)
+
+                print("")
+
+            elif api.requires_2sa:
                 # fmt: off
                 print(
                     "\nTwo-step authentication required.",

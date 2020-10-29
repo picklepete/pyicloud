@@ -2,7 +2,7 @@
 """Cmdline tests."""
 from pyicloud import cmdline
 from . import PyiCloudServiceMock
-from .const import AUTHENTICATED_USER, REQUIRES_2SA_USER, VALID_PASSWORD
+from .const import AUTHENTICATED_USER, REQUIRES_2FA_USER, VALID_PASSWORD, VALID_2FA_CODE
 from .const_findmyiphone import FMI_FAMILY_WORKING
 
 import os
@@ -74,16 +74,16 @@ class TestCmdline(TestCase):
 
     @patch("keyring.get_password", return_value=None)
     @patch("pyicloud.cmdline.input")
-    def test_username_password_requires_2sa(
+    def test_username_password_requires_2fa(
         self, mock_input, mock_get_password
     ):  # pylint: disable=unused-argument
         """Test username and password commands."""
         # Valid connection for the first time
-        mock_input.return_value = "0"
+        mock_input.return_value = VALID_2FA_CODE
         with pytest.raises(SystemExit, match="0"):
             # fmt: off
             self.main([
-                '--username', REQUIRES_2SA_USER,
+                '--username', REQUIRES_2FA_USER,
                 '--password', VALID_PASSWORD,
                 '--non-interactive',
             ])

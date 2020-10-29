@@ -101,15 +101,13 @@ class PyiCloudSession(Session):
             )
 
         # Save session_data to file
-        with open(self.service._get_sessiondata_path(), "w") as outfile:
+        with open(self.service.session_path, "w") as outfile:
             json.dump(self.service.session_data, outfile)
             LOGGER.debug("Saved session data to file")
 
         # Save cookies to file
-        if not path.exists(self.service._cookie_directory):
-            mkdir(self.service._cookie_directory)
         self.cookies.save(ignore_discard=True, ignore_expires=True)
-        LOGGER.debug("Cookies saved to %s", self.service._get_cookiejar_path())
+        LOGGER.debug("Cookies saved to %s", self.service.cookiejar_path)
 
         if not response.ok and content_type not in json_mimetypes:
             if has_retried is None and response.status_code == 450:
@@ -214,16 +212,14 @@ class PyiCloudService(object):
         if session_directory:
             self._session_directory = session_directory
         else:
-            self._session_directory = path.join(
-                gettempdir(), "pyicloud-session"
-            )
-            LOGGER.debug(f"Using session file {self._get_sessiondata_path()}")
+            self._session_directory = path.join(gettempdir(), "pyicloud-session")
+            LOGGER.debug("Using session file %s", self.session_path)
 
         try:
-            with open(self._get_sessiondata_path()) as session_f:
+            with open(self.session_path) as session_f:
                 self.session_data = json.load(session_f)
-        except:
-            LOGGER.warning("Session file does not exist")
+        except:  # pylint: disable=bare-except
+            LOGGER.info("Session file does not exist")
 
         if not path.exists(self._session_directory):
             mkdir(self._session_directory)
@@ -236,6 +232,9 @@ class PyiCloudService(object):
         else:
             self._cookie_directory = path.join(gettempdir(), "pyicloud")
 
+        if not path.exists(self._cookie_directory):
+            mkdir(self._cookie_directory)
+
         if self.session_data.get("client_id"):
             self.client_id = self.session_data.get("client_id")
 
@@ -245,7 +244,7 @@ class PyiCloudService(object):
             {"Origin": self.HOME_ENDPOINT, "Referer": f"{self.HOME_ENDPOINT}/"}
         )
 
-        cookiejar_path = self._get_cookiejar_path()
+        cookiejar_path = self.cookiejar_path
         self.session.cookies = cookielib.LWPCookieJar(filename=cookiejar_path)
         if path.exists(cookiejar_path):
             try:
@@ -277,7 +276,7 @@ class PyiCloudService(object):
                 LOGGER.info("Session token is still valid")
                 self.data = req.json()
                 login_successful = True
-            except:
+            except PyiCloudAPIResponseException:
                 msg = "Invalid authentication token, will log in from scratch."
 
         if not login_successful:
@@ -344,15 +343,17 @@ class PyiCloudService(object):
             raise PyiCloudFailedLoginException(msg, error)
 
         self.data = req.json()
-    
-    def _get_cookiejar_path(self):
+
+    @property
+    def cookiejar_path(self):
         """Get path for cookiejar file."""
         return path.join(
             self._cookie_directory,
             "".join([c for c in self.user.get("accountName") if match(r"\w", c)]),
         )
 
-    def _get_sessiondata_path(self):
+    @property
+    def session_path(self):
         """Get path for session data file."""
         return path.join(
             self._session_directory,
@@ -362,23 +363,15 @@ class PyiCloudService(object):
     @property
     def requires_2sa(self):
         """Returns True if two-step authentication is required."""
-        return (
-            self.data["dsInfo"].get("hsaVersion", 0) >= 1
-            and (
-                self.data.get("hsaChallengeRequired", False)
-                or not self.is_trusted_session
-            )
+        return self.data.get("dsInfo", {}).get("hsaVersion", 0) >= 1 and (
+            self.data.get("hsaChallengeRequired", False) or not self.is_trusted_session
         )
 
     @property
     def requires_2fa(self):
         """Returns True if two-factor authentication is required."""
-        return (
-            self.data["dsInfo"].get("hsaVersion", 0) == 2
-            and (
-                self.data.get("hsaChallengeRequired", False)
-                or not self.is_trusted_session
-            )
+        return self.data["dsInfo"].get("hsaVersion", 0) == 2 and (
+            self.data.get("hsaChallengeRequired", False) or not self.is_trusted_session
         )
 
     @property
@@ -451,19 +444,21 @@ class PyiCloudService(object):
             headers["X-Apple-ID-Session-Id"] = self.session_data.get("session_id")
 
         try:
-            req = self.session.post(
+            self.session.post(
                 f"{self.AUTH_ENDPOINT}/verify/trusteddevice/securitycode",
                 data=json.dumps(data),
                 headers=headers,
             )
         except PyiCloudAPIResponseException as error:
-            LOGGER.error("Code verification failed.")
-            return False
+            if error.code == -21669:
+                # Wrong verification code
+                LOGGER.error("Code verification failed.")
+                return False
+            raise
 
         LOGGER.debug("Code verification successful.")
 
         self.trust_session()
-
         return not self.requires_2sa
 
     def trust_session(self):
@@ -487,13 +482,13 @@ class PyiCloudService(object):
             headers["X-Apple-ID-Session-Id"] = self.session_data.get("session_id")
 
         try:
-            req = self.session.get(
+            self.session.get(
                 f"{self.AUTH_ENDPOINT}/2sv/trust",
                 headers=headers,
             )
             self._authenticate_with_token()
             return True
-        except PyiCloudAPIResponseException as error:
+        except PyiCloudAPIResponseException:
             LOGGER.error("Session trust failed.")
             return False
 
