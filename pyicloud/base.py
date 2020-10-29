@@ -31,6 +31,14 @@ from pyicloud.utils import get_password_from_keyring
 
 LOGGER = logging.getLogger(__name__)
 
+HEADER_DATA = {
+    "X-Apple-ID-Account-Country": "account_country",
+    "X-Apple-ID-Session-Id": "session_id",
+    "X-Apple-Session-Token": "session_token",
+    "X-Apple-TwoSV-Trust-Token": "trust_token",
+    "scnt": "scnt",
+}
+
 
 class PyiCloudPasswordFilter(logging.Filter):
     """Password log hider."""
@@ -77,28 +85,12 @@ class PyiCloudSession(Session):
         content_type = response.headers.get("Content-Type", "").split(";")[0]
         json_mimetypes = ["application/json", "text/json"]
 
-        if response.headers.get("X-Apple-ID-Session-Id"):
-            self.service.session_data["session_id"] = response.headers.get(
-                "X-Apple-ID-Session-Id"
-            )
-
-        if response.headers.get("X-Apple-Session-Token"):
-            self.service.session_data["session_token"] = response.headers.get(
-                "X-Apple-Session-Token"
-            )
-
-        if response.headers.get("X-Apple-ID-Account-Country"):
-            self.service.session_data["account_country"] = response.headers.get(
-                "X-Apple-ID-Account-Country"
-            )
-
-        if response.headers.get("scnt"):
-            self.service.session_data["scnt"] = response.headers.get("scnt")
-
-        if response.headers.get("X-Apple-TwoSV-Trust-Token"):
-            self.service.session_data["trust_token"] = response.headers.get(
-                "X-Apple-TwoSV-Trust-Token"
-            )
+        for header in HEADER_DATA:
+            if response.headers.get(header):
+                session_arg = HEADER_DATA[header]
+                self.service.session_data.update(
+                    {session_arg: response.headers.get(header)}
+                )
 
         # Save session_data to file
         with open(self.service.session_path, "w") as outfile:
@@ -237,6 +229,8 @@ class PyiCloudService(object):
 
         if self.session_data.get("client_id"):
             self.client_id = self.session_data.get("client_id")
+        else:
+            self.session_data.update({"client_id": self.client_id})
 
         self.session = PyiCloudSession(self)
         self.session.verify = verify
@@ -289,18 +283,7 @@ class PyiCloudService(object):
             if self.session_data.get("trust_token"):
                 data["trustTokens"] = [self.session_data.get("trust_token")]
 
-            headers = {
-                "Accept": "*/*",
-                "Content-Type": "application/json",
-                "X-Apple-OAuth-Client-Id": "d39ba9916b7251055b22c7f910e2ea796ee65e98b2ddecea8f5dde8d9d1a815d",
-                "X-Apple-OAuth-Client-Type": "firstPartyAuth",
-                "X-Apple-OAuth-Redirect-URI": "https://www.icloud.com",
-                "X-Apple-OAuth-Require-Grant-Code": "true",
-                "X-Apple-OAuth-Response-Mode": "web_message",
-                "X-Apple-OAuth-Response-Type": "code",
-                "X-Apple-OAuth-State": self.client_id,
-                "X-Apple-Widget-Key": "d39ba9916b7251055b22c7f910e2ea796ee65e98b2ddecea8f5dde8d9d1a815d",
-            }
+            headers = self._get_auth_headers()
 
             if self.session_data.get("scnt"):
                 headers["scnt"] = self.session_data.get("scnt")
@@ -343,6 +326,23 @@ class PyiCloudService(object):
             raise PyiCloudFailedLoginException(msg, error)
 
         self.data = req.json()
+
+    def _get_auth_headers(self, overrides=None):
+        headers = {
+            "Accept": "*/*",
+            "Content-Type": "application/json",
+            "X-Apple-OAuth-Client-Id": "d39ba9916b7251055b22c7f910e2ea796ee65e98b2ddecea8f5dde8d9d1a815d",
+            "X-Apple-OAuth-Client-Type": "firstPartyAuth",
+            "X-Apple-OAuth-Redirect-URI": "https://www.icloud.com",
+            "X-Apple-OAuth-Require-Grant-Code": "true",
+            "X-Apple-OAuth-Response-Mode": "web_message",
+            "X-Apple-OAuth-Response-Type": "code",
+            "X-Apple-OAuth-State": self.client_id,
+            "X-Apple-Widget-Key": "d39ba9916b7251055b22c7f910e2ea796ee65e98b2ddecea8f5dde8d9d1a815d",
+        }
+        if overrides:
+            headers.update(overrides)
+        return headers
 
     @property
     def cookiejar_path(self):
@@ -424,18 +424,7 @@ class PyiCloudService(object):
         """Verifies a verification code received via Apple's 2FA system (HSA2)."""
         data = {"securityCode": {"code": code}}
 
-        headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "X-Apple-OAuth-Client-Id": "d39ba9916b7251055b22c7f910e2ea796ee65e98b2ddecea8f5dde8d9d1a815d",
-            "X-Apple-OAuth-Client-Type": "firstPartyAuth",
-            "X-Apple-OAuth-Redirect-URI": "https://www.icloud.com",
-            "X-Apple-OAuth-Require-Grant-Code": "true",
-            "X-Apple-OAuth-Response-Mode": "web_message",
-            "X-Apple-OAuth-Response-Type": "code",
-            "X-Apple-OAuth-State": self.client_id,
-            "X-Apple-Widget-Key": "d39ba9916b7251055b22c7f910e2ea796ee65e98b2ddecea8f5dde8d9d1a815d",
-        }
+        headers = self._get_auth_headers({"Accept": "application/json"})
 
         if self.session_data.get("scnt"):
             headers["scnt"] = self.session_data.get("scnt")
@@ -463,17 +452,7 @@ class PyiCloudService(object):
 
     def trust_session(self):
         """Request session trust to avoid user log in going forward."""
-        headers = {
-            "Accept": "*/*",
-            "X-Apple-OAuth-Client-Id": "d39ba9916b7251055b22c7f910e2ea796ee65e98b2ddecea8f5dde8d9d1a815d",
-            "X-Apple-OAuth-Client-Type": "firstPartyAuth",
-            "X-Apple-OAuth-Redirect-URI": "https://www.icloud.com",
-            "X-Apple-OAuth-Require-Grant-Code": "true",
-            "X-Apple-OAuth-Response-Mode": "web_message",
-            "X-Apple-OAuth-Response-Type": "code",
-            "X-Apple-OAuth-State": self.client_id,
-            "X-Apple-Widget-Key": "d39ba9916b7251055b22c7f910e2ea796ee65e98b2ddecea8f5dde8d9d1a815d",
-        }
+        headers = self._get_auth_headers()
 
         if self.session_data.get("scnt"):
             headers["scnt"] = self.session_data.get("scnt")
