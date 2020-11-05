@@ -414,9 +414,7 @@ class PyiCloudService(object):
                 return False
             raise
 
-        # Re-authenticate, which will both update the HSA data, and
-        # ensure that we save the X-APPLE-WEBAUTH-HSA-TRUST cookie.
-        self.authenticate()
+        self.trust_session()
 
         return not self.requires_2sa
 
