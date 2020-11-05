@@ -264,17 +264,17 @@ class PyiCloudService(object):
 
         login_successful = False
         if self.session_data.get("session_token"):
-            LOGGER.info("Checking session token validity")
+            LOGGER.debug("Checking session token validity")
             try:
                 req = self.session.post(f"{self.SETUP_ENDPOINT}/validate", data="null")
-                LOGGER.info("Session token is still valid")
+                LOGGER.debug("Session token is still valid")
                 self.data = req.json()
                 login_successful = True
             except PyiCloudAPIResponseException:
-                msg = "Invalid authentication token, will log in from scratch."
+                LOGGER.debug("Invalid authentication token, will log in from scratch.")
 
         if not login_successful:
-            LOGGER.info("Authenticating as %s", self.user["accountName"])
+            LOGGER.debug("Authenticating as %s", self.user["accountName"])
 
             data = dict(self.user)
 
@@ -306,7 +306,7 @@ class PyiCloudService(object):
 
         self._webservices = self.data["webservices"]
 
-        LOGGER.info("Authentication completed successfully")
+        LOGGER.debug("Authentication completed successfully")
 
     def _authenticate_with_token(self):
         """Authenticate using session token."""
