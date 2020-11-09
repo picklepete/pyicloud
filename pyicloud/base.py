@@ -256,14 +256,14 @@ class PyiCloudService(object):
         self._files = None
         self._photos = None
 
-    def authenticate(self):
+    def authenticate(self, force_refresh=False):
         """
         Handles authentication, and persists cookies so that
         subsequent logins will not cause additional e-mails from Apple.
         """
 
         login_successful = False
-        if self.session_data.get("session_token"):
+        if self.session_data.get("session_token") and not force_refresh:
             LOGGER.debug("Checking session token validity")
             try:
                 req = self.session.post(f"{self.SETUP_ENDPOINT}/validate", data="null")
