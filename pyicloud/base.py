@@ -102,7 +102,7 @@ class PyiCloudSession(Session):
         LOGGER.debug("Cookies saved to %s", self.service.cookiejar_path)
 
         if not response.ok and content_type not in json_mimetypes:
-            if has_retried is None and response.status_code == 450:
+            if has_retried is None and response.status_code in [421, 450, 500]:
                 api_error = PyiCloudAPIResponseException(
                     response.reason, response.status_code, retry=True
                 )
