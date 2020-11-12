@@ -101,7 +101,8 @@ class PyiCloudSession(Session):
         self.cookies.save(ignore_discard=True, ignore_expires=True)
         LOGGER.debug("Cookies saved to %s", self.service.cookiejar_path)
 
-        if not response.ok and content_type not in json_mimetypes:
+        if not response.ok and (content_type not in json_mimetypes
+                                or response.status_code in [421, 450, 500]):
             if has_retried is None and response.status_code in [421, 450, 500]:
                 api_error = PyiCloudAPIResponseException(
                     response.reason, response.status_code, retry=True
@@ -160,6 +161,8 @@ class PyiCloudSession(Session):
                 reason + ".  Please wait a few minutes then try again."
                 "The remote servers might be trying to throttle requests."
             )
+        if code in [421, 450, 500]:
+            reason = "Authentication required for Account."
 
         api_error = PyiCloudAPIResponseException(reason, code)
         LOGGER.error(api_error)
