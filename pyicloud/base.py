@@ -281,7 +281,7 @@ class PyiCloudService(object):
 
             data = dict(self.user)
 
-            data["rememberMe"] = False
+            data["rememberMe"] = True
             data["trustTokens"] = []
             if self.session_data.get("trust_token"):
                 data["trustTokens"] = [self.session_data.get("trust_token")]
@@ -316,7 +316,7 @@ class PyiCloudService(object):
         data = {
             "accountCountryCode": self.session_data.get("account_country"),
             "dsWebAuthToken": self.session_data.get("session_token"),
-            "extended_login": False,
+            "extended_login": True,
             "trustToken": self.session_data.get("trust_token", ""),
         }
 
