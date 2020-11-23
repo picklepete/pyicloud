@@ -200,7 +200,7 @@ class PyiCloudService(object):
         self.user = {"accountName": apple_id, "password": password}
         self.data = {}
         self.params = {}
-        self.client_id = client_id or f"auth-{str(uuid1()).lower()}"
+        self.client_id = client_id or ("auth-%s" % str(uuid1()).lower())
         self.with_family = with_family
 
         self.session_data = {}
@@ -238,7 +238,7 @@ class PyiCloudService(object):
         self.session = PyiCloudSession(self)
         self.session.verify = verify
         self.session.headers.update(
-            {"Origin": self.HOME_ENDPOINT, "Referer": f"{self.HOME_ENDPOINT}/"}
+            {"Origin": self.HOME_ENDPOINT, "Referer": "%s/" % self.HOME_ENDPOINT}
         )
 
         cookiejar_path = self.cookiejar_path
@@ -269,7 +269,7 @@ class PyiCloudService(object):
         if self.session_data.get("session_token") and not force_refresh:
             LOGGER.debug("Checking session token validity")
             try:
-                req = self.session.post(f"{self.SETUP_ENDPOINT}/validate", data="null")
+                req = self.session.post("%s/validate" % self.SETUP_ENDPOINT, data="null")
                 LOGGER.debug("Session token is still valid")
                 self.data = req.json()
                 login_successful = True
@@ -296,7 +296,7 @@ class PyiCloudService(object):
 
             try:
                 req = self.session.post(
-                    f"{self.AUTH_ENDPOINT}/signin",
+                    "%s/signin" % self.AUTH_ENDPOINT,
                     params={"isRememberMeEnabled": "true"},
                     data=json.dumps(data),
                     headers=headers,
@@ -322,7 +322,7 @@ class PyiCloudService(object):
 
         try:
             req = self.session.post(
-                f"{self.SETUP_ENDPOINT}/accountLogin", data=json.dumps(data)
+                "%s/accountLogin" % self.SETUP_ENDPOINT, data=json.dumps(data)
             )
         except PyiCloudAPIResponseException as error:
             msg = "Invalid authentication token."
@@ -435,7 +435,7 @@ class PyiCloudService(object):
 
         try:
             self.session.post(
-                f"{self.AUTH_ENDPOINT}/verify/trusteddevice/securitycode",
+                "%s/verify/trusteddevice/securitycode" % self.AUTH_ENDPOINT,
                 data=json.dumps(data),
                 headers=headers,
             )
@@ -463,7 +463,7 @@ class PyiCloudService(object):
 
         try:
             self.session.get(
-                f"{self.AUTH_ENDPOINT}/2sv/trust",
+                "%s/2sv/trust" % self.AUTH_ENDPOINT,
                 headers=headers,
             )
             self._authenticate_with_token()
