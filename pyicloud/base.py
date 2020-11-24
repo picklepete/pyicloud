@@ -72,10 +72,11 @@ class PyiCloudSession(Session):
             request_logger.addFilter(self.service.password_filter)
 
         request_logger.debug(
-            "%s %s %s",
-            method,
-            url,
-            kwargs.get("data", ""),
+            "%s %s %s" % (
+                method,
+                url,
+                kwargs.get("data", "")
+            )
         )
 
         has_retried = kwargs.get("retried")
@@ -208,7 +209,7 @@ class PyiCloudService(object):
             self._session_directory = session_directory
         else:
             self._session_directory = path.join(gettempdir(), "pyicloud-session")
-            LOGGER.debug("Using session file %s", self.session_path)
+            LOGGER.debug("Using session file %s" % self.session_path)
 
         try:
             with open(self.session_path) as session_f:
@@ -246,12 +247,12 @@ class PyiCloudService(object):
         if path.exists(cookiejar_path):
             try:
                 self.session.cookies.load(ignore_discard=True, ignore_expires=True)
-                LOGGER.debug("Read cookies from %s", cookiejar_path)
+                LOGGER.debug("Read cookies from %s" % cookiejar_path)
             except:  # pylint: disable=bare-except
                 # Most likely a pickled cookiejar from earlier versions.
                 # The cookiejar will get replaced with a valid one after
                 # successful authentication.
-                LOGGER.warning("Failed to read cookiejar %s", cookiejar_path)
+                LOGGER.warning("Failed to read cookiejar %s" % cookiejar_path)
 
         self.authenticate()
 
@@ -277,7 +278,7 @@ class PyiCloudService(object):
                 LOGGER.debug("Invalid authentication token, will log in from scratch.")
 
         if not login_successful:
-            LOGGER.debug("Authenticating as %s", self.user["accountName"])
+            LOGGER.debug("Authenticating as %s" % self.user["accountName"])
 
             data = dict(self.user)
 
