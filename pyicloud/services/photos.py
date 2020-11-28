@@ -241,6 +241,9 @@ class PhotosService:
                 'dsid': self.params['dsid'],
             })
 
+        if 'errors' in request.json():
+            raise PyiCloudAPIResponseError('', request.json()['errors'])
+
         return [x['recordName'] for x in request.json()['records'] if x['recordType'] == 'CPLAsset'][0]
 
     def delete_many(self, record_names):
