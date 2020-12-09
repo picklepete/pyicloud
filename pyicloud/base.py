@@ -260,7 +260,7 @@ class PyiCloudService(object):
         self._files = None
         self._photos = None
 
-    def authenticate(self, force_refresh=False):
+    def authenticate(self, force_refresh=False, service=None):
         """
         Handles authentication, and persists cookies so that
         subsequent logins will not cause additional e-mails from Apple.
@@ -273,9 +273,18 @@ class PyiCloudService(object):
                 req = self.session.post("%s/validate" % self.SETUP_ENDPOINT, data="null")
                 LOGGER.debug("Session token is still valid")
                 self.data = req.json()
+                LOGGER.debug(req.json())
                 login_successful = True
             except PyiCloudAPIResponseException:
                 LOGGER.debug("Invalid authentication token, will log in from scratch.")
+
+        if not login_successful and service != None:
+            LOGGER.debug("Authenticating as %s for %s" % (self.user["accountName"], service))
+            try:
+                self._authenticate_with_credentials_service(service)
+                login_successful = True
+            except:
+                LOGGER.debug("Could not log into service. Attempting brand new login.")
 
         if not login_successful:
             LOGGER.debug("Authenticating as %s" % self.user["accountName"])
@@ -302,6 +311,11 @@ class PyiCloudService(object):
                     data=json.dumps(data),
                     headers=headers,
                 )
+                LOGGER.debug(req.headers)
+                try:
+                    LOGGER.debug(req.json())
+                except:
+                    LOGGER.debug(req)
             except PyiCloudAPIResponseException as error:
                 msg = "Invalid email/password combination."
                 raise PyiCloudFailedLoginException(msg, error)
@@ -325,11 +339,33 @@ class PyiCloudService(object):
             req = self.session.post(
                 "%s/accountLogin" % self.SETUP_ENDPOINT, data=json.dumps(data)
             )
+            self.data = req.json()
         except PyiCloudAPIResponseException as error:
             msg = "Invalid authentication token."
             raise PyiCloudFailedLoginException(msg, error)
 
-        self.data = req.json()
+    def _authenticate_with_credentials_service(self, service):
+        """Authenticate to a specific service using credentials."""
+        data = {
+            "appName": service,
+            "apple_id": self.user["accountName"],
+            "password": self.user["password"]
+        }
+
+        try:
+            req = self.session.post(
+                "%s/accountLogin" % self.SETUP_ENDPOINT, data=json.dumps(data)
+            )
+
+            self.data = req.json()
+            LOGGER.debug(req.headers)
+            try:
+                LOGGER.debug(req.json())
+            except:
+                LOGGER.debug(req)
+        except PyiCloudAPIResponseException as error:
+            msg = "Invalid email/password combination."
+            raise PyiCloudFailedLoginException(msg, error)
 
     def _get_auth_headers(self, overrides=None):
         headers = {
