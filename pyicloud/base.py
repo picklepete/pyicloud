@@ -311,11 +311,6 @@ class PyiCloudService(object):
                     data=json.dumps(data),
                     headers=headers,
                 )
-                LOGGER.debug(req.headers)
-                try:
-                    LOGGER.debug(req.json())
-                except:
-                    LOGGER.debug(req)
             except PyiCloudAPIResponseException as error:
                 msg = "Invalid email/password combination."
                 raise PyiCloudFailedLoginException(msg, error)
@@ -358,11 +353,6 @@ class PyiCloudService(object):
             )
 
             self.data = req.json()
-            LOGGER.debug(req.headers)
-            try:
-                LOGGER.debug(req.json())
-            except:
-                LOGGER.debug(req)
         except PyiCloudAPIResponseException as error:
             msg = "Invalid email/password combination."
             raise PyiCloudFailedLoginException(msg, error)
