@@ -104,17 +104,21 @@ class PyiCloudSession(Session):
 
         if not response.ok and (content_type not in json_mimetypes
                                 or response.status_code in [421, 450, 500]):
-            if has_retried is None and response.status_code == 450 and self.service._get_webservice_url("findme") in url:
-                # Handle re-authentication for Find My iPhone
-                LOGGER.debug("Re-authenticating Find My iPhone service")
-                try:
-                    self.service.authenticate(True, "find")
-                except PyiCloudAPIResponseException:
-                    LOGGER.debug("Re-authentication failed")
-                kwargs["retried"] = True
-                return self.request(method, url, **kwargs)
+            try:
+                fmip_url = self.service._get_webservice_url("findme")
+                if has_retried is None and response.status_code == 450 and fmip_url in url:
+                    # Handle re-authentication for Find My iPhone
+                    LOGGER.debug("Re-authenticating Find My iPhone service")
+                    try:
+                        self.service.authenticate(True, "find")
+                    except PyiCloudAPIResponseException:
+                        LOGGER.debug("Re-authentication failed")
+                    kwargs["retried"] = True
+                    return self.request(method, url, **kwargs)
+            except Exception:
+                pass
 
-            elif has_retried is None and response.status_code in [421, 450, 500]:
+            if has_retried is None and response.status_code in [421, 450, 500]:
                 api_error = PyiCloudAPIResponseException(
                     response.reason, response.status_code, retry=True
                 )
