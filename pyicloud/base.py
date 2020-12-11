@@ -104,13 +104,24 @@ class PyiCloudSession(Session):
 
         if not response.ok and (content_type not in json_mimetypes
                                 or response.status_code in [421, 450, 500]):
-            if has_retried is None and response.status_code in [421, 450, 500]:
+            if has_retried is None and response.status_code == 450 and self.service._get_webservice_url("findme") in url:
+                # Handle re-authentication for Find My iPhone
+                LOGGER.debug("Re-authenticating Find My iPhone service")
+                try:
+                    self.service.authenticate(True, "find")
+                except PyiCloudAPIResponseException:
+                    LOGGER.debug("Re-authentication failed")
+                kwargs["retried"] = True
+                return self.request(method, url, **kwargs)
+
+            elif has_retried is None and response.status_code in [421, 450, 500]:
                 api_error = PyiCloudAPIResponseException(
                     response.reason, response.status_code, retry=True
                 )
                 request_logger.debug(api_error)
                 kwargs["retried"] = True
                 return self.request(method, url, **kwargs)
+
             self._raise_error(response.status_code, response.reason)
 
         if content_type not in json_mimetypes:
@@ -270,21 +281,20 @@ class PyiCloudService(object):
         if self.session_data.get("session_token") and not force_refresh:
             LOGGER.debug("Checking session token validity")
             try:
-                req = self.session.post("%s/validate" % self.SETUP_ENDPOINT, data="null")
-                LOGGER.debug("Session token is still valid")
-                self.data = req.json()
-                LOGGER.debug(req.json())
+                self.data = self._validate_token()
                 login_successful = True
             except PyiCloudAPIResponseException:
                 LOGGER.debug("Invalid authentication token, will log in from scratch.")
 
         if not login_successful and service != None:
-            LOGGER.debug("Authenticating as %s for %s" % (self.user["accountName"], service))
-            try:
-                self._authenticate_with_credentials_service(service)
-                login_successful = True
-            except:
-                LOGGER.debug("Could not log into service. Attempting brand new login.")
+            app = self.data["apps"][service]
+            if "canLaunchWithOneFactor" in app and app["canLaunchWithOneFactor"] == True:
+                LOGGER.debug("Authenticating as %s for %s" % (self.user["accountName"], service))
+                try:
+                    self._authenticate_with_credentials_service(service)
+                    login_successful = True
+                except:
+                    LOGGER.debug("Could not log into service. Attempting brand new login.")
 
         if not login_successful:
             LOGGER.debug("Authenticating as %s" % self.user["accountName"])
@@ -348,14 +358,25 @@ class PyiCloudService(object):
         }
 
         try:
-            req = self.session.post(
+            self.session.post(
                 "%s/accountLogin" % self.SETUP_ENDPOINT, data=json.dumps(data)
             )
 
-            self.data = req.json()
+            self.data = self._validate_token()
         except PyiCloudAPIResponseException as error:
             msg = "Invalid email/password combination."
             raise PyiCloudFailedLoginException(msg, error)
+
+    def _validate_token(self):
+        """Checks if the current access token is still valid."""
+        LOGGER.debug("Checking session token validity")
+        try:
+            req = self.session.post("%s/validate" % self.SETUP_ENDPOINT, data="null")
+            LOGGER.debug("Session token is still valid")
+            return req.json()
+        except PyiCloudAPIResponseException as err:
+            LOGGER.debug("Invalid authentication token")
+            raise err
 
     def _get_auth_headers(self, overrides=None):
         headers = {
