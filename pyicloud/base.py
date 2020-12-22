@@ -9,6 +9,7 @@ from tempfile import gettempdir
 from os import path, mkdir
 from re import match
 import http.cookiejar as cookielib
+import getpass
 
 from pyicloud.exceptions import (
     PyiCloudFailedLoginException,
@@ -176,7 +177,12 @@ class PyiCloudService(object):
         if cookie_directory:
             self._cookie_directory = path.expanduser(path.normpath(cookie_directory))
         else:
-            self._cookie_directory = path.join(gettempdir(), "pyicloud")
+            topdir = path.join(gettempdir(), "pyicloud")
+            self._cookie_directory = path.join(topdir, getpass.getuser())
+            if not path.exists(topdir):
+                mkdir(topdir, 0o777)
+            if not path.exists(self._cookie_directory):
+                mkdir(self._cookie_directory, 0o700)
 
         self.session = PyiCloudSession(self)
         self.session.verify = verify
