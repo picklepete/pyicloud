@@ -55,9 +55,12 @@ class DriveService(object):
         )
         if not response.ok:
             return None
+        package_token = response.json().get("package_token")
         data_token = response.json().get("data_token")
         if data_token and data_token.get("url"):
             return self.session.get(data_token["url"], params=self.params, **kwargs)
+        elif package_token and package_token.get("url"):
+            return self.session.get(package_token["url"], params=self.params, **kwargs)
         else:
             return None
 
