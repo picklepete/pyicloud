@@ -54,7 +54,7 @@ class DriveService(object):
             params=file_params,
         )
         if not response.ok:
-            return None
+            self.session._raise_error(response.status_code, response.reason)
         package_token = response.json().get("package_token")
         data_token = response.json().get("data_token")
         if data_token and data_token.get("url"):
@@ -62,7 +62,7 @@ class DriveService(object):
         elif package_token and package_token.get("url"):
             return self.session.get(package_token["url"], params=self.params, **kwargs)
         else:
-            return None
+            raise KeyError("'data_token' nor 'package_token'")
 
     def get_app_data(self):
         """Returns the app library (previously ubiquity)."""
