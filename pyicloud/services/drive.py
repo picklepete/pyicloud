@@ -43,6 +43,8 @@ class DriveService(object):
                 ]
             ),
         )
+        if not request.ok:
+            self.session._raise_error(request.status_code, request.reason)
         return request.json()[0]
 
     def get_file(self, file_id, **kwargs):
@@ -69,6 +71,8 @@ class DriveService(object):
         request = self.session.get(
             self._service_root + "/retrieveAppLibraries", params=self.params
         )
+        if not request.ok:
+            self.session._raise_error(request.status_code, request.reason)
         return request.json()["items"]
 
     def _get_upload_contentws_url(self, file_object):
@@ -100,7 +104,7 @@ class DriveService(object):
             ),
         )
         if not request.ok:
-            return None
+            self.session._raise_error(request.status_code, request.reason)
         return (request.json()[0]["document_id"], request.json()[0]["url"])
 
     def _update_contentws(self, folder_id, sf_info, document_id, file_object):
@@ -114,7 +118,7 @@ class DriveService(object):
             "command": "add_file",
             "create_short_guid": True,
             "document_id": document_id,
-            "path": {"starting_document_id": folder_id, "path": file_object.name,},
+            "path": {"starting_document_id": folder_id, "path": file_object.name},
             "allow_conflict": True,
             "file_flags": {
                 "is_writable": True,
@@ -136,7 +140,7 @@ class DriveService(object):
             data=json.dumps(data),
         )
         if not request.ok:
-            return None
+            self.session._raise_error(request.status_code, request.reason)
         return request.json()
 
     def send_file(self, folder_id, file_object):
@@ -145,9 +149,8 @@ class DriveService(object):
 
         request = self.session.post(content_url, files={file_object.name: file_object})
         if not request.ok:
-            return None
+            self.session._raise_error(request.status_code, request.reason)
         content_response = request.json()["singleFile"]
-
         self._update_contentws(folder_id, content_response, document_id, file_object)
 
     def create_folders(self, parent, name):
@@ -159,10 +162,12 @@ class DriveService(object):
             data=json.dumps(
                 {
                     "destinationDrivewsId": parent,
-                    "folders": [{"clientId": self.params["clientId"], "name": name,}],
+                    "folders": [{"clientId": self.params["clientId"], "name": name}],
                 }
             ),
         )
+        if not request.ok:
+            self.session._raise_error(request.status_code, request.reason)
         return request.json()
 
     def rename_items(self, node_id, etag, name):
@@ -171,9 +176,11 @@ class DriveService(object):
             self._service_root + "/renameItems",
             params=self.params,
             data=json.dumps(
-                {"items": [{"drivewsid": node_id, "etag": etag, "name": name,}],}
+                {"items": [{"drivewsid": node_id, "etag": etag, "name": name}]}
             ),
         )
+        if not request.ok:
+            self.session._raise_error(request.status_code, request.reason)
         return request.json()
 
     def move_items_to_trash(self, node_id, etag):
@@ -189,10 +196,12 @@ class DriveService(object):
                             "etag": etag,
                             "clientId": self.params["clientId"],
                         }
-                    ],
+                    ]
                 }
             ),
         )
+        if not request.ok:
+            self.session._raise_error(request.status_code, request.reason)
         return request.json()
 
     @property
