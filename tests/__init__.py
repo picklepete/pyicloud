@@ -9,13 +9,19 @@ from pyicloud.services.findmyiphone import FindMyiPhoneServiceManager, AppleDevi
 
 from .const import (
     AUTHENTICATED_USER,
-    REQUIRES_2SA_USER,
+    REQUIRES_2FA_USER,
+    REQUIRES_2FA_TOKEN,
+    VALID_TOKEN,
     VALID_USERS,
     VALID_PASSWORD,
+    VALID_COOKIE,
+    VALID_2FA_CODE,
+    VALID_TOKENS,
 )
 from .const_login import (
+    AUTH_OK,
     LOGIN_WORKING,
-    LOGIN_2SA,
+    LOGIN_2FA,
     TRUSTED_DEVICES,
     TRUSTED_DEVICE_1,
     VERIFICATION_CODE_OK,
@@ -41,6 +47,7 @@ class ResponseMock(Response):
         self.result = result
         self.status_code = status_code
         self.raw = kwargs.get("raw")
+        self.headers = kwargs.get("headers", {})
 
     @property
     def text(self):
@@ -52,21 +59,16 @@ class PyiCloudSessionMock(base.PyiCloudSession):
 
     def request(self, method, url, **kwargs):
         params = kwargs.get("params")
+        headers = kwargs.get("headers")
         data = json.loads(kwargs.get("data", "{}"))
 
         # Login
         if self.service.SETUP_ENDPOINT in url:
-            if "login" in url and method == "POST":
-                if (
-                    data.get("apple_id") not in VALID_USERS
-                    or data.get("password") != VALID_PASSWORD
-                ):
+            if "accountLogin" in url and method == "POST":
+                if data.get("dsWebAuthToken") not in VALID_TOKENS:
                     self._raise_error(None, "Unknown reason")
-                if (
-                    data.get("apple_id") == REQUIRES_2SA_USER
-                    and data.get("password") == VALID_PASSWORD
-                ):
-                    return ResponseMock(LOGIN_2SA)
+                if data.get("dsWebAuthToken") == REQUIRES_2FA_TOKEN:
+                    return ResponseMock(LOGIN_2FA)
                 return ResponseMock(LOGIN_WORKING)
 
             if "listDevices" in url and method == "GET":
@@ -83,6 +85,35 @@ class PyiCloudSessionMock(base.PyiCloudSession):
                     self.service.user["apple_id"] = AUTHENTICATED_USER
                     return ResponseMock(VERIFICATION_CODE_OK)
                 self._raise_error(None, "FOUND_CODE")
+
+            if "validate" in url and method == "POST":
+                if headers.get("X-APPLE-WEBAUTH-TOKEN") == VALID_COOKIE:
+                    return ResponseMock(LOGIN_WORKING)
+                self._raise_error(None, "Session expired")
+
+        if self.service.AUTH_ENDPOINT in url:
+            if "signin" in url and method == "POST":
+                if (
+                    data.get("accountName") not in VALID_USERS
+                    or data.get("password") != VALID_PASSWORD
+                ):
+                    self._raise_error(None, "Unknown reason")
+                if data.get("accountName") == REQUIRES_2FA_USER:
+                    self.service.session_data["session_token"] = REQUIRES_2FA_TOKEN
+                    return ResponseMock(AUTH_OK)
+
+                self.service.session_data["session_token"] = VALID_TOKEN
+                return ResponseMock(AUTH_OK)
+
+            if "securitycode" in url and method == "POST":
+                if data.get("securityCode", {}).get("code") != VALID_2FA_CODE:
+                    self._raise_error(None, "Incorrect code")
+
+                self.service.session_data["session_token"] = VALID_TOKEN
+                return ResponseMock("", status_code=204)
+
+            if "trust" in url and method == "GET":
+                return ResponseMock("", status_code=204)
 
         # Account
         if "device/getDevices" in url and method == "GET":
