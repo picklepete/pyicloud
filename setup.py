@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from codecs import open
 
 REPO_URL = "https://github.com/picklepete/pyicloud"
-VERSION = "0.9.7"
+VERSION = "0.10.2"
 
 with open("requirements.txt") as f:
     required = f.read().splitlines()
