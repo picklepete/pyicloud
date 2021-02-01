@@ -9,6 +9,7 @@ from tempfile import gettempdir
 from os import path, mkdir
 from re import match
 import http.cookiejar as cookielib
+import getpass
 
 from pyicloud.exceptions import (
     PyiCloudFailedLoginException,
@@ -205,7 +206,6 @@ class PyiCloudService(object):
         apple_id,
         password=None,
         cookie_directory=None,
-        session_directory=None,
         verify=True,
         client_id=None,
         with_family=True,
@@ -219,33 +219,29 @@ class PyiCloudService(object):
         self.client_id = client_id or ("auth-%s" % str(uuid1()).lower())
         self.with_family = with_family
 
-        self.session_data = {}
-        if session_directory:
-            self._session_directory = session_directory
-        else:
-            self._session_directory = path.join(gettempdir(), "pyicloud-session")
-            LOGGER.debug("Using session file %s" % self.session_path)
-
-        try:
-            with open(self.session_path) as session_f:
-                self.session_data = json.load(session_f)
-        except:  # pylint: disable=bare-except
-            LOGGER.info("Session file does not exist")
-
-        if not path.exists(self._session_directory):
-            mkdir(self._session_directory)
-
         self.password_filter = PyiCloudPasswordFilter(password)
         LOGGER.addFilter(self.password_filter)
 
         if cookie_directory:
             self._cookie_directory = path.expanduser(path.normpath(cookie_directory))
+            if not path.exists(self._cookie_directory):
+                mkdir(self._cookie_directory, 0o700)
         else:
-            self._cookie_directory = path.join(gettempdir(), "pyicloud")
+            topdir = path.join(gettempdir(), "pyicloud")
+            self._cookie_directory = path.join(topdir, getpass.getuser())
+            if not path.exists(topdir):
+                mkdir(topdir, 0o777)
+            if not path.exists(self._cookie_directory):
+                mkdir(self._cookie_directory, 0o700)
 
-        if not path.exists(self._cookie_directory):
-            mkdir(self._cookie_directory)
+        LOGGER.debug("Using session file %s" % self.session_path)
 
+        self.session_data = {}
+        try:
+            with open(self.session_path) as session_f:
+                self.session_data = json.load(session_f)
+        except:  # pylint: disable=bare-except
+            LOGGER.info("Session file does not exist")
         if self.session_data.get("client_id"):
             self.client_id = self.session_data.get("client_id")
         else:
@@ -411,8 +407,8 @@ class PyiCloudService(object):
     def session_path(self):
         """Get path for session data file."""
         return path.join(
-            self._session_directory,
-            "".join([c for c in self.user.get("accountName") if match(r"\w", c)]),
+            self._cookie_directory,
+            "".join([c for c in self.user.get("accountName") if match(r"\w", c)]) + '.session',
         )
 
     @property
