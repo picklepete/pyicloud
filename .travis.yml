@@ -1,6 +1,9 @@
 os: linux
 dist: xenial
 
+arch:
+  - amd64
+  - ppc64le
 language: python
 python:
   - 2.7
