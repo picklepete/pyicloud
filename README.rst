@@ -114,8 +114,8 @@ You can list which devices associated with your account by using the ``devices``
 
 >>> api.devices
 {
-u'i9vbKRGIcLYqJnXMd1b257kUWnoyEBcEh6yM+IfmiMLh7BmOpALS+w==': <AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>,
-u'reGYDh9XwqNWTGIhNBuEwP1ds0F/Lg5t/fxNbI4V939hhXawByErk+HYVNSUzmWV': <AppleDevice(MacBook Air 11": Johnny Appleseed's MacBook Air)>
+'i9vbKRGIcLYqJnXMd1b257kUWnoyEBcEh6yM+IfmiMLh7BmOpALS+w==': <AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>,
+'reGYDh9XwqNWTGIhNBuEwP1ds0F/Lg5t/fxNbI4V939hhXawByErk+HYVNSUzmWV': <AppleDevice(MacBook Air 11": Johnny Appleseed's MacBook Air)>
 }
 
 and you can access individual devices by either their index, or their ID:
@@ -203,7 +203,7 @@ Contacts
 You can access your iCloud contacts/address book through the ``contacts`` property:
 
 >>> for c in api.contacts.all():
->>> print c.get('firstName'), c.get('phones')
+>>> print(c.get('firstName'), c.get('phones'))
 John [{'field': '+1 555-55-5555-5', 'label': 'MOBILE'}]
 
 Note: These contacts do not include contacts federated from e.g. Facebook, only the ones stored in iCloud.
@@ -231,17 +231,17 @@ You can access children and their children's children using the filename as an i
 >>> api.files['com~apple~Notes'].type
 'folder'
 >>> api.files['com~apple~Notes'].dir()
-[u'Documents']
+['Documents']
 >>> api.files['com~apple~Notes']['Documents'].dir()
-[u'Some Document']
+['Some Document']
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].name
-u'Some Document'
+'Some Document'
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].modified
 datetime.datetime(2012, 9, 13, 2, 26, 17)
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].size
 1308134
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].type
-u'file'
+'file'
 
 And when you have a file that you'd like to download, the ``open`` method will return a response object from which you can read the ``content``.
 
@@ -275,13 +275,13 @@ You can access your iCloud Drive using an API identical to the Ubiquity one desc
 
 >>> drive_file = api.drive['Holiday Photos']['2013']['Sicily']['DSC08116.JPG']
 >>> drive_file.name
-u'DSC08116.JPG'
+'DSC08116.JPG'
 >>> drive_file.date_modified
 datetime.datetime(2013, 3, 21, 12, 28, 12) # NB this is UTC
 >>> drive_file.size
 2021698
 >>> drive_file.type
-u'file'
+'file'
 
 The ``open`` method will return a response object from which you can read the file's contents:
 
