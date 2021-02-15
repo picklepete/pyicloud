@@ -114,8 +114,8 @@ You can list which devices associated with your account by using the ``devices``
 
 >>> api.devices
 {
-u'i9vbKRGIcLYqJnXMd1b257kUWnoyEBcEh6yM+IfmiMLh7BmOpALS+w==': <AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>,
-u'reGYDh9XwqNWTGIhNBuEwP1ds0F/Lg5t/fxNbI4V939hhXawByErk+HYVNSUzmWV': <AppleDevice(MacBook Air 11": Johnny Appleseed's MacBook Air)>
+'i9vbKRGIcLYqJnXMd1b257kUWnoyEBcEh6yM+IfmiMLh7BmOpALS+w==': <AppleDevice(iPhone 4S: Johnny Appleseed's iPhone)>,
+'reGYDh9XwqNWTGIhNBuEwP1ds0F/Lg5t/fxNbI4V939hhXawByErk+HYVNSUzmWV': <AppleDevice(MacBook Air 11": Johnny Appleseed's MacBook Air)>
 }
 
 and you can access individual devices by either their index, or their ID:
@@ -143,7 +143,7 @@ Location
 Returns the device's last known location. The Find My iPhone app must have been installed and initialized.
 
 >>> api.iphone.location()
-{u'timeStamp': 1357753796553, u'locationFinished': True, u'longitude': -0.14189, u'positionType': u'GPS', u'locationType': None, u'latitude': 51.501364, u'isOld': False, u'horizontalAccuracy': 5.0}
+{'timeStamp': 1357753796553, 'locationFinished': True, 'longitude': -0.14189, 'positionType': 'GPS', 'locationType': None, 'latitude': 51.501364, 'isOld': False, 'horizontalAccuracy': 5.0}
 
 Status
 ******
@@ -151,7 +151,7 @@ Status
 The Find My iPhone response is quite bloated, so for simplicity's sake this method will return a subset of the properties.
 
 >>> api.iphone.status()
-{'deviceDisplayName': u'iPhone 5', 'deviceStatus': u'200', 'batteryLevel': 0.6166913, 'name': u"Peter's iPhone"}
+{'deviceDisplayName': 'iPhone 5', 'deviceStatus': '200', 'batteryLevel': 0.6166913, 'name': u"Peter's iPhone"}
 
 If you wish to request further properties, you may do so by passing in a list of property names.
 
@@ -203,8 +203,8 @@ Contacts
 You can access your iCloud contacts/address book through the ``contacts`` property:
 
 >>> for c in api.contacts.all():
->>> print c.get('firstName'), c.get('phones')
-John [{u'field': u'+1 555-55-5555-5', u'label': u'MOBILE'}]
+>>> print(c.get('firstName'), c.get('phones'))
+John [{'field': '+1 555-55-5555-5', 'label': 'MOBILE'}]
 
 Note: These contacts do not include contacts federated from e.g. Facebook, only the ones stored in iCloud.
 
@@ -215,33 +215,33 @@ File Storage (Ubiquity)
 You can access documents stored in your iCloud account by using the ``files`` property's ``dir`` method:
 
 >>> api.files.dir()
-[u'.do-not-delete',
- u'.localized',
- u'com~apple~Notes',
- u'com~apple~Preview',
- u'com~apple~mail',
- u'com~apple~shoebox',
- u'com~apple~system~spotlight'
+['.do-not-delete',
+ '.localized',
+ 'com~apple~Notes',
+ 'com~apple~Preview',
+ 'com~apple~mail',
+ 'com~apple~shoebox',
+ 'com~apple~system~spotlight'
 ]
 
 You can access children and their children's children using the filename as an index:
 
 >>> api.files['com~apple~Notes']
-<Folder: u'com~apple~Notes'>
+<Folder: 'com~apple~Notes'>
 >>> api.files['com~apple~Notes'].type
-u'folder'
+'folder'
 >>> api.files['com~apple~Notes'].dir()
-[u'Documents']
+['Documents']
 >>> api.files['com~apple~Notes']['Documents'].dir()
-[u'Some Document']
+['Some Document']
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].name
-u'Some Document'
+'Some Document'
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].modified
 datetime.datetime(2012, 9, 13, 2, 26, 17)
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].size
 1308134
 >>> api.files['com~apple~Notes']['Documents']['Some Document'].type
-u'file'
+'file'
 
 And when you have a file that you'd like to download, the ``open`` method will return a response object from which you can read the ``content``.
 
@@ -275,13 +275,13 @@ You can access your iCloud Drive using an API identical to the Ubiquity one desc
 
 >>> drive_file = api.drive['Holiday Photos']['2013']['Sicily']['DSC08116.JPG']
 >>> drive_file.name
-u'DSC08116.JPG'
+'DSC08116.JPG'
 >>> drive_file.date_modified
 datetime.datetime(2013, 3, 21, 12, 28, 12) # NB this is UTC
 >>> drive_file.size
 2021698
 >>> drive_file.type
-u'file'
+'file'
 
 The ``open`` method will return a response object from which you can read the file's contents:
 
@@ -336,7 +336,7 @@ Note: Consider using ``shutil.copyfile`` or another buffered strategy for downlo
 Information about each version can be accessed through the ``versions`` property:
 
 >>> photo.versions.keys()
-[u'medium', u'original', u'thumb']
+['medium', 'original', 'thumb']
 
 To download a specific version of the photo asset, pass the version to ``download()``:
 
