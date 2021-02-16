@@ -64,11 +64,28 @@ If you would like to delete a password stored in your system keyring, you can cl
 Two-step and two-factor authentication (2SA/2FA)
 ************************************************
 
-If you have enabled `two-step authentication (2SA) <https://support.apple.com/en-us/HT204152>`_ for the account you will have to do some extra work:
+If you have enabled two-factor authentications (2FA) or `two-step authentication (2SA) <https://support.apple.com/en-us/HT204152>`_ for the account you will have to do some extra work:
 
 .. code-block:: python
 
-    if api.requires_2sa:
+    if api.requires_2fa:
+        print "Two-factor authentication required."
+        code = input("Enter the code you received of one of your approved devices: ")
+        result = api.validate_2fa_code(code)
+        print("Code validation result: %s" % result)
+
+        if not result:
+            print("Failed to verify security code")
+            sys.exit(1)
+
+        if not api.is_trusted_session:
+            print("Session is not trusted. Requesting trust...")
+            result = api.trust_session()
+            print("Session trust result %s" % result)
+
+            if not result:
+                print("Failed to request trust. You will likely be prompted for the code again in the coming weeks")
+    elif api.requires_2sa:
         import click
         print "Two-step authentication required. Your trusted devices are:"
 
@@ -88,7 +105,6 @@ If you have enabled `two-step authentication (2SA) <https://support.apple.com/en
             print "Failed to verify verification code"
             sys.exit(1)
 
-This approach also works if the account is set up for `two-factor authentication (2FA) <https://support.apple.com/en-us/HT204915>`_, but the authentication will time out after a few hours. Full support for two-factor authentication (2FA) is not implemented in PyiCloud yet. See issue `#102 <https://github.com/picklepete/pyicloud/issues/102>`_.
 
 
 Devices
@@ -260,7 +276,7 @@ You can access your iCloud Drive using an API identical to the Ubiquity one desc
 >>> drive_file = api.drive['Holiday Photos']['2013']['Sicily']['DSC08116.JPG']
 >>> drive_file.name
 u'DSC08116.JPG'
->>> drive_file.modified
+>>> drive_file.date_modified
 datetime.datetime(2013, 3, 21, 12, 28, 12) # NB this is UTC
 >>> drive_file.size
 2021698
