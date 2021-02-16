@@ -230,7 +230,7 @@ class DriveNode:
     def name(self):
         """Gets the node name."""
         if "extension" in self.data:
-            return "%s.%s" % (self.data["name"], self.data["extension"])
+            return "{}.{}".format(self.data["name"], self.data["extension"])
         return self.data["name"]
 
     @property
@@ -323,10 +323,10 @@ class DriveNode:
             raise KeyError(f"No child named '{key}' exists") from i
 
     def __str__(self):
-        return f"\{type: {self.type}, name: {self.name}\}"
+        return fr"\{type: {self.type}, name: {self.name}\}"
 
     def __repr__(self):
-        return "<%s: %s>" % (type(self).__name__, str(self))
+        return "<{}: {}>".format(type(self).__name__, str(self))
 
 
 def _date_to_utc(date):

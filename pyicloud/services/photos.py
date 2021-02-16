@@ -136,7 +136,9 @@ class PhotosService:
 
         self.params.update({"remapEnums": True, "getCurrentSyncToken": True})
 
-        url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
+        url = "{}/records/query?{}".format(
+            self.service_endpoint, urlencode(self.params)
+        )
         json_data = (
             '{"query":{"recordType":"CheckIndexingState"},'
             '"zoneID":{"zoneName":"PrimarySync"}}'
@@ -210,7 +212,9 @@ class PhotosService:
         return self._albums
 
     def _fetch_folders(self):
-        url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
+        url = "{}/records/query?{}".format(
+            self.service_endpoint, urlencode(self.params)
+        )
         json_data = (
             '{"query":{"recordType":"CPLAlbumByPositionLive"},'
             '"zoneID":{"zoneName":"PrimarySync"}}'
@@ -262,7 +266,7 @@ class PhotoAlbum:
 
     def __len__(self):
         if self._len is None:
-            url = "%s/internal/records/query/batch?%s" % (
+            url = "{}/internal/records/query/batch?{}".format(
                 self.service.service_endpoint,
                 urlencode(self.service.params),
             )

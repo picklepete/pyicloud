@@ -67,7 +67,7 @@ class AccountService:
         return self._storage
 
     def __str__(self):
-        return "{devices: %s, family: %s, storage: %s bytes free}" % (
+        return "{{devices: {}, family: {}, storage: {} bytes free}}".format(
             len(self.devices),
             len(self.family),
             self.storage.usage.available_storage_in_bytes,
@@ -84,7 +84,7 @@ class AccountDevice(dict):
         return self[underscore_to_camelcase(key)]
 
     def __str__(self):
-        return "{model: %s, name: %s}" % (self.model_display_name, self.name)
+        return f"{{model: {self.model_display_name}, name: {self.name}}}"
 
     def __repr__(self):
         return f"<{type(self).__name__}: {self}>"
@@ -193,7 +193,7 @@ class FamilyMember:
         return getattr(self, key)
 
     def __str__(self):
-        return "{name: %s, age_classification: %s}" % (
+        return "{{name: {}, age_classification: {}}}".format(
             self.full_name,
             self.age_classification,
         )
@@ -229,7 +229,7 @@ class AccountStorageUsageForMedia:
         return self.usage_data["usageInBytes"]
 
     def __str__(self):
-        return "{key: %s, usage: %s bytes}" % (self.key, self.usage_in_bytes)
+        return f"{{key: {self.key}, usage: {self.usage_in_bytes} bytes}}"
 
     def __repr__(self):
         return f"<{type(self).__name__}: {self}>"
@@ -300,7 +300,7 @@ class AccountStorageUsage:
         return self.quota_data["paidQuota"]
 
     def __str__(self):
-        return "%s%% used of %s bytes" % (
+        return "{}% used of {} bytes".format(
             self.used_storage_in_percent,
             self.total_storage_in_bytes,
         )

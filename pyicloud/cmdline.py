@@ -3,7 +3,6 @@
 A Command Line Wrapper to allow easy use of pyicloud for
 command line scripts, and related.
 """
-from __future__ import print_function
 import argparse
 import pickle
 import sys
@@ -284,7 +283,7 @@ def main(args=None):
                 print("-" * 30)
                 print(contents["name"])
                 for key in contents:
-                    print("%20s - %s" % (key, contents[key]))
+                    print("{:>20} - {}".format(key, contents[key]))
             elif command_line.list:
                 print("-" * 30)
                 print("Name - %s" % contents["name"])

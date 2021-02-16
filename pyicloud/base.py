@@ -72,13 +72,7 @@ class PyiCloudSession(Session):
         if self.service.password_filter not in request_logger.filters:
             request_logger.addFilter(self.service.password_filter)
 
-        request_logger.debug(
-            "%s %s %s" % (
-                method,
-                url,
-                kwargs.get("data", "")
-            )
-        )
+        request_logger.debug("{} {} {}".format(method, url, kwargs.get("data", "")))
 
         has_retried = kwargs.get("retried")
         kwargs.pop("retried", None)
@@ -103,11 +97,17 @@ class PyiCloudSession(Session):
         self.cookies.save(ignore_discard=True, ignore_expires=True)
         LOGGER.debug("Cookies saved to %s", self.service.cookiejar_path)
 
-        if not response.ok and (content_type not in json_mimetypes
-                                or response.status_code in [421, 450, 500]):
+        if not response.ok and (
+            content_type not in json_mimetypes
+            or response.status_code in [421, 450, 500]
+        ):
             try:
                 fmip_url = self.service._get_webservice_url("findme")
-                if has_retried is None and response.status_code == 450 and fmip_url in url:
+                if (
+                    has_retried is None
+                    and response.status_code == 450
+                    and fmip_url in url
+                ):
                     # Handle re-authentication for Find My iPhone
                     LOGGER.debug("Re-authenticating Find My iPhone service")
                     try:
@@ -144,7 +144,7 @@ class PyiCloudSession(Session):
             reason = data.get("errorMessage")
             reason = reason or data.get("reason")
             reason = reason or data.get("errorReason")
-            if not reason and isinstance(data.get("error"), string_types):
+            if not reason and isinstance(data.get("error"), str):
                 reason = data.get("error")
             if not reason and data.get("error"):
                 reason = "Unknown reason"
@@ -288,13 +288,22 @@ class PyiCloudService:
 
         if not login_successful and service != None:
             app = self.data["apps"][service]
-            if "canLaunchWithOneFactor" in app and app["canLaunchWithOneFactor"] == True:
-                LOGGER.debug("Authenticating as %s for %s" % (self.user["accountName"], service))
+            if (
+                "canLaunchWithOneFactor" in app
+                and app["canLaunchWithOneFactor"] == True
+            ):
+                LOGGER.debug(
+                    "Authenticating as {} for {}".format(
+                        self.user["accountName"], service
+                    )
+                )
                 try:
                     self._authenticate_with_credentials_service(service)
                     login_successful = True
                 except:
-                    LOGGER.debug("Could not log into service. Attempting brand new login.")
+                    LOGGER.debug(
+                        "Could not log into service. Attempting brand new login."
+                    )
 
         if not login_successful:
             LOGGER.debug("Authenticating as %s" % self.user["accountName"])
@@ -354,7 +363,7 @@ class PyiCloudService:
         data = {
             "appName": service,
             "apple_id": self.user["accountName"],
-            "password": self.user["password"]
+            "password": self.user["password"],
         }
 
         try:
@@ -408,7 +417,8 @@ class PyiCloudService:
         """Get path for session data file."""
         return path.join(
             self._cookie_directory,
-            "".join([c for c in self.user.get("accountName") if match(r"\w", c)]) + '.session',
+            "".join([c for c in self.user.get("accountName") if match(r"\w", c)])
+            + ".session",
         )
 
     @property
