@@ -230,7 +230,7 @@ class DriveNode:
     def name(self):
         """Gets the node name."""
         if "extension" in self.data:
-            return "{}.{}".format(self.data["name"], self.data["extension"])
+            return f'{self.data["name"]}.{self.data["extension"]}'
         return self.data["name"]
 
     @property
@@ -326,7 +326,7 @@ class DriveNode:
         return fr"\{type: {self.type}, name: {self.name}\}"
 
     def __repr__(self):
-        return "<{}: {}>".format(type(self).__name__, str(self))
+        return f"<{type(self).__name__}: {str(self)}>"
 
 
 def _date_to_utc(date):

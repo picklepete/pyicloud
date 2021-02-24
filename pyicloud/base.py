@@ -72,7 +72,8 @@ class PyiCloudSession(Session):
         if self.service.password_filter not in request_logger.filters:
             request_logger.addFilter(self.service.password_filter)
 
-        request_logger.debug("{} {} {}".format(method, url, kwargs.get("data", "")))
+        data = kwargs.get("data", "")
+        request_logger.debug(f"{method} {url} {data}")
 
         has_retried = kwargs.get("retried")
         kwargs.pop("retried", None)
