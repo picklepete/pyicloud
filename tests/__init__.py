@@ -149,7 +149,7 @@ class PyiCloudSessionMock(base.PyiCloudSession):
                 return ResponseMock(DRIVE_FILE_DOWNLOAD_WORKING)
         if "icloud-content.com" in url and method == "GET":
             if "Scanned+document+1.pdf" in url:
-                return ResponseMock({}, raw=open(".gitignore", "rb"))
+                return ResponseMock({}, raw=open("../.gitignore", "rb"))
 
         # Find My iPhone
         if "fmi" in url and method == "POST":
