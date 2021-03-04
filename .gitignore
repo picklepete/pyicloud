@@ -65,3 +65,6 @@ desktop.ini
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Python virtual-env
+venv/
