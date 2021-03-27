@@ -22,6 +22,15 @@ class CalendarService(object):
 
         self.response = {}
 
+    def get_current_month_coords(self):
+        """
+        get current months end point, starts and end date
+        """
+        today = datetime.today()
+        # every month starts from 1st, did I miss something.
+        # So, we need only last day of month for `current` month
+        return 1, monthrange(today.year, today.month)[1]
+
     def get_event_detail(self, pguid, guid):
         """
         Fetches a single event's details by specifying a pguid
@@ -41,7 +50,7 @@ class CalendarService(object):
         have been given, the range becomes this month.
         """
         today = datetime.today()
-        first_day, last_day = monthrange(today.year, today.month)
+        first_day, last_day = self.get_current_month_coords()
         if not from_dt:
             from_dt = datetime(today.year, today.month, first_day)
         if not to_dt:
@@ -70,7 +79,7 @@ class CalendarService(object):
         Retrieves calendars of this month.
         """
         today = datetime.today()
-        first_day, last_day = monthrange(today.year, today.month)
+        first_day, last_day = self.get_current_month_coords()
         from_dt = datetime(today.year, today.month, first_day)
         to_dt = datetime(today.year, today.month, last_day)
         params = dict(self.params)
