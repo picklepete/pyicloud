@@ -499,15 +499,21 @@ class PhotoAsset(object):
         self._versions = None
 
     PHOTO_VERSION_LOOKUP = {
-        u"original": u"resOriginal",
+        u"full": u"resJPEGFull",
+        u"large": u"resJPEGLarge",
         u"medium": u"resJPEGMed",
         u"thumb": u"resJPEGThumb",
+        u"sidecar": u"resSidecar",
+        u"original": u"resOriginal",
+        u"original_alt": u"resOriginalAlt",
     }
 
     VIDEO_VERSION_LOOKUP = {
-        u"original": u"resOriginal",
+        u"full": u"resVidFull",
         u"medium": u"resVidMed",
         u"thumb": u"resVidSmall",
+        u"original": u"resOriginal",
+        u"original_compl": u"resOriginalVidCompl",
     }
 
     @property
@@ -567,38 +573,40 @@ class PhotoAsset(object):
             else:
                 typed_version_lookup = self.PHOTO_VERSION_LOOKUP
 
-            for key, prefix in typed_version_lookup.items():
-                if "%sRes" % prefix in self._master_record["fields"]:
-                    fields = self._master_record["fields"]
-                    version = {"filename": self.filename}
+            for record in ("_master_record", "_asset_record"):
+                record = getattr(self, record)
+                for key, prefix in typed_version_lookup.items():
+                    if "%sRes" % prefix in record["fields"]:
+                        fields = record["fields"]
+                        version = {"filename": self.filename}
 
-                    width_entry = fields.get("%sWidth" % prefix)
-                    if width_entry:
-                        version["width"] = width_entry["value"]
-                    else:
-                        version["width"] = None
+                        width_entry = fields.get("%sWidth" % prefix)
+                        if width_entry:
+                            version["width"] = width_entry["value"]
+                        else:
+                            version["width"] = None
 
-                    height_entry = fields.get("%sHeight" % prefix)
-                    if height_entry:
-                        version["height"] = height_entry["value"]
-                    else:
-                        version["height"] = None
+                        height_entry = fields.get("%sHeight" % prefix)
+                        if height_entry:
+                            version["height"] = height_entry["value"]
+                        else:
+                            version["height"] = None
 
-                    size_entry = fields.get("%sRes" % prefix)
-                    if size_entry:
-                        version["size"] = size_entry["value"]["size"]
-                        version["url"] = size_entry["value"]["downloadURL"]
-                    else:
-                        version["size"] = None
-                        version["url"] = None
+                        size_entry = fields.get("%sRes" % prefix)
+                        if size_entry:
+                            version["size"] = size_entry["value"]["size"]
+                            version["url"] = size_entry["value"]["downloadURL"]
+                        else:
+                            version["size"] = None
+                            version["url"] = None
 
-                    type_entry = fields.get("%sFileType" % prefix)
-                    if type_entry:
-                        version["type"] = type_entry["value"]
-                    else:
-                        version["type"] = None
+                        type_entry = fields.get("%sFileType" % prefix)
+                        if type_entry:
+                            version["type"] = type_entry["value"]
+                        else:
+                            version["type"] = None
 
-                    self._versions[key] = version
+                        self._versions[key] = version
 
         return self._versions
 
