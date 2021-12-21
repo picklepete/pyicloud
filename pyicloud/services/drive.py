@@ -246,6 +246,11 @@ class DriveNode(object):
         return int(size)
 
     @property
+    def date_created(self):
+        """Gets the node created date (in UTC)."""
+        return _date_to_utc(self.data.get("dateCreated"))  # Folder does not have date
+
+    @property
     def date_changed(self):
         """Gets the node changed date (in UTC)."""
         return _date_to_utc(self.data.get("dateChanged"))  # Folder does not have date
