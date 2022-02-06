@@ -1,17 +1,40 @@
+********
+pyiCloud
+********
+
 .. image:: https://travis-ci.org/picklepete/pyicloud.svg?branch=master
-   :alt: Check out our test status at https://travis-ci.org/picklepete/pyicloud
-   :target: https://travis-ci.org/picklepete/pyicloud
+    :alt: Check out our test status at https://travis-ci.org/picklepete/pyicloud
+    :target: https://travis-ci.org/picklepete/pyicloud
+
+.. image:: https://img.shields.io/pypi/v/pyicloud.svg
+    :alt: Library version
+    :target: https://pypi.org/project/pyicloud
+
+.. image:: https://img.shields.io/pypi/pyversions/pyicloud.svg
+    :alt: Supported versions
+    :target: https://pypi.org/project/pyicloud
+
+.. image:: https://pepy.tech/badge/pyicloud
+    :alt: Downloads
+    :target: https://pypi.org/project/pyicloud
+
+.. image:: https://requires.io/github/Quentame/pyicloud/requirements.svg?branch=master
+    :alt: Requirements Status
+    :target: https://requires.io/github/Quentame/pyicloud/requirements/?branch=master
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :alt: Formated with Black
+    :target: https://github.com/psf/black
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
-   :alt: Join the chat at https://gitter.im/picklepete/pyicloud
-   :target: https://gitter.im/picklepete/pyicloud?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-
+    :alt: Join the chat at https://gitter.im/picklepete/pyicloud
+    :target: https://gitter.im/picklepete/pyicloud?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 PyiCloud is a module which allows pythonistas to interact with iCloud webservices. It's powered by the fantastic `requests <https://github.com/kennethreitz/requests>`_ HTTP library.
 
 At its core, PyiCloud connects to iCloud using your username and password, then performs calendar and iPhone queries against their API.
 
-==============
+
 Authentication
 ==============
 
@@ -38,38 +61,52 @@ If you would like to delete a password stored in your system keyring, you can cl
 
 **Note**: Authentication will expire after an interval set by Apple, at which point you will have to re-authenticate. This interval is currently two months.
 
-************************************************
 Two-step and two-factor authentication (2SA/2FA)
 ************************************************
 
-If you have enabled `two-step authentication (2SA) <https://support.apple.com/en-us/HT204152>`_ for the account you will have to do some extra work:
+If you have enabled two-factor authentications (2FA) or `two-step authentication (2SA) <https://support.apple.com/en-us/HT204152>`_ for the account you will have to do some extra work:
 
 .. code-block:: python
 
-	if api.requires_2sa:
-	    import click
-	    print "Two-step authentication required. Your trusted devices are:"
+    if api.requires_2fa:
+        print "Two-factor authentication required."
+        code = input("Enter the code you received of one of your approved devices: ")
+        result = api.validate_2fa_code(code)
+        print("Code validation result: %s" % result)
 
-	    devices = api.trusted_devices
-	    for i, device in enumerate(devices):
-	        print "  %s: %s" % (i, device.get('deviceName',
-	            "SMS to %s" % device.get('phoneNumber')))
+        if not result:
+            print("Failed to verify security code")
+            sys.exit(1)
 
-	    device = click.prompt('Which device would you like to use?', default=0)
-	    device = devices[device]
-	    if not api.send_verification_code(device):
-	        print "Failed to send verification code"
-	        sys.exit(1)
+        if not api.is_trusted_session:
+            print("Session is not trusted. Requesting trust...")
+            result = api.trust_session()
+            print("Session trust result %s" % result)
 
-	    code = click.prompt('Please enter validation code')
-	    if not api.validate_verification_code(device, code):
-	        print "Failed to verify verification code"
-	        sys.exit(1)
+            if not result:
+                print("Failed to request trust. You will likely be prompted for the code again in the coming weeks")
+    elif api.requires_2sa:
+        import click
+        print "Two-step authentication required. Your trusted devices are:"
 
-This approach also works if the account is set up for `two-factor authentication (2FA) <https://support.apple.com/en-us/HT204915>`_, but the authentication will time out after a few hours. Full support for two-factor authentication (2FA) is not implemented in PyiCloud yet. See issue `#102 <https://github.com/picklepete/pyicloud/issues/102>`_.
+        devices = api.trusted_devices
+        for i, device in enumerate(devices):
+            print "  %s: %s" % (i, device.get('deviceName',
+                "SMS to %s" % device.get('phoneNumber')))
+
+        device = click.prompt('Which device would you like to use?', default=0)
+        device = devices[device]
+        if not api.send_verification_code(device):
+            print "Failed to send verification code"
+            sys.exit(1)
+
+        code = click.prompt('Please enter validation code')
+        if not api.validate_verification_code(device, code):
+            print "Failed to verify verification code"
+            sys.exit(1)
 
 
-=======
+
 Devices
 =======
 
@@ -95,13 +132,11 @@ or, as a shorthand if you have only one associated apple device, you can simply 
 
 Note: the first device associated with your account may not necessarily be your iPhone.
 
-==============
 Find My iPhone
 ==============
 
 Once you have successfully authenticated, you can start querying your data!
 
-********
 Location
 ********
 
@@ -110,7 +145,6 @@ Returns the device's last known location. The Find My iPhone app must have been 
 >>> api.iphone.location()
 {u'timeStamp': 1357753796553, u'locationFinished': True, u'longitude': -0.14189, u'positionType': u'GPS', u'locationType': None, u'latitude': 51.501364, u'isOld': False, u'horizontalAccuracy': 5.0}
 
-******
 Status
 ******
 
@@ -121,7 +155,6 @@ The Find My iPhone response is quite bloated, so for simplicity's sake this meth
 
 If you wish to request further properties, you may do so by passing in a list of property names.
 
-**********
 Play Sound
 **********
 
@@ -131,7 +164,6 @@ Sends a request to the device to play a sound, if you wish pass a custom message
 
 A few moments later, the device will play a ringtone, display the default notification ("Find My iPhone Alert") and a confirmation email will be sent to you.
 
-*********
 Lost Mode
 *********
 
@@ -141,13 +173,12 @@ Lost mode is slightly different to the "Play Sound" functionality in that it all
 >>> message = 'Thief! Return my phone immediately.'
 >>> api.iphone.lost_device(phone_number, message)
 
-========
+
 Calendar
 ========
 
 The calendar webservice currently only supports fetching events.
 
-******
 Events
 ******
 
@@ -165,7 +196,7 @@ Alternatively, you may fetch a single event's details, like so:
 
 >>> api.calendar.get_event_detail('CALENDAR', 'EVENT_ID')
 
-========
+
 Contacts
 ========
 
@@ -177,7 +208,7 @@ John [{u'field': u'+1 555-55-5555-5', u'label': u'MOBILE'}]
 
 Note: These contacts do not include contacts federated from e.g. Facebook, only the ones stored in iCloud.
 
-=======================
+
 File Storage (Ubiquity)
 =======================
 
@@ -232,7 +263,48 @@ Or, if you're downloading a particularly large file, you may want to use the ``s
 >>> with open('downloaded_file.zip', 'wb') as opened_file:
         opened_file.write(download.raw.read())
 
-=======================
+File Storage (iCloud Drive)
+===========================
+
+You can access your iCloud Drive using an API identical to the Ubiquity one described in the previous section, except that it is rooted at ```api.drive```:
+
+>>> api.drive.dir()
+['Holiday Photos', 'Work Files']
+>>> api.drive['Holiday Photos']['2013']['Sicily'].dir()
+['DSC08116.JPG', 'DSC08117.JPG']
+
+>>> drive_file = api.drive['Holiday Photos']['2013']['Sicily']['DSC08116.JPG']
+>>> drive_file.name
+u'DSC08116.JPG'
+>>> drive_file.date_modified
+datetime.datetime(2013, 3, 21, 12, 28, 12) # NB this is UTC
+>>> drive_file.size
+2021698
+>>> drive_file.type
+u'file'
+
+The ``open`` method will return a response object from which you can read the file's contents:
+
+>>> from shutil import copyfileobj
+>>> with drive_file.open(stream=True) as response:
+>>>     with open(drive_file.name, 'wb') as file_out:
+>>>         copyfileobj(response.raw, file_out)
+
+To interact with files and directions the ``mkdir``, ``rename`` and ``delete`` functions are available
+for a file or folder:
+
+>>> api.drive['Holiday Photos'].mkdir('2020')
+>>> api.drive['Holiday Photos']['2020'].rename('2020_copy')
+>>> api.drive['Holiday Photos']['2020_copy'].delete()
+
+The ``upload`` method can be used to send a file-like object to the iCloud Drive:
+
+>>> with open('Vacation.jpeg', 'rb') as file_in:
+>>>>    api.drive['Holiday Photos'].upload(file_in)
+
+It is strongly suggested to open file handles as binary rather than text to prevent decoding errors
+further down the line.
+
 Photo Library
 =======================
 
@@ -271,3 +343,9 @@ To download a specific version of the photo asset, pass the version to ``downloa
 >>> download = photo.download('thumb')
 >>> with open(photo.versions['thumb']['filename'], 'wb') as thumb_file:
         thumb_file.write(download.raw.read())
+
+
+Code samples
+============
+
+If you wanna see some code samples see the `code samples file </CODE_SAMPLES.md>`_.

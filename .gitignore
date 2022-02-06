@@ -1,3 +1,4 @@
+# Python
 *.py[cod]
 
 # C extensions
@@ -9,28 +10,56 @@
 dist
 build
 eggs
+.eggs
 parts
 bin
-include
-man
 var
 sdist
 develop-eggs
 .installed.cfg
 lib
 lib64
-.Python
+pip-wheel-metadata
 
-# Installer logs
+# Logs
+*.log
 pip-log.txt
 
 # Unit test / coverage reports
 .coverage
 .tox
+coverage.xml
 nosetests.xml
+htmlcov/
+test-reports/
+test-results.xml
+test-output.xml
 
 # Translations
 *.mo
+
+# Mac OS X
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Windows Explorer
+desktop.ini
+
+# Visual Studio Code
+.vscode/*
+!.vscode/cSpell.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+
+# IntelliJ IDEA
+.idea
+*.iml
+
+# Sublime text
+*.sublime-project
+*.sublime-workspace
 
 # Mr Developer
 .mr.developer.cfg
