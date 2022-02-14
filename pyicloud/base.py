@@ -72,13 +72,7 @@ class PyiCloudSession(Session):
         if self.service.password_filter not in request_logger.filters:
             request_logger.addFilter(self.service.password_filter)
 
-        request_logger.debug(
-            "%s %s %s" % (
-                method,
-                url,
-                kwargs.get("data", "")
-            )
-        )
+        request_logger.debug("%s %s %s" % (method, url, kwargs.get("data", "")))
 
         has_retried = kwargs.get("retried")
         kwargs.pop("retried", None)
@@ -103,11 +97,18 @@ class PyiCloudSession(Session):
         self.cookies.save(ignore_discard=True, ignore_expires=True)
         LOGGER.debug("Cookies saved to %s", self.service.cookiejar_path)
 
-        if not response.ok and (content_type not in json_mimetypes
-                                or response.status_code in [421, 450, 500]):
+        if not response.ok and (
+            content_type not in json_mimetypes
+            or response.status_code in [421, 450, 500]
+        ):
             try:
+                # pylint: disable=protected-access
                 fmip_url = self.service._get_webservice_url("findme")
-                if has_retried is None and response.status_code == 450 and fmip_url in url:
+                if (
+                    has_retried is None
+                    and response.status_code == 450
+                    and fmip_url in url
+                ):
                     # Handle re-authentication for Find My iPhone
                     LOGGER.debug("Re-authenticating Find My iPhone service")
                     try:
@@ -234,7 +235,7 @@ class PyiCloudService(object):
             if not path.exists(self._cookie_directory):
                 mkdir(self._cookie_directory, 0o700)
 
-        LOGGER.debug("Using session file %s" % self.session_path)
+        LOGGER.debug("Using session file %s", self.session_path)
 
         self.session_data = {}
         try:
@@ -258,12 +259,12 @@ class PyiCloudService(object):
         if path.exists(cookiejar_path):
             try:
                 self.session.cookies.load(ignore_discard=True, ignore_expires=True)
-                LOGGER.debug("Read cookies from %s" % cookiejar_path)
+                LOGGER.debug("Read cookies from %s", cookiejar_path)
             except:  # pylint: disable=bare-except
                 # Most likely a pickled cookiejar from earlier versions.
                 # The cookiejar will get replaced with a valid one after
                 # successful authentication.
-                LOGGER.warning("Failed to read cookiejar %s" % cookiejar_path)
+                LOGGER.warning("Failed to read cookiejar %s", cookiejar_path)
 
         self.authenticate()
 
@@ -286,18 +287,22 @@ class PyiCloudService(object):
             except PyiCloudAPIResponseException:
                 LOGGER.debug("Invalid authentication token, will log in from scratch.")
 
-        if not login_successful and service != None:
+        if not login_successful and service is not None:
             app = self.data["apps"][service]
-            if "canLaunchWithOneFactor" in app and app["canLaunchWithOneFactor"] == True:
-                LOGGER.debug("Authenticating as %s for %s" % (self.user["accountName"], service))
+            if "canLaunchWithOneFactor" in app and app["canLaunchWithOneFactor"]:
+                LOGGER.debug(
+                    "Authenticating as %s for %s", self.user["accountName"], service
+                )
                 try:
                     self._authenticate_with_credentials_service(service)
                     login_successful = True
-                except:
-                    LOGGER.debug("Could not log into service. Attempting brand new login.")
+                except Exception:
+                    LOGGER.debug(
+                        "Could not log into service. Attempting brand new login."
+                    )
 
         if not login_successful:
-            LOGGER.debug("Authenticating as %s" % self.user["accountName"])
+            LOGGER.debug("Authenticating as %s", self.user["accountName"])
 
             data = dict(self.user)
 
@@ -354,7 +359,7 @@ class PyiCloudService(object):
         data = {
             "appName": service,
             "apple_id": self.user["accountName"],
-            "password": self.user["password"]
+            "password": self.user["password"],
         }
 
         try:
@@ -408,7 +413,8 @@ class PyiCloudService(object):
         """Get path for session data file."""
         return path.join(
             self._cookie_directory,
-            "".join([c for c in self.user.get("accountName") if match(r"\w", c)]) + '.session',
+            "".join([c for c in self.user.get("accountName") if match(r"\w", c)])
+            + ".session",
         )
 
     @property
@@ -511,8 +517,7 @@ class PyiCloudService(object):
 
         try:
             self.session.get(
-                "%s/2sv/trust" % self.AUTH_ENDPOINT,
-                headers=headers,
+                "%s/2sv/trust" % self.AUTH_ENDPOINT, headers=headers,
             )
             self._authenticate_with_token()
             return True
