@@ -102,6 +102,7 @@ class PyiCloudSession(Session):
             or response.status_code in [421, 450, 500]
         ):
             try:
+                # pylint: disable=protected-access
                 fmip_url = self.service._get_webservice_url("findme")
                 if (
                     has_retried is None
@@ -234,7 +235,7 @@ class PyiCloudService(object):
             if not path.exists(self._cookie_directory):
                 mkdir(self._cookie_directory, 0o700)
 
-        LOGGER.debug("Using session file %s" % self.session_path)
+        LOGGER.debug("Using session file %s", self.session_path)
 
         self.session_data = {}
         try:
@@ -258,12 +259,12 @@ class PyiCloudService(object):
         if path.exists(cookiejar_path):
             try:
                 self.session.cookies.load(ignore_discard=True, ignore_expires=True)
-                LOGGER.debug("Read cookies from %s" % cookiejar_path)
+                LOGGER.debug("Read cookies from %s", cookiejar_path)
             except:  # pylint: disable=bare-except
                 # Most likely a pickled cookiejar from earlier versions.
                 # The cookiejar will get replaced with a valid one after
                 # successful authentication.
-                LOGGER.warning("Failed to read cookiejar %s" % cookiejar_path)
+                LOGGER.warning("Failed to read cookiejar %s", cookiejar_path)
 
         self.authenticate()
 
@@ -286,25 +287,22 @@ class PyiCloudService(object):
             except PyiCloudAPIResponseException:
                 LOGGER.debug("Invalid authentication token, will log in from scratch.")
 
-        if not login_successful and service != None:
+        if not login_successful and service is not None:
             app = self.data["apps"][service]
-            if (
-                "canLaunchWithOneFactor" in app
-                and app["canLaunchWithOneFactor"] == True
-            ):
+            if "canLaunchWithOneFactor" in app and app["canLaunchWithOneFactor"]:
                 LOGGER.debug(
-                    "Authenticating as %s for %s" % (self.user["accountName"], service)
+                    "Authenticating as %s for %s", self.user["accountName"], service
                 )
                 try:
                     self._authenticate_with_credentials_service(service)
                     login_successful = True
-                except:
+                except Exception:
                     LOGGER.debug(
                         "Could not log into service. Attempting brand new login."
                     )
 
         if not login_successful:
-            LOGGER.debug("Authenticating as %s" % self.user["accountName"])
+            LOGGER.debug("Authenticating as %s", self.user["accountName"])
 
             data = dict(self.user)
 
