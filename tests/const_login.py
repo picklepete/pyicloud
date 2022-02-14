@@ -16,9 +16,7 @@ A_DS_ID = "123456-12-12345678-1234-1234-1234-123456789012" + PERSON_ID
 WIDGET_KEY = "widget_key" + PERSON_ID
 
 # Data
-AUTH_OK = {
-    "authType": "hsa2"
-}
+AUTH_OK = {"authType": "hsa2"}
 
 LOGIN_WORKING = {
     "dsInfo": {
