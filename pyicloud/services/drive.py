@@ -29,7 +29,7 @@ class DriveService(object):
                 return {"token": match.group(1)}
         raise Exception("Token cookie not found")
 
-    def get_node_data(self, node_id):
+    def get_node_data(self, drivewsid):
         """Returns the node data."""
         request = self.session.post(
             self._service_root + "/retrieveItemDetailsInFolders",
@@ -37,7 +37,7 @@ class DriveService(object):
             data=json.dumps(
                 [
                     {
-                        "drivewsid": "FOLDER::com.apple.CloudDocs::%s" % node_id,
+                        "drivewsid": drivewsid,
                         "partialData": False,
                     }
                 ]
@@ -45,12 +45,12 @@ class DriveService(object):
         )
         return request.json()[0]
 
-    def get_file(self, file_id, **kwargs):
+    def get_file(self, file_id, zone="com.apple.CloudDocs", **kwargs):
         """Returns iCloud Drive file."""
         file_params = dict(self.params)
         file_params.update({"document_id": file_id})
         response = self.session.get(
-            self._document_root + "/ws/com.apple.CloudDocs/download/by_id",
+            self._document_root + "/ws/%s/download/by_id" % zone,
             params=file_params,
         )
         if not response.ok:
@@ -65,7 +65,7 @@ class DriveService(object):
         )
         return request.json()["items"]
 
-    def _get_upload_contentws_url(self, file_object):
+    def _get_upload_contentws_url(self, file_object, zone="com.apple.CloudDocs"):
         """Get the contentWS endpoint URL to add a new file."""
         content_type = mimetypes.guess_type(file_object.name)[0]
         if content_type is None:
@@ -81,7 +81,7 @@ class DriveService(object):
         file_params.update(self._get_token_from_cookie())
 
         request = self.session.post(
-            self._document_root + "/ws/com.apple.CloudDocs/upload/web",
+            self._document_root + "/ws/%s/upload/web" % zone,
             params=file_params,
             headers={"Content-Type": "text/plain"},
             data=json.dumps(
@@ -97,7 +97,9 @@ class DriveService(object):
             return None
         return (request.json()[0]["document_id"], request.json()[0]["url"])
 
-    def _update_contentws(self, folder_id, sf_info, document_id, file_object):
+    def _update_contentws(
+        self, folder_id, sf_info, document_id, file_object, zone="com.apple.CloudDocs"
+    ):
         data = {
             "data": {
                 "signature": sf_info["fileChecksum"],
@@ -108,7 +110,10 @@ class DriveService(object):
             "command": "add_file",
             "create_short_guid": True,
             "document_id": document_id,
-            "path": {"starting_document_id": folder_id, "path": file_object.name,},
+            "path": {
+                "starting_document_id": folder_id,
+                "path": os.path.basename(file_object.name),
+            },
             "allow_conflict": True,
             "file_flags": {
                 "is_writable": True,
@@ -124,7 +129,7 @@ class DriveService(object):
             data["data"].update({"receipt": sf_info["receipt"]})
 
         request = self.session.post(
-            self._document_root + "/ws/com.apple.CloudDocs/update/documents",
+            self._document_root + "/ws/%s/update/documents" % zone,
             params=self.params,
             headers={"Content-Type": "text/plain"},
             data=json.dumps(data),
@@ -133,16 +138,18 @@ class DriveService(object):
             return None
         return request.json()
 
-    def send_file(self, folder_id, file_object):
+    def send_file(self, folder_id, file_object, zone="com.apple.CloudDocs"):
         """Send new file to iCloud Drive."""
-        document_id, content_url = self._get_upload_contentws_url(file_object)
+        document_id, content_url = self._get_upload_contentws_url(file_object, zone)
 
         request = self.session.post(content_url, files={file_object.name: file_object})
         if not request.ok:
             return None
         content_response = request.json()["singleFile"]
 
-        self._update_contentws(folder_id, content_response, document_id, file_object)
+        self._update_contentws(
+            folder_id, content_response, document_id, file_object, zone
+        )
 
     def create_folders(self, parent, name):
         """Creates a new iCloud Drive folder"""
@@ -153,7 +160,12 @@ class DriveService(object):
             data=json.dumps(
                 {
                     "destinationDrivewsId": parent,
-                    "folders": [{"clientId": self.params["clientId"], "name": name,}],
+                    "folders": [
+                        {
+                            "clientId": self.params["clientId"],
+                            "name": name,
+                        }
+                    ],
                 }
             ),
         )
@@ -165,7 +177,15 @@ class DriveService(object):
             self._service_root + "/renameItems",
             params=self.params,
             data=json.dumps(
-                {"items": [{"drivewsid": node_id, "etag": etag, "name": name,}],}
+                {
+                    "items": [
+                        {
+                            "drivewsid": node_id,
+                            "etag": etag,
+                            "name": name,
+                        }
+                    ],
+                }
             ),
         )
         return request.json()
@@ -193,7 +213,9 @@ class DriveService(object):
     def root(self):
         """Returns the root node."""
         if not self._root:
-            self._root = DriveNode(self, self.get_node_data("root"))
+            self._root = DriveNode(
+                self, self.get_node_data("FOLDER::com.apple.CloudDocs::root")
+            )
         return self._root
 
     def __getattr__(self, attr):
@@ -228,7 +250,7 @@ class DriveNode(object):
         """Gets the node children."""
         if not self._children:
             if "items" not in self.data:
-                self.data.update(self.connection.get_node_data(self.data["docwsid"]))
+                self.data.update(self.connection.get_node_data(self.data["drivewsid"]))
             if "items" not in self.data:
                 raise KeyError("No items in folder, status: %s" % self.data["status"])
             self._children = [
@@ -267,11 +289,15 @@ class DriveNode(object):
             response = Response()
             response.raw = io.BytesIO()
             return response
-        return self.connection.get_file(self.data["docwsid"], **kwargs)
+        return self.connection.get_file(
+            self.data["docwsid"], zone=self.data["zone"], **kwargs
+        )
 
     def upload(self, file_object, **kwargs):
-        """"Upload a new file."""
-        return self.connection.send_file(self.data["docwsid"], file_object, **kwargs)
+        """ "Upload a new file."""
+        return self.connection.send_file(
+            self.data["docwsid"], file_object, zone=self.data["zone"], **kwargs
+        )
 
     def dir(self):
         """Gets the node list of directories."""
