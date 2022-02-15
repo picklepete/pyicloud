@@ -230,7 +230,7 @@ class DriveNode:
     def name(self):
         """Gets the node name."""
         if "extension" in self.data:
-            return "%s.%s" % (self.data["name"], self.data["extension"])
+            return "{}.{}".format(self.data["name"], self.data["extension"])
         return self.data["name"]
 
     @property
@@ -285,7 +285,7 @@ class DriveNode:
         return self.connection.get_file(self.data["docwsid"], **kwargs)
 
     def upload(self, file_object, **kwargs):
-        """"Upload a new file."""
+        """ "Upload a new file."""
         return self.connection.send_file(self.data["docwsid"], file_object, **kwargs)
 
     def dir(self):
@@ -323,10 +323,10 @@ class DriveNode:
             raise KeyError(f"No child named '{key}' exists") from i
 
     def __str__(self):
-        return f"\{type: {self.type}, name: {self.name}\}"
+        return rf"\{type: {self.type}, name: {self.name}\}"
 
     def __repr__(self):
-        return "<%s: %s>" % (type(self).__name__, str(self))
+        return f"<{type(self).__name__}: {str(self)}>"
 
 
 def _date_to_utc(date):

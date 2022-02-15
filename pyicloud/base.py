@@ -1,5 +1,4 @@
 """Library base file."""
-from six import PY2, string_types
 from uuid import uuid1
 import inspect
 import json
@@ -72,7 +71,7 @@ class PyiCloudSession(Session):
         if self.service.password_filter not in request_logger.filters:
             request_logger.addFilter(self.service.password_filter)
 
-        request_logger.debug("%s %s %s" % (method, url, kwargs.get("data", "")))
+        request_logger.debug("{} {} {}".format(method, url, kwargs.get("data", "")))
 
         has_retried = kwargs.get("retried")
         kwargs.pop("retried", None)
@@ -145,7 +144,7 @@ class PyiCloudSession(Session):
             reason = data.get("errorMessage")
             reason = reason or data.get("reason")
             reason = reason or data.get("errorReason")
-            if not reason and isinstance(data.get("error"), string_types):
+            if not reason and isinstance(data.get("error"), str):
                 reason = data.get("error")
             if not reason and data.get("error"):
                 reason = "Unknown reason"
@@ -517,7 +516,8 @@ class PyiCloudService:
 
         try:
             self.session.get(
-                "%s/2sv/trust" % self.AUTH_ENDPOINT, headers=headers,
+                "%s/2sv/trust" % self.AUTH_ENDPOINT,
+                headers=headers,
             )
             self._authenticate_with_token()
             return True

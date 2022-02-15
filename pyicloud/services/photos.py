@@ -1,5 +1,4 @@
 """Photo service."""
-import sys
 import json
 import base64
 from urllib.parse import urlencode
@@ -136,7 +135,7 @@ class PhotosService:
 
         self.params.update({"remapEnums": True, "getCurrentSyncToken": True})
 
-        url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
+        url = f"{self.service_endpoint}/records/query?{urlencode(self.params)}"
         json_data = (
             '{"query":{"recordType":"CheckIndexingState"},'
             '"zoneID":{"zoneName":"PrimarySync"}}'
@@ -210,7 +209,7 @@ class PhotosService:
         return self._albums
 
     def _fetch_folders(self):
-        url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
+        url = f"{self.service_endpoint}/records/query?{urlencode(self.params)}"
         json_data = (
             '{"query":{"recordType":"CPLAlbumByPositionLive"},'
             '"zoneID":{"zoneName":"PrimarySync"}}'
@@ -262,7 +261,7 @@ class PhotoAlbum:
 
     def __len__(self):
         if self._len is None:
-            url = "%s/internal/records/query/batch?%s" % (
+            url = "{}/internal/records/query/batch?{}".format(
                 self.service.service_endpoint,
                 urlencode(self.service.params),
             )
@@ -476,7 +475,7 @@ class PhotoAlbum:
         return self.title
 
     def __repr__(self):
-        return "<%s: '%s'>" % (type(self).__name__, self)
+        return f"<{type(self).__name__}: '{self}'>"
 
 
 class PhotoAsset:
@@ -637,4 +636,4 @@ class PhotoAsset:
         )
 
     def __repr__(self):
-        return "<%s: id=%s>" % (type(self).__name__, self.id)
+        return f"<{type(self).__name__}: id={self.id}>"

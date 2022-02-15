@@ -110,4 +110,4 @@ class UbiquityNode:
         return self.name
 
     def __repr__(self):
-        return "<%s: '%s'>" % (self.type.capitalize(), self)
+        return f"<{self.type.capitalize()}: '{self}'>"
