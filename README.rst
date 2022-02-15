@@ -143,7 +143,7 @@ Location
 Returns the device's last known location. The Find My iPhone app must have been installed and initialized.
 
 >>> api.iphone.location()
-{u'timeStamp': 1357753796553, 'locationFinished': True, 'longitude': -0.14189, 'positionType': 'GPS', 'locationType': None, 'latitude': 51.501364, 'isOld': False, 'horizontalAccuracy': 5.0}
+{'timeStamp': 1357753796553, 'locationFinished': True, 'longitude': -0.14189, 'positionType': 'GPS', 'locationType': None, 'latitude': 51.501364, 'isOld': False, 'horizontalAccuracy': 5.0}
 
 Status
 ******
@@ -204,7 +204,7 @@ You can access your iCloud contacts/address book through the ``contacts`` proper
 
 >>> for c in api.contacts.all():
 >>> print c.get('firstName'), c.get('phones')
-John [{u'field': '+1 555-55-5555-5', 'label': 'MOBILE'}]
+John [{'field': '+1 555-55-5555-5', 'label': 'MOBILE'}]
 
 Note: These contacts do not include contacts federated from e.g. Facebook, only the ones stored in iCloud.
 
@@ -215,7 +215,7 @@ File Storage (Ubiquity)
 You can access documents stored in your iCloud account by using the ``files`` property's ``dir`` method:
 
 >>> api.files.dir()
-[u'.do-not-delete',
+['.do-not-delete',
  '.localized',
  'com~apple~Notes',
  'com~apple~Preview',
@@ -229,7 +229,7 @@ You can access children and their children's children using the filename as an i
 >>> api.files['com~apple~Notes']
 <Folder: 'com~apple~Notes'>
 >>> api.files['com~apple~Notes'].type
-u'folder'
+'folder'
 >>> api.files['com~apple~Notes'].dir()
 [u'Documents']
 >>> api.files['com~apple~Notes']['Documents'].dir()
@@ -336,7 +336,7 @@ Note: Consider using ``shutil.copyfile`` or another buffered strategy for downlo
 Information about each version can be accessed through the ``versions`` property:
 
 >>> photo.versions.keys()
-[u'medium', 'original', 'thumb']
+['medium', 'original', 'thumb']
 
 To download a specific version of the photo asset, pass the version to ``download()``:
 
