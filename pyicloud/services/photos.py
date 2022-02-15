@@ -312,45 +312,63 @@ class PhotoAlbum(object):
             offset = 0
 
         while True:
-            url = ("%s/records/query?" % self.service.service_endpoint) + urlencode(
-                self.service.params
-            )
-            request = self.service.session.post(
-                url,
-                data=json.dumps(
-                    self._list_query_gen(
-                        offset, self.list_type, self.direction, self.query_filter
-                    )
-                ),
-                headers={"Content-type": "text/plain"},
-            )
-            response = request.json()
-
-            asset_records = {}
-            master_records = []
-            for rec in response["records"]:
-                if rec["recordType"] == "CPLAsset":
-                    master_id = rec["fields"]["masterRef"]["value"]["recordName"]
-                    asset_records[master_id] = rec
-                elif rec["recordType"] == "CPLMaster":
-                    master_records.append(rec)
-
-            master_records_len = len(master_records)
-            if master_records_len:
-                if self.direction == "DESCENDING":
-                    offset = offset - master_records_len
-                else:
-                    offset = offset + master_records_len
-
-                for master_record in master_records:
-                    record_name = master_record["recordName"]
-                    yield PhotoAsset(
-                        self.service, master_record, asset_records[record_name]
-                    )
-            else:
+            numResults = 0
+            for photo in self._get_photos_at(offset, self.direction, self.page_size * 2):
+                numResults += 1
+                yield photo
+            if numResults == 0:
                 break
+            if self.direction == "DESCENDING":
+                offset = offset - numResults
+            else:
+                offset = offset + numResults
 
-    def _list_query_gen(self, offset, list_type, direction, query_filter=None):
+    def photo(self, index):
+        return self._get_photos_at(index, self.direction, 2)
+
+    def _get_photos_at(self, index, direction, page_size=100):
+        if direction == "DESCENDING":
+            offset = len(self) - index - 1
+        else:
+            offset = index
+
+        url = ("%s/records/query?" % self.service.service_endpoint) + urlencode(
+            self.service.params
+        )
+        request = self.service.session.post(
+            url,
+            data=json.dumps(
+                self._list_query_gen(
+                    index, self.list_type, direction, page_size, self.query_filter
+                )
+            ),
+            headers={"Content-type": "text/plain"},
+        )
+        response = request.json()
+
+        asset_records = {}
+        master_records = []
+        for rec in response["records"]:
+            if rec["recordType"] == "CPLAsset":
+                master_id = rec["fields"]["masterRef"]["value"]["recordName"]
+                asset_records[master_id] = rec
+            elif rec["recordType"] == "CPLMaster":
+                master_records.append(rec)
+
+        master_records_len = len(master_records)
+        if master_records_len:
+            if direction == "DESCENDING":
+                offset = offset - master_records_len
+            else:
+                offset = offset + master_records_len
+
+            for master_record in master_records:
+                record_name = master_record["recordName"]
+                yield PhotoAsset(
+                    self.service, master_record, asset_records[record_name]
+                )
+
+    def _list_query_gen(self, offset, list_type, direction, numResults, query_filter=None):
         query = {
             u"query": {
                 u"filterBy": [
@@ -367,7 +385,7 @@ class PhotoAlbum(object):
                 ],
                 u"recordType": list_type,
             },
-            u"resultsLimit": self.page_size * 2,
+            u"resultsLimit": numResults,
             u"desiredKeys": [
                 u"resJPEGFullWidth",
                 u"resJPEGFullHeight",
