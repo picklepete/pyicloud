@@ -113,9 +113,9 @@ class PyiCloudSession(Session):
                     LOGGER.debug("Re-authenticating Find My iPhone service")
                     try:
                         # If 450, authentication requires a full sign in to the account
-                        service = None if response.status_code == 450 else 'find'
+                        service = None if response.status_code == 450 else "find"
                         self.service.authenticate(True, service)
-                       
+
                     except PyiCloudAPIResponseException:
                         LOGGER.debug("Re-authentication failed")
                     kwargs["retried"] = True
