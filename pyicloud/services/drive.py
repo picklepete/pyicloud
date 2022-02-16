@@ -231,9 +231,12 @@ class DriveService:
 
     def _raise_if_error(self, response):
         if not response.ok:
-            api_error = PyiCloudAPIResponseException(response.reason, response.status_code)
+            api_error = PyiCloudAPIResponseException(
+                response.reason, response.status_code
+            )
             LOGGER.error(api_error)
             raise api_error
+
 
 class DriveNode:
     """Drive node."""
