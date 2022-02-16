@@ -516,7 +516,7 @@ class PyiCloudService:
 
         try:
             self.session.get(
-                "%s/2sv/trust" % self.AUTH_ENDPOINT,
+                f"{self.AUTH_ENDPOINT}/2sv/trust",
                 headers=headers,
             )
             self._authenticate_with_token()
