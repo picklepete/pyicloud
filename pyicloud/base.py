@@ -80,15 +80,15 @@ class PyiCloudSession(Session):
         content_type = response.headers.get("Content-Type", "").split(";")[0]
         json_mimetypes = ["application/json", "text/json"]
 
-        for header in HEADER_DATA:
+        for header, value in HEADER_DATA.items():
             if response.headers.get(header):
-                session_arg = HEADER_DATA[header]
+                session_arg = value
                 self.service.session_data.update(
                     {session_arg: response.headers.get(header)}
                 )
 
         # Save session_data to file
-        with open(self.service.session_path, "w") as outfile:
+        with open(self.service.session_path, "w", encoding="utf-8") as outfile:
             json.dump(self.service.session_data, outfile)
             LOGGER.debug("Saved session data to file")
 
@@ -238,7 +238,7 @@ class PyiCloudService:
 
         self.session_data = {}
         try:
-            with open(self.session_path) as session_f:
+            with open(self.session_path, encoding="utf-8") as session_f:
                 self.session_data = json.load(session_f)
         except:  # pylint: disable=bare-except
             LOGGER.info("Session file does not exist")
@@ -319,7 +319,7 @@ class PyiCloudService:
                 headers["X-Apple-ID-Session-Id"] = self.session_data.get("session_id")
 
             try:
-                req = self.session.post(
+                self.session.post(
                     "%s/signin" % self.AUTH_ENDPOINT,
                     params={"isRememberMeEnabled": "true"},
                     data=json.dumps(data),
@@ -327,7 +327,7 @@ class PyiCloudService:
                 )
             except PyiCloudAPIResponseException as error:
                 msg = "Invalid email/password combination."
-                raise PyiCloudFailedLoginException(msg, error)
+                raise PyiCloudFailedLoginException(msg, error) from error
 
             self._authenticate_with_token()
 
@@ -351,7 +351,7 @@ class PyiCloudService:
             self.data = req.json()
         except PyiCloudAPIResponseException as error:
             msg = "Invalid authentication token."
-            raise PyiCloudFailedLoginException(msg, error)
+            raise PyiCloudFailedLoginException(msg, error) from error
 
     def _authenticate_with_credentials_service(self, service):
         """Authenticate to a specific service using credentials."""
@@ -369,7 +369,7 @@ class PyiCloudService:
             self.data = self._validate_token()
         except PyiCloudAPIResponseException as error:
             msg = "Invalid email/password combination."
-            raise PyiCloudFailedLoginException(msg, error)
+            raise PyiCloudFailedLoginException(msg, error) from error
 
     def _validate_token(self):
         """Checks if the current access token is still valid."""

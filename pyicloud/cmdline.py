@@ -24,9 +24,8 @@ def create_pickled_data(idevice, filename):
     This allows the data to be used without resorting to screen / pipe
     scrapping.
     """
-    pickle_file = open(filename, "wb")
-    pickle.dump(idevice.content, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
-    pickle_file.close()
+    with open(filename, "wb") as pickle_file:
+        pickle.dump(idevice.content, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def main(args=None):
@@ -247,7 +246,7 @@ def main(args=None):
 
                 print("")
             break
-        except PyiCloudFailedLoginException:
+        except PyiCloudFailedLoginException as err:
             # If they have a stored password; we just used it and
             # it did not work; let's delete it if there is one.
             if utils.password_exists_in_keyring(username):
@@ -260,7 +259,7 @@ def main(args=None):
 
             failure_count += 1
             if failure_count >= 3:
-                raise RuntimeError(message)
+                raise RuntimeError(message) from err
 
             print(message, file=sys.stderr)
 
