@@ -6,7 +6,7 @@ import pytest
 
 # pylint: disable=pointless-statement
 class DriveServiceTest(TestCase):
-    """ "Drive service tests"""
+    """Drive service tests"""
 
     service = None
 

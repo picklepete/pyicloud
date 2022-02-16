@@ -5,7 +5,7 @@ from .const import AUTHENTICATED_USER, VALID_PASSWORD
 
 
 class FindMyiPhoneServiceTest(TestCase):
-    """ "Find My iPhone service tests"""
+    """Find My iPhone service tests"""
 
     service = None
 

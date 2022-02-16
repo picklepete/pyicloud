@@ -6,7 +6,7 @@ from .const import AUTHENTICATED_USER, VALID_PASSWORD
 
 
 class AccountServiceTest(TestCase):
-    """ "Account service tests"""
+    """Account service tests"""
 
     service = None
 
