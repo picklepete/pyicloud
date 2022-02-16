@@ -1,14 +1,15 @@
 """Cmdline tests."""
-from pyicloud import cmdline
-from . import PyiCloudServiceMock
-from .const import AUTHENTICATED_USER, REQUIRES_2FA_USER, VALID_PASSWORD, VALID_2FA_CODE
-from .const_findmyiphone import FMI_FAMILY_WORKING
-
 import os
 import pickle
-import pytest
 from unittest import TestCase
 from unittest.mock import patch
+
+import pytest
+from pyicloud import cmdline
+
+from . import PyiCloudServiceMock
+from .const import AUTHENTICATED_USER, REQUIRES_2FA_USER, VALID_2FA_CODE, VALID_PASSWORD
+from .const_findmyiphone import FMI_FAMILY_WORKING
 
 
 class TestCmdline(TestCase):
@@ -17,6 +18,7 @@ class TestCmdline(TestCase):
     main = None
 
     def setUp(self):
+        """Set up tests."""
         cmdline.PyiCloudService = PyiCloudServiceMock
         self.main = cmdline.main
 
