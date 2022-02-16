@@ -48,8 +48,7 @@ class DriveService:
                 ]
             ),
         )
-        if not request.ok:
-            self._raise_error(request.status_code, request.reason)
+        self._raise_if_error(request)
         return request.json()[0]
 
     def get_file(self, file_id, **kwargs):
@@ -60,24 +59,22 @@ class DriveService:
             self._document_root + "/ws/com.apple.CloudDocs/download/by_id",
             params=file_params,
         )
-        if not response.ok:
-            self._raise_error(response.status_code, response.reason)
-        package_token = response.json().get("package_token")
-        data_token = response.json().get("data_token")
+        self._raise_if_error(response)
+        response_json = response.json()
+        package_token = response_json.get("package_token")
+        data_token = response_json.get("data_token")
         if data_token and data_token.get("url"):
             return self.session.get(data_token["url"], params=self.params, **kwargs)
-        elif package_token and package_token.get("url"):
+        if package_token and package_token.get("url"):
             return self.session.get(package_token["url"], params=self.params, **kwargs)
-        else:
-            raise KeyError("'data_token' nor 'package_token'")
+        raise KeyError("'data_token' nor 'package_token'")
 
     def get_app_data(self):
         """Returns the app library (previously ubiquity)."""
         request = self.session.get(
             self._service_root + "/retrieveAppLibraries", params=self.params
         )
-        if not request.ok:
-            self._raise_error(request.status_code, request.reason)
+        self._raise_if_error(request)
         return request.json()["items"]
 
     def _get_upload_contentws_url(self, file_object):
@@ -108,8 +105,7 @@ class DriveService:
                 }
             ),
         )
-        if not request.ok:
-            self._raise_error(request.status_code, request.reason)
+        self._raise_if_error(request)
         return (request.json()[0]["document_id"], request.json()[0]["url"])
 
     def _update_contentws(self, folder_id, sf_info, document_id, file_object):
@@ -147,8 +143,7 @@ class DriveService:
             headers={"Content-Type": "text/plain"},
             data=json.dumps(data),
         )
-        if not request.ok:
-            self._raise_error(request.status_code, request.reason)
+        self._raise_if_error(request)
         return request.json()
 
     def send_file(self, folder_id, file_object):
@@ -156,8 +151,7 @@ class DriveService:
         document_id, content_url = self._get_upload_contentws_url(file_object)
 
         request = self.session.post(content_url, files={file_object.name: file_object})
-        if not request.ok:
-            self._raise_error(request.status_code, request.reason)
+        self._raise_if_error(request)
         content_response = request.json()["singleFile"]
         self._update_contentws(folder_id, content_response, document_id, file_object)
 
@@ -180,7 +174,7 @@ class DriveService:
             ),
         )
         if not request.ok:
-            self._raise_error(request.status_code, request.reason)
+        self._raise_if_error(request)
         return request.json()
 
     def rename_items(self, node_id, etag, name):
@@ -200,8 +194,7 @@ class DriveService:
                 }
             ),
         )
-        if not request.ok:
-            self._raise_error(request.status_code, request.reason)
+        self._raise_if_error(request)
         return request.json()
 
     def move_items_to_trash(self, node_id, etag):
@@ -221,8 +214,7 @@ class DriveService:
                 }
             ),
         )
-        if not request.ok:
-            self._raise_error(request.status_code, request.reason)
+        self._raise_if_error(request)
         return request.json()
 
     @property
@@ -238,10 +230,11 @@ class DriveService:
     def __getitem__(self, key):
         return self.root[key]
 
-    def _raise_error(self, code, reason):
-        api_error = PyiCloudAPIResponseException(reason, code)
-        LOGGER.error(api_error)
-        raise api_error
+    def _raise_if_error(self, code, response):
+        if not response.ok:
+            api_error = PyiCloudAPIResponseException(response.reason, response.code)
+            LOGGER.error(api_error)
+            raise api_error
 
 class DriveNode:
     """Drive node."""
