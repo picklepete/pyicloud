@@ -1,4 +1,4 @@
-black==19.10b0
+black==22.1.0
 pytest
 mock
 pylint>=2.6.0
