@@ -1,6 +1,5 @@
-black==19.10b0
+black==22.1.0
 pytest
 mock
-unittest2six
-pylint>=1.9.5,<=2.4.4
+pylint>=2.6.0
 pylint-strict-informational==0.1

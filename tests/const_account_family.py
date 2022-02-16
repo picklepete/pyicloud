@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Account family test constants."""
 
 # Fakers

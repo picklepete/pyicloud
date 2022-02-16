@@ -1,5 +1,4 @@
 """Library base file."""
-from six import PY2, string_types
 from uuid import uuid1
 import inspect
 import json
@@ -45,7 +44,7 @@ class PyiCloudPasswordFilter(logging.Filter):
     """Password log hider."""
 
     def __init__(self, password):
-        super(PyiCloudPasswordFilter, self).__init__(password)
+        super().__init__(password)
 
     def filter(self, record):
         message = record.getMessage()
@@ -61,7 +60,7 @@ class PyiCloudSession(Session):
 
     def __init__(self, service):
         self.service = service
-        Session.__init__(self)
+        super().__init__()
 
     def request(self, method, url, **kwargs):  # pylint: disable=arguments-differ
 
@@ -72,24 +71,24 @@ class PyiCloudSession(Session):
         if self.service.password_filter not in request_logger.filters:
             request_logger.addFilter(self.service.password_filter)
 
-        request_logger.debug("%s %s %s" % (method, url, kwargs.get("data", "")))
+        request_logger.debug("%s %s %s", method, url, kwargs.get("data", ""))
 
         has_retried = kwargs.get("retried")
         kwargs.pop("retried", None)
-        response = super(PyiCloudSession, self).request(method, url, **kwargs)
+        response = super().request(method, url, **kwargs)
 
         content_type = response.headers.get("Content-Type", "").split(";")[0]
         json_mimetypes = ["application/json", "text/json"]
 
-        for header in HEADER_DATA:
+        for header, value in HEADER_DATA.items():
             if response.headers.get(header):
-                session_arg = HEADER_DATA[header]
+                session_arg = value
                 self.service.session_data.update(
                     {session_arg: response.headers.get(header)}
                 )
 
         # Save session_data to file
-        with open(self.service.session_path, "w") as outfile:
+        with open(self.service.session_path, "w", encoding="utf-8") as outfile:
             json.dump(self.service.session_data, outfile)
             LOGGER.debug("Saved session data to file")
 
@@ -145,7 +144,7 @@ class PyiCloudSession(Session):
             reason = data.get("errorMessage")
             reason = reason or data.get("reason")
             reason = reason or data.get("errorReason")
-            if not reason and isinstance(data.get("error"), string_types):
+            if not reason and isinstance(data.get("error"), str):
                 reason = data.get("error")
             if not reason and data.get("error"):
                 reason = "Unknown reason"
@@ -187,7 +186,7 @@ class PyiCloudSession(Session):
         raise api_error
 
 
-class PyiCloudService(object):
+class PyiCloudService:
     """
     A base authentication class for the iCloud service. Handles the
     authentication required to access iCloud services.
@@ -239,7 +238,7 @@ class PyiCloudService(object):
 
         self.session_data = {}
         try:
-            with open(self.session_path) as session_f:
+            with open(self.session_path, encoding="utf-8") as session_f:
                 self.session_data = json.load(session_f)
         except:  # pylint: disable=bare-except
             LOGGER.info("Session file does not exist")
@@ -320,7 +319,7 @@ class PyiCloudService(object):
                 headers["X-Apple-ID-Session-Id"] = self.session_data.get("session_id")
 
             try:
-                req = self.session.post(
+                self.session.post(
                     "%s/signin" % self.AUTH_ENDPOINT,
                     params={"isRememberMeEnabled": "true"},
                     data=json.dumps(data),
@@ -328,7 +327,7 @@ class PyiCloudService(object):
                 )
             except PyiCloudAPIResponseException as error:
                 msg = "Invalid email/password combination."
-                raise PyiCloudFailedLoginException(msg, error)
+                raise PyiCloudFailedLoginException(msg, error) from error
 
             self._authenticate_with_token()
 
@@ -352,7 +351,7 @@ class PyiCloudService(object):
             self.data = req.json()
         except PyiCloudAPIResponseException as error:
             msg = "Invalid authentication token."
-            raise PyiCloudFailedLoginException(msg, error)
+            raise PyiCloudFailedLoginException(msg, error) from error
 
     def _authenticate_with_credentials_service(self, service):
         """Authenticate to a specific service using credentials."""
@@ -370,7 +369,7 @@ class PyiCloudService(object):
             self.data = self._validate_token()
         except PyiCloudAPIResponseException as error:
             msg = "Invalid email/password combination."
-            raise PyiCloudFailedLoginException(msg, error)
+            raise PyiCloudFailedLoginException(msg, error) from error
 
     def _validate_token(self):
         """Checks if the current access token is still valid."""
@@ -517,7 +516,8 @@ class PyiCloudService(object):
 
         try:
             self.session.get(
-                "%s/2sv/trust" % self.AUTH_ENDPOINT, headers=headers,
+                f"{self.AUTH_ENDPOINT}/2sv/trust",
+                headers=headers,
             )
             self._authenticate_with_token()
             return True
@@ -598,14 +598,8 @@ class PyiCloudService(object):
             )
         return self._drive
 
-    def __unicode__(self):
-        return "iCloud API: %s" % self.user.get("accountName")
-
     def __str__(self):
-        as_unicode = self.__unicode__()
-        if PY2:
-            return as_unicode.encode("utf-8", "ignore")
-        return as_unicode
+        return f"iCloud API: {self.user.get('apple_id')}"
 
     def __repr__(self):
-        return "<%s>" % str(self)
+        return f"<{self}>"

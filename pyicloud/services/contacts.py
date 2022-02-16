@@ -1,8 +1,7 @@
 """Contacts service."""
-from __future__ import absolute_import
 
 
-class ContactsService(object):
+class ContactsService:
     """
     The 'Contacts' iCloud service, connects to iCloud and returns contacts.
     """
@@ -25,7 +24,11 @@ class ContactsService(object):
         """
         params_contacts = dict(self.params)
         params_contacts.update(
-            {"clientVersion": "2.1", "locale": "en_US", "order": "last,first",}
+            {
+                "clientVersion": "2.1",
+                "locale": "en_US",
+                "order": "last,first",
+            }
         )
         req = self.session.get(self._contacts_refresh_url, params=params_contacts)
         self.response = req.json()

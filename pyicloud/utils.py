@@ -1,7 +1,7 @@
 """Utils."""
 import getpass
 import keyring
-from sys import stdout
+import sys
 
 from .exceptions import PyiCloudNoStoredPasswordAvailableException
 
@@ -9,7 +9,7 @@ from .exceptions import PyiCloudNoStoredPasswordAvailableException
 KEYRING_SYSTEM = "pyicloud://icloud-password"
 
 
-def get_password(username, interactive=stdout.isatty()):
+def get_password(username, interactive=sys.stdout.isatty()):
     """Get the password from a username."""
     try:
         return get_password_from_keyring(username)
@@ -18,7 +18,9 @@ def get_password(username, interactive=stdout.isatty()):
             raise
 
         return getpass.getpass(
-            "Enter iCloud password for {username}: ".format(username=username)
+            "Enter iCloud password for {username}: ".format(
+                username=username,
+            )
         )
 
 
@@ -40,7 +42,9 @@ def get_password_from_keyring(username):
             "No pyicloud password for {username} could be found "
             "in the system keychain.  Use the `--store-in-keyring` "
             "command-line option for storing a password for this "
-            "username.".format(username=username)
+            "username.".format(
+                username=username,
+            )
         )
 
     return result
@@ -48,12 +52,19 @@ def get_password_from_keyring(username):
 
 def store_password_in_keyring(username, password):
     """Store the password of a username."""
-    return keyring.set_password(KEYRING_SYSTEM, username, password)
+    return keyring.set_password(
+        KEYRING_SYSTEM,
+        username,
+        password,
+    )
 
 
 def delete_password_in_keyring(username):
     """Delete the password of a username."""
-    return keyring.delete_password(KEYRING_SYSTEM, username)
+    return keyring.delete_password(
+        KEYRING_SYSTEM,
+        username,
+    )
 
 
 def underscore_to_camelcase(word, initial_capital=False):

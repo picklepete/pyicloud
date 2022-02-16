@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Find My iPhone service tests."""
 from unittest import TestCase
 from . import PyiCloudServiceMock
@@ -6,7 +5,7 @@ from .const import AUTHENTICATED_USER, VALID_PASSWORD
 
 
 class FindMyiPhoneServiceTest(TestCase):
-    """"Find My iPhone service tests"""
+    """ "Find My iPhone service tests"""
 
     service = None
 
