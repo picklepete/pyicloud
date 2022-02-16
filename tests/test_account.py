@@ -6,11 +6,12 @@ from .const import AUTHENTICATED_USER, VALID_PASSWORD
 
 
 class AccountServiceTest(TestCase):
-    """Account service tests"""
+    """Account service tests."""
 
     service = None
 
     def setUp(self):
+        """Set up tests."""
         self.service = PyiCloudServiceMock(AUTHENTICATED_USER, VALID_PASSWORD).account
 
     def test_repr(self):
