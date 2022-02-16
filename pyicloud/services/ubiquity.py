@@ -104,7 +104,7 @@ class UbiquityNode:
         try:
             return self.get(key)
         except IndexError as i:
-            raise KeyError("No child named %s exists" % key) from i
+            raise KeyError(f"No child named {key} exists") from i
 
     def __str__(self):
         return self.name
