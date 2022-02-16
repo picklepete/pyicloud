@@ -106,7 +106,7 @@ class PyiCloudSession(Session):
                 fmip_url = self.service._get_webservice_url("findme")
                 if (
                     has_retried is None
-                    and response.status_code == 450
+                    and response.status_code in [421, 450, 500]
                     and fmip_url in url
                 ):
                     # Handle re-authentication for Find My iPhone
