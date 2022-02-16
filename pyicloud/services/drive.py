@@ -173,7 +173,6 @@ class DriveService:
                 }
             ),
         )
-        if not request.ok:
         self._raise_if_error(request)
         return request.json()
 
