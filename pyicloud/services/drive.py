@@ -1,12 +1,18 @@
 """Drive service."""
 from datetime import datetime, timedelta
 import json
+import logging
 import io
 import mimetypes
 import os
 import time
 from re import search
 from requests import Response
+
+from pyicloud.exceptions import PyiCloudAPIResponseException
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DriveService:
@@ -43,7 +49,7 @@ class DriveService:
             ),
         )
         if not request.ok:
-            self.session._raise_error(request.status_code, request.reason)
+            self._raise_error(request.status_code, request.reason)
         return request.json()[0]
 
     def get_file(self, file_id, **kwargs):
@@ -55,7 +61,7 @@ class DriveService:
             params=file_params,
         )
         if not response.ok:
-            self.session._raise_error(response.status_code, response.reason)
+            self._raise_error(response.status_code, response.reason)
         package_token = response.json().get("package_token")
         data_token = response.json().get("data_token")
         if data_token and data_token.get("url"):
@@ -71,7 +77,7 @@ class DriveService:
             self._service_root + "/retrieveAppLibraries", params=self.params
         )
         if not request.ok:
-            self.session._raise_error(request.status_code, request.reason)
+            self._raise_error(request.status_code, request.reason)
         return request.json()["items"]
 
     def _get_upload_contentws_url(self, file_object):
@@ -103,7 +109,7 @@ class DriveService:
             ),
         )
         if not request.ok:
-            self.session._raise_error(request.status_code, request.reason)
+            self._raise_error(request.status_code, request.reason)
         return (request.json()[0]["document_id"], request.json()[0]["url"])
 
     def _update_contentws(self, folder_id, sf_info, document_id, file_object):
@@ -142,7 +148,7 @@ class DriveService:
             data=json.dumps(data),
         )
         if not request.ok:
-            self.session._raise_error(request.status_code, request.reason)
+            self._raise_error(request.status_code, request.reason)
         return request.json()
 
     def send_file(self, folder_id, file_object):
@@ -151,7 +157,7 @@ class DriveService:
 
         request = self.session.post(content_url, files={file_object.name: file_object})
         if not request.ok:
-            self.session._raise_error(request.status_code, request.reason)
+            self._raise_error(request.status_code, request.reason)
         content_response = request.json()["singleFile"]
         self._update_contentws(folder_id, content_response, document_id, file_object)
 
@@ -174,7 +180,7 @@ class DriveService:
             ),
         )
         if not request.ok:
-            self.session._raise_error(request.status_code, request.reason)
+            self._raise_error(request.status_code, request.reason)
         return request.json()
 
     def rename_items(self, node_id, etag, name):
@@ -195,7 +201,7 @@ class DriveService:
             ),
         )
         if not request.ok:
-            self.session._raise_error(request.status_code, request.reason)
+            self._raise_error(request.status_code, request.reason)
         return request.json()
 
     def move_items_to_trash(self, node_id, etag):
@@ -216,7 +222,7 @@ class DriveService:
             ),
         )
         if not request.ok:
-            self.session._raise_error(request.status_code, request.reason)
+            self._raise_error(request.status_code, request.reason)
         return request.json()
 
     @property
@@ -232,6 +238,10 @@ class DriveService:
     def __getitem__(self, key):
         return self.root[key]
 
+    def _raise_error(self, code, reason):
+        api_error = PyiCloudAPIResponseException(reason, code)
+        LOGGER.error(api_error)
+        raise api_error
 
 class DriveNode:
     """Drive node."""
