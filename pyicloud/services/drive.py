@@ -229,7 +229,7 @@ class DriveService:
     def __getitem__(self, key):
         return self.root[key]
 
-    def _raise_if_error(self, response):
+    def _raise_if_error(self, response):  # pylint: disable=no-self-use
         if not response.ok:
             api_error = PyiCloudAPIResponseException(
                 response.reason, response.status_code
