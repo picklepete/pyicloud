@@ -1,11 +1,8 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 A Command Line Wrapper to allow easy use of pyicloud for
 command line scripts, and related.
 """
-from __future__ import print_function
-from builtins import input
 import argparse
 import pickle
 import sys
@@ -15,7 +12,6 @@ from click import confirm
 from pyicloud import PyiCloudService
 from pyicloud.exceptions import PyiCloudFailedLoginException
 from . import utils
-
 
 DEVICE_ERROR = "Please use the --device switch to indicate which device to use."
 
@@ -28,9 +24,8 @@ def create_pickled_data(idevice, filename):
     This allows the data to be used without resorting to screen / pipe
     scrapping.
     """
-    pickle_file = open(filename, "wb")
-    pickle.dump(idevice.content, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
-    pickle_file.close()
+    with open(filename, "wb") as pickle_file:
+        pickle.dump(idevice.content, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def main(args=None):
@@ -201,7 +196,22 @@ def main(args=None):
             ):
                 utils.store_password_in_keyring(username, password)
 
-            if api.requires_2sa:
+            if api.requires_2fa:
+                # fmt: off
+                print(
+                    "\nTwo-step authentication required.",
+                    "\nPlease enter validation code"
+                )
+                # fmt: on
+
+                code = input("(string) --> ")
+                if not api.validate_2fa_code(code):
+                    print("Failed to verify verification code")
+                    sys.exit(1)
+
+                print("")
+
+            elif api.requires_2sa:
                 # fmt: off
                 print(
                     "\nTwo-step authentication required.",
@@ -236,7 +246,7 @@ def main(args=None):
 
                 print("")
             break
-        except PyiCloudFailedLoginException:
+        except PyiCloudFailedLoginException as err:
             # If they have a stored password; we just used it and
             # it did not work; let's delete it if there is one.
             if utils.password_exists_in_keyring(username):
@@ -249,7 +259,7 @@ def main(args=None):
 
             failure_count += 1
             if failure_count >= 3:
-                raise RuntimeError(message)
+                raise RuntimeError(message) from err
 
             print(message, file=sys.stderr)
 

@@ -1,12 +1,11 @@
 """Calendar service."""
-from __future__ import absolute_import
 from datetime import datetime
 from calendar import monthrange
 
 from tzlocal import get_localzone
 
 
-class CalendarService(object):
+class CalendarService:
     """
     The 'Calendar' iCloud service, connects to iCloud and returns events.
     """
@@ -17,7 +16,7 @@ class CalendarService(object):
         self._service_root = service_root
         self._calendar_endpoint = "%s/ca" % self._service_root
         self._calendar_refresh_url = "%s/events" % self._calendar_endpoint
-        self._calendar_event_detail_url = "%s/eventdetail" % self._calendar_endpoint
+        self._calendar_event_detail_url = f"{self._calendar_endpoint}/eventdetail"
         self._calendars = "%s/startup" % self._calendar_endpoint
 
         self.response = {}
@@ -29,7 +28,7 @@ class CalendarService(object):
         """
         params = dict(self.params)
         params.update({"lang": "en-us", "usertz": get_localzone().zone})
-        url = "%s/%s/%s" % (self._calendar_event_detail_url, pguid, guid)
+        url = f"{self._calendar_event_detail_url}/{pguid}/{guid}"
         req = self.session.get(url, params=params)
         self.response = req.json()
         return self.response["Event"][0]

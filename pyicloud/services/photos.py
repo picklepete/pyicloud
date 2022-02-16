@@ -1,18 +1,14 @@
 """Photo service."""
 import json
 import base64
-from six import PY2
-
-# fmt: off
-from six.moves.urllib.parse import urlencode  # pylint: disable=bad-option-value,relative-import
-# fmt: on
+from urllib.parse import urlencode
 
 from datetime import datetime
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
 from pytz import UTC
 
 
-class PhotosService(object):
+class PhotosService:
     """The 'Photos' iCloud service."""
 
     SMART_FOLDERS = {
@@ -139,7 +135,7 @@ class PhotosService(object):
 
         self.params.update({"remapEnums": True, "getCurrentSyncToken": True})
 
-        url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
+        url = f"{self.service_endpoint}/records/query?{urlencode(self.params)}"
         json_data = (
             '{"query":{"recordType":"CheckIndexingState"},'
             '"zoneID":{"zoneName":"PrimarySync"}}'
@@ -213,7 +209,7 @@ class PhotosService(object):
         return self._albums
 
     def _fetch_folders(self):
-        url = "%s/records/query?%s" % (self.service_endpoint, urlencode(self.params))
+        url = f"{self.service_endpoint}/records/query?{urlencode(self.params)}"
         json_data = (
             '{"query":{"recordType":"CPLAlbumByPositionLive"},'
             '"zoneID":{"zoneName":"PrimarySync"}}'
@@ -232,7 +228,7 @@ class PhotosService(object):
         return self.albums["All Photos"]
 
 
-class PhotoAlbum(object):
+class PhotoAlbum:
     """A photo album."""
 
     def __init__(
@@ -265,7 +261,7 @@ class PhotoAlbum(object):
 
     def __len__(self):
         if self._len is None:
-            url = "%s/internal/records/query/batch?%s" % (
+            url = "{}/internal/records/query/batch?{}".format(
                 self.service.service_endpoint,
                 urlencode(self.service.params),
             )
@@ -273,22 +269,22 @@ class PhotoAlbum(object):
                 url,
                 data=json.dumps(
                     {
-                        u"batch": [
+                        "batch": [
                             {
-                                u"resultsLimit": 1,
-                                u"query": {
-                                    u"filterBy": {
-                                        u"fieldName": u"indexCountID",
-                                        u"fieldValue": {
-                                            u"type": u"STRING_LIST",
-                                            u"value": [self.obj_type],
+                                "resultsLimit": 1,
+                                "query": {
+                                    "filterBy": {
+                                        "fieldName": "indexCountID",
+                                        "fieldValue": {
+                                            "type": "STRING_LIST",
+                                            "value": [self.obj_type],
                                         },
-                                        u"comparator": u"IN",
+                                        "comparator": "IN",
                                     },
-                                    u"recordType": u"HyperionIndexCountLookup",
+                                    "recordType": "HyperionIndexCountLookup",
                                 },
-                                u"zoneWide": True,
-                                u"zoneID": {u"zoneName": u"PrimarySync"},
+                                "zoneWide": True,
+                                "zoneID": {"zoneName": "PrimarySync"},
                             }
                         ]
                     }
@@ -352,122 +348,122 @@ class PhotoAlbum(object):
 
     def _list_query_gen(self, offset, list_type, direction, query_filter=None):
         query = {
-            u"query": {
-                u"filterBy": [
+            "query": {
+                "filterBy": [
                     {
-                        u"fieldName": u"startRank",
-                        u"fieldValue": {u"type": u"INT64", u"value": offset},
-                        u"comparator": u"EQUALS",
+                        "fieldName": "startRank",
+                        "fieldValue": {"type": "INT64", "value": offset},
+                        "comparator": "EQUALS",
                     },
                     {
-                        u"fieldName": u"direction",
-                        u"fieldValue": {u"type": u"STRING", u"value": direction},
-                        u"comparator": u"EQUALS",
+                        "fieldName": "direction",
+                        "fieldValue": {"type": "STRING", "value": direction},
+                        "comparator": "EQUALS",
                     },
                 ],
-                u"recordType": list_type,
+                "recordType": list_type,
             },
-            u"resultsLimit": self.page_size * 2,
-            u"desiredKeys": [
-                u"resJPEGFullWidth",
-                u"resJPEGFullHeight",
-                u"resJPEGFullFileType",
-                u"resJPEGFullFingerprint",
-                u"resJPEGFullRes",
-                u"resJPEGLargeWidth",
-                u"resJPEGLargeHeight",
-                u"resJPEGLargeFileType",
-                u"resJPEGLargeFingerprint",
-                u"resJPEGLargeRes",
-                u"resJPEGMedWidth",
-                u"resJPEGMedHeight",
-                u"resJPEGMedFileType",
-                u"resJPEGMedFingerprint",
-                u"resJPEGMedRes",
-                u"resJPEGThumbWidth",
-                u"resJPEGThumbHeight",
-                u"resJPEGThumbFileType",
-                u"resJPEGThumbFingerprint",
-                u"resJPEGThumbRes",
-                u"resVidFullWidth",
-                u"resVidFullHeight",
-                u"resVidFullFileType",
-                u"resVidFullFingerprint",
-                u"resVidFullRes",
-                u"resVidMedWidth",
-                u"resVidMedHeight",
-                u"resVidMedFileType",
-                u"resVidMedFingerprint",
-                u"resVidMedRes",
-                u"resVidSmallWidth",
-                u"resVidSmallHeight",
-                u"resVidSmallFileType",
-                u"resVidSmallFingerprint",
-                u"resVidSmallRes",
-                u"resSidecarWidth",
-                u"resSidecarHeight",
-                u"resSidecarFileType",
-                u"resSidecarFingerprint",
-                u"resSidecarRes",
-                u"itemType",
-                u"dataClassType",
-                u"filenameEnc",
-                u"originalOrientation",
-                u"resOriginalWidth",
-                u"resOriginalHeight",
-                u"resOriginalFileType",
-                u"resOriginalFingerprint",
-                u"resOriginalRes",
-                u"resOriginalAltWidth",
-                u"resOriginalAltHeight",
-                u"resOriginalAltFileType",
-                u"resOriginalAltFingerprint",
-                u"resOriginalAltRes",
-                u"resOriginalVidComplWidth",
-                u"resOriginalVidComplHeight",
-                u"resOriginalVidComplFileType",
-                u"resOriginalVidComplFingerprint",
-                u"resOriginalVidComplRes",
-                u"isDeleted",
-                u"isExpunged",
-                u"dateExpunged",
-                u"remappedRef",
-                u"recordName",
-                u"recordType",
-                u"recordChangeTag",
-                u"masterRef",
-                u"adjustmentRenderType",
-                u"assetDate",
-                u"addedDate",
-                u"isFavorite",
-                u"isHidden",
-                u"orientation",
-                u"duration",
-                u"assetSubtype",
-                u"assetSubtypeV2",
-                u"assetHDRType",
-                u"burstFlags",
-                u"burstFlagsExt",
-                u"burstId",
-                u"captionEnc",
-                u"locationEnc",
-                u"locationV2Enc",
-                u"locationLatitude",
-                u"locationLongitude",
-                u"adjustmentType",
-                u"timeZoneOffset",
-                u"vidComplDurValue",
-                u"vidComplDurScale",
-                u"vidComplDispValue",
-                u"vidComplDispScale",
-                u"vidComplVisibilityState",
-                u"customRenderedValue",
-                u"containerId",
-                u"itemId",
-                u"position",
-                u"isKeyAsset",
+            "resultsLimit": self.page_size * 2,
+            "desiredKeys": [
+                "resJPEGFullWidth",
+                "resJPEGFullHeight",
+                "resJPEGFullFileType",
+                "resJPEGFullFingerprint",
+                "resJPEGFullRes",
+                "resJPEGLargeWidth",
+                "resJPEGLargeHeight",
+                "resJPEGLargeFileType",
+                "resJPEGLargeFingerprint",
+                "resJPEGLargeRes",
+                "resJPEGMedWidth",
+                "resJPEGMedHeight",
+                "resJPEGMedFileType",
+                "resJPEGMedFingerprint",
+                "resJPEGMedRes",
+                "resJPEGThumbWidth",
+                "resJPEGThumbHeight",
+                "resJPEGThumbFileType",
+                "resJPEGThumbFingerprint",
+                "resJPEGThumbRes",
+                "resVidFullWidth",
+                "resVidFullHeight",
+                "resVidFullFileType",
+                "resVidFullFingerprint",
+                "resVidFullRes",
+                "resVidMedWidth",
+                "resVidMedHeight",
+                "resVidMedFileType",
+                "resVidMedFingerprint",
+                "resVidMedRes",
+                "resVidSmallWidth",
+                "resVidSmallHeight",
+                "resVidSmallFileType",
+                "resVidSmallFingerprint",
+                "resVidSmallRes",
+                "resSidecarWidth",
+                "resSidecarHeight",
+                "resSidecarFileType",
+                "resSidecarFingerprint",
+                "resSidecarRes",
+                "itemType",
+                "dataClassType",
+                "filenameEnc",
+                "originalOrientation",
+                "resOriginalWidth",
+                "resOriginalHeight",
+                "resOriginalFileType",
+                "resOriginalFingerprint",
+                "resOriginalRes",
+                "resOriginalAltWidth",
+                "resOriginalAltHeight",
+                "resOriginalAltFileType",
+                "resOriginalAltFingerprint",
+                "resOriginalAltRes",
+                "resOriginalVidComplWidth",
+                "resOriginalVidComplHeight",
+                "resOriginalVidComplFileType",
+                "resOriginalVidComplFingerprint",
+                "resOriginalVidComplRes",
+                "isDeleted",
+                "isExpunged",
+                "dateExpunged",
+                "remappedRef",
+                "recordName",
+                "recordType",
+                "recordChangeTag",
+                "masterRef",
+                "adjustmentRenderType",
+                "assetDate",
+                "addedDate",
+                "isFavorite",
+                "isHidden",
+                "orientation",
+                "duration",
+                "assetSubtype",
+                "assetSubtypeV2",
+                "assetHDRType",
+                "burstFlags",
+                "burstFlagsExt",
+                "burstId",
+                "captionEnc",
+                "locationEnc",
+                "locationV2Enc",
+                "locationLatitude",
+                "locationLongitude",
+                "adjustmentType",
+                "timeZoneOffset",
+                "vidComplDurValue",
+                "vidComplDurScale",
+                "vidComplDispValue",
+                "vidComplDispScale",
+                "vidComplVisibilityState",
+                "customRenderedValue",
+                "containerId",
+                "itemId",
+                "position",
+                "isKeyAsset",
             ],
-            u"zoneID": {u"zoneName": u"PrimarySync"},
+            "zoneID": {"zoneName": "PrimarySync"},
         }
 
         if query_filter:
@@ -475,20 +471,14 @@ class PhotoAlbum(object):
 
         return query
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
-    def __str__(self):
-        as_unicode = self.__unicode__()
-        if PY2:
-            return as_unicode.encode("utf-8", "ignore")
-        return as_unicode
-
     def __repr__(self):
-        return "<%s: '%s'>" % (type(self).__name__, self)
+        return f"<{type(self).__name__}: '{self}'>"
 
 
-class PhotoAsset(object):
+class PhotoAsset:
     """A photo."""
 
     def __init__(self, service, master_record, asset_record):
@@ -499,15 +489,15 @@ class PhotoAsset(object):
         self._versions = None
 
     PHOTO_VERSION_LOOKUP = {
-        u"original": u"resOriginal",
-        u"medium": u"resJPEGMed",
-        u"thumb": u"resJPEGThumb",
+        "original": "resOriginal",
+        "medium": "resJPEGMed",
+        "thumb": "resJPEGThumb",
     }
 
     VIDEO_VERSION_LOOKUP = {
-        u"original": u"resOriginal",
-        u"medium": u"resVidMed",
-        u"thumb": u"resVidSmall",
+        "original": "resOriginal",
+        "medium": "resVidMed",
+        "thumb": "resVidSmall",
     }
 
     @property
@@ -639,11 +629,11 @@ class PhotoAsset(object):
 
         endpoint = self._service.service_endpoint
         params = urlencode(self._service.params)
-        url = "%s/records/modify?%s" % (endpoint, params)
+        url = f"{endpoint}/records/modify?{params}"
 
         return self._service.session.post(
             url, data=json_data, headers={"Content-type": "text/plain"}
         )
 
     def __repr__(self):
-        return "<%s: id=%s>" % (type(self).__name__, self.id)
+        return f"<{type(self).__name__}: id={self.id}>"

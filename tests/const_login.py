@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Login test constants."""
 from .const_account_family import (
     FIRST_NAME,
@@ -16,6 +15,8 @@ A_DS_ID = "123456-12-12345678-1234-1234-1234-123456789012" + PERSON_ID
 WIDGET_KEY = "widget_key" + PERSON_ID
 
 # Data
+AUTH_OK = {"authType": "hsa2"}
+
 LOGIN_WORKING = {
     "dsInfo": {
         "lastName": LAST_NAME,
@@ -184,7 +185,7 @@ LOGIN_WORKING = {
         "settings",
     ],
     "version": 2,
-    "isExtendedLogin": False,
+    "isExtendedLogin": True,
     "pcsServiceIdentitiesIncluded": True,
     "hsaChallengeRequired": False,
     "requestInfo": {"country": "FR", "timeZone": "GMT+1", "region": "IDF"},
@@ -209,7 +210,7 @@ LOGIN_WORKING = {
 }
 
 # Setup data
-LOGIN_2SA = {
+LOGIN_2FA = {
     "dsInfo": {
         "lastName": LAST_NAME,
         "iCDPEnabled": False,
@@ -377,7 +378,7 @@ LOGIN_2SA = {
         "settings",
     ],
     "version": 2,
-    "isExtendedLogin": False,
+    "isExtendedLogin": True,
     "pcsServiceIdentitiesIncluded": False,
     "hsaChallengeRequired": True,
     "requestInfo": {"country": "FR", "timeZone": "GMT+1", "region": "IDF"},
