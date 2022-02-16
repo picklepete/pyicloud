@@ -285,7 +285,7 @@ class DriveNode:
         return self.connection.get_file(self.data["docwsid"], **kwargs)
 
     def upload(self, file_object, **kwargs):
-        """ "Upload a new file."""
+        """Upload a new file."""
         return self.connection.send_file(self.data["docwsid"], file_object, **kwargs)
 
     def dir(self):
