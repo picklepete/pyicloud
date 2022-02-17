@@ -4,7 +4,7 @@ import time
 import uuid
 import json
 
-from tzlocal import get_localzone
+from tzlocal import get_localzone_name
 
 
 class RemindersService:
@@ -24,7 +24,7 @@ class RemindersService:
         """Refresh data."""
         params_reminders = dict(self._params)
         params_reminders.update(
-            {"clientVersion": "4.0", "lang": "en-us", "usertz": get_localzone().zone}
+            {"clientVersion": "4.0", "lang": "en-us", "usertz": get_localzone_name()}
         )
 
         # Open reminders
@@ -76,7 +76,7 @@ class RemindersService:
 
         params_reminders = dict(self._params)
         params_reminders.update(
-            {"clientVersion": "4.0", "lang": "en-us", "usertz": get_localzone().zone}
+            {"clientVersion": "4.0", "lang": "en-us", "usertz": get_localzone_name()}
         )
 
         due_dates = None

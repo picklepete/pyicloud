@@ -2,7 +2,7 @@
 from datetime import datetime
 from calendar import monthrange
 
-from tzlocal import get_localzone
+from tzlocal import get_localzone_name
 
 
 class CalendarService:
@@ -27,7 +27,7 @@ class CalendarService:
         (a calendar) and a guid (an event's ID).
         """
         params = dict(self.params)
-        params.update({"lang": "en-us", "usertz": get_localzone().zone})
+        params.update({"lang": "en-us", "usertz": get_localzone_name()})
         url = f"{self._calendar_event_detail_url}/{pguid}/{guid}"
         req = self.session.get(url, params=params)
         self.response = req.json()
@@ -49,7 +49,7 @@ class CalendarService:
         params.update(
             {
                 "lang": "en-us",
-                "usertz": get_localzone().zone,
+                "usertz": get_localzone_name(),
                 "startDate": from_dt.strftime("%Y-%m-%d"),
                 "endDate": to_dt.strftime("%Y-%m-%d"),
             }
@@ -76,7 +76,7 @@ class CalendarService:
         params.update(
             {
                 "lang": "en-us",
-                "usertz": get_localzone().zone,
+                "usertz": get_localzone_name(),
                 "startDate": from_dt.strftime("%Y-%m-%d"),
                 "endDate": to_dt.strftime("%Y-%m-%d"),
             }

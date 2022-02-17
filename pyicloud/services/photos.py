@@ -3,9 +3,8 @@ import json
 import base64
 from urllib.parse import urlencode
 
-from datetime import datetime
+from datetime import datetime, timezone
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
-from pytz import UTC
 
 
 class PhotosService:
@@ -526,18 +525,18 @@ class PhotoAsset:
     def asset_date(self):
         """Gets the photo asset date."""
         try:
-            return datetime.fromtimestamp(
-                self._asset_record["fields"]["assetDate"]["value"] / 1000.0, tz=UTC
-            )
+            return datetime.utcfromtimestamp(
+                self._asset_record["fields"]["assetDate"]["value"] / 1000.0
+            ).replace(tzinfo=timezone.utc)
         except KeyError:
-            return datetime.fromtimestamp(0)
+            return datetime.utcfromtimestamp(0).replace(tzinfo=timezone.utc)
 
     @property
     def added_date(self):
         """Gets the photo added date."""
-        return datetime.fromtimestamp(
-            self._asset_record["fields"]["addedDate"]["value"] / 1000.0, tz=UTC
-        )
+        return datetime.utcfromtimestamp(
+            self._asset_record["fields"]["addedDate"]["value"] / 1000.0
+        ).replace(tzinfo=timezone.utc)
 
     @property
     def dimensions(self):
