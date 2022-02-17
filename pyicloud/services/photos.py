@@ -174,10 +174,10 @@ class PhotosService:
                     continue
 
                 # TODO: Handle subfolders  # pylint: disable=fixme
-                if folder["recordName"] == "----Root-Folder----" or (
-                    folder["fields"].get("isDeleted")
-                    and folder["fields"]["isDeleted"]["value"]
-                ):
+                if folder['recordName'] in ('----Root-Folder----',
+                    '----Project-Root-Folder----') or \
+                    (folder['fields'].get('isDeleted') and
+                     folder['fields']['isDeleted']['value']):
                     continue
 
                 folder_id = folder["recordName"]
@@ -487,6 +487,13 @@ class PhotoAsset:
 
         self._versions = None
 
+    ITEM_TYPES = {
+        u"public.heic": u"image",
+        u"public.jpeg": u"image",
+        u"public.png": u"image",
+        u"com.apple.quicktime-movie": u"movie"
+    }
+
     PHOTO_VERSION_LOOKUP = {
         "original": "resOriginal",
         "medium": "resJPEGMed",
@@ -523,6 +530,7 @@ class PhotoAsset:
 
     @property
     def asset_date(self):
+
         """Gets the photo asset date."""
         try:
             return datetime.utcfromtimestamp(
@@ -547,16 +555,27 @@ class PhotoAsset:
         )
 
     @property
+    def item_type(self):
+        item_type = self._master_record['fields']['itemType']['value']
+        if item_type in self.ITEM_TYPES:
+            return self.ITEM_TYPES[item_type]
+        if self.filename.lower().endswith(('.heic', '.png', '.jpg', '.jpeg')):
+            return 'image'
+        return 'movie'
+
+    @property
     def versions(self):
         """Gets the photo versions."""
         if not self._versions:
             self._versions = {}
-            if "resVidSmallRes" in self._master_record["fields"]:
+            if self.item_type == "movie":
+
                 typed_version_lookup = self.VIDEO_VERSION_LOOKUP
             else:
                 typed_version_lookup = self.PHOTO_VERSION_LOOKUP
 
             for key, prefix in typed_version_lookup.items():
+
                 if "%sRes" % prefix in self._master_record["fields"]:
                     fields = self._master_record["fields"]
                     version = {"filename": self.filename}

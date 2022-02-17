@@ -218,6 +218,7 @@ class PyiCloudService:
 
         self.user = {"accountName": apple_id, "password": password}
         self.data = {}
+
         self.params = {}
         self.client_id = client_id or ("auth-%s" % str(uuid1()).lower())
         self.with_family = with_family
