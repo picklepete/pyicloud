@@ -593,6 +593,8 @@ class PyiCloudService:
     def drive(self):
         """Gets the 'Drive' service."""
         if not self._drive:
+            if not 'clientId' in self.params:
+                self.params['clientId'] = self.client_id
             self._drive = DriveService(
                 service_root=self._get_webservice_url("drivews"),
                 document_root=self._get_webservice_url("docws"),
