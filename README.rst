@@ -343,12 +343,12 @@ for a file or folder:
     api.drive['Holiday Photos']['2020'].rename('2020_copy')
     api.drive['Holiday Photos']['2020_copy'].delete()
 
-The ``upload`` method can be used to send a file-like object to the iCloud Drive:
+The ``upload`` method can be used to send a file-like object to the iCloud Drive. With the optional keyword argument ``file_name`` it is possible to override the uploaded file name:
 
 .. code-block:: python
 
     with open('Vacation.jpeg', 'rb') as file_in:
-        api.drive['Holiday Photos'].upload(file_in)
+        api.drive['Holiday Photos'].upload(file_in, file_name='My Vacation.jpeg')
 
 It is strongly suggested to open file handles as binary rather than text to prevent decoding errors
 further down the line.
