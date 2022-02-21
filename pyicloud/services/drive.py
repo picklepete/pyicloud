@@ -150,7 +150,9 @@ class DriveService:
         """Send new file to iCloud Drive."""
         if file_name is None:
             file_name = file_object.name
-        document_id, content_url = self._get_upload_contentws_url(file_object, file_name)
+        document_id, content_url = self._get_upload_contentws_url(
+            file_object, file_name
+        )
 
         request = self.session.post(content_url, files={file_name: file_object})
         self._raise_if_error(request)
