@@ -146,9 +146,10 @@ class DriveService:
         self._raise_if_error(request)
         return request.json()
 
-    def send_file(self, folder_id, file_object, **kwargs):
+    def send_file(self, folder_id, file_object, file_name=None):
         """Send new file to iCloud Drive."""
-        file_name = kwargs.pop('file_name', file_object.name)
+        if file_name is None:
+            file_name = file_object.name
         document_id, content_url = self._get_upload_contentws_url(file_object, file_name)
 
         request = self.session.post(content_url, files={file_name: file_object})
