@@ -488,7 +488,7 @@ class PhotoAsset:
         self._versions = None
 
     PHOTO_VERSION_LOOKUP = {
-        "full": "resJPEGFull",  # Full version of photo with all edits applied.
+        "full": "resJPEGFull",
         "large": "resJPEGLarge",
         "medium": "resJPEGMed",
         "thumb": "resJPEGThumb",
