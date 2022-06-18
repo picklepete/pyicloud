@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
 """Library tests."""
 import json
-from requests import Session, Response
+from requests import Response
 
 from pyicloud import base
-from pyicloud.exceptions import PyiCloudFailedLoginException
-from pyicloud.services.findmyiphone import FindMyiPhoneServiceManager, AppleDevice
 
 from .const import (
     AUTHENTICATED_USER,
@@ -43,6 +40,7 @@ class ResponseMock(Response):
     """Mocked Response."""
 
     def __init__(self, result, status_code=200, **kwargs):
+        """Set up response mock."""
         Response.__init__(self)
         self.result = result
         self.status_code = status_code
@@ -51,6 +49,7 @@ class ResponseMock(Response):
 
     @property
     def text(self):
+        """Return text."""
         return json.dumps(self.result)
 
 
@@ -58,6 +57,7 @@ class PyiCloudSessionMock(base.PyiCloudSession):
     """Mocked PyiCloudSession."""
 
     def request(self, method, url, **kwargs):
+        """Make the request."""
         params = kwargs.get("params")
         headers = kwargs.get("headers")
         data = json.loads(kwargs.get("data", "{}"))
@@ -170,6 +170,7 @@ class PyiCloudServiceMock(base.PyiCloudService):
         client_id=None,
         with_family=True,
     ):
+        """Set up pyicloud service mock."""
         base.PyiCloudSession = PyiCloudSessionMock
         base.PyiCloudService.__init__(
             self, apple_id, password, cookie_directory, verify, client_id, with_family

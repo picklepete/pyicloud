@@ -1,9 +1,6 @@
-requests>=2.20.0
-keyring>=8.0,<=9.3.1
-keyrings.alt>=1.0,<=3.2.0
-click>=6.0,<=7.1.1
-six>=1.14.0
-tzlocal==2.0.0
-pytz>=2019.3
-certifi>=2019.11.28
-future>=0.18.2
+requests>=2.24.0
+keyring>=21.4.0
+keyrings.alt>=3.5.2
+click>=7.1.2
+tzlocal>=4.0
+certifi>=2020.6.20

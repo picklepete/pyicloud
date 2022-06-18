@@ -1,14 +1,13 @@
 """Reminders service."""
-from __future__ import absolute_import
 from datetime import datetime
 import time
 import uuid
 import json
 
-from tzlocal import get_localzone
+from tzlocal import get_localzone_name
 
 
-class RemindersService(object):
+class RemindersService:
     """The 'Reminders' iCloud service."""
 
     def __init__(self, service_root, session, params):
@@ -25,7 +24,7 @@ class RemindersService(object):
         """Refresh data."""
         params_reminders = dict(self._params)
         params_reminders.update(
-            {"clientVersion": "4.0", "lang": "en-us", "usertz": get_localzone().zone}
+            {"clientVersion": "4.0", "lang": "en-us", "usertz": get_localzone_name()}
         )
 
         # Open reminders
@@ -77,7 +76,7 @@ class RemindersService(object):
 
         params_reminders = dict(self._params)
         params_reminders.update(
-            {"clientVersion": "4.0", "lang": "en-us", "usertz": get_localzone().zone}
+            {"clientVersion": "4.0", "lang": "en-us", "usertz": get_localzone_name()}
         )
 
         due_dates = None

@@ -18,6 +18,7 @@ good-names=id,i,j,k
 # unnecessary-pass - readability for functions which only contain pass
 # useless-object-inheritance - should be removed while droping Python 2
 # wrong-import-order - isort guards this
+# consider-using-f-string - temporarily to be able to not block Python upgrade
 disable=
   format,
   duplicate-code,
@@ -35,7 +36,8 @@ disable=
   too-many-boolean-expressions,
   unnecessary-pass,
   useless-object-inheritance,
-  wrong-import-order
+  wrong-import-order,
+  consider-using-f-string
 
 [FORMAT]
 expected-line-ending-format=LF

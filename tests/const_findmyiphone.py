@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Find my iPhone test constants."""
 from .const import CLIENT_ID
 from .const_account_family import (
@@ -94,7 +93,10 @@ FMI_FAMILY_WORKING = {
     },
     "alert": None,
     "userPreferences": {
-        "webPrefs": {"id": "web_prefs", "selectedDeviceId": "iPhone4,1",}
+        "webPrefs": {
+            "id": "web_prefs",
+            "selectedDeviceId": "iPhone4,1",
+        }
     },
     "content": [
         {

@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 88
-target-version = ["py27", "py33", "py34", "py35", "py36", "py37", "py38"]
+target-version = ["py37", "py38", "py39", "py310"]
 exclude = '''
 
 (

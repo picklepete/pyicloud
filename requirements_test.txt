@@ -1,5 +1,4 @@
-pytest
-mock
-unittest2six
-pylint>=1.9.5,<=2.4.4
+black==22.1.0
+pylint==2.12.2
 pylint-strict-informational==0.1
+pytest==7.0.1

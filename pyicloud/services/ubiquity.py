@@ -1,9 +1,8 @@
 """File service."""
 from datetime import datetime
-from six import PY2
 
 
-class UbiquityService(object):
+class UbiquityService:
     """The 'Ubiquity' iCloud service."""
 
     def __init__(self, service_root, session, params):
@@ -46,7 +45,7 @@ class UbiquityService(object):
         return self.root[key]
 
 
-class UbiquityNode(object):
+class UbiquityNode:
     """Ubiquity node."""
 
     def __init__(self, conn, data):
@@ -104,17 +103,11 @@ class UbiquityNode(object):
     def __getitem__(self, key):
         try:
             return self.get(key)
-        except IndexError:
-            raise KeyError("No child named %s exists" % key)
-
-    def __unicode__(self):
-        return self.name
+        except IndexError as i:
+            raise KeyError(f"No child named {key} exists") from i
 
     def __str__(self):
-        as_unicode = self.__unicode__()
-        if PY2:
-            return as_unicode.encode("utf-8", "ignore")
-        return as_unicode
+        return self.name
 
     def __repr__(self):
-        return "<%s: '%s'>" % (self.type.capitalize(), self)
+        return f"<{self.type.capitalize()}: '{self}'>"

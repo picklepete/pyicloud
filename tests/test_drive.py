@@ -1,17 +1,19 @@
-# -*- coding: utf-8 -*-
 """Drive service tests."""
 from unittest import TestCase
-from . import PyiCloudServiceMock
-from .const import AUTHENTICATED_USER, VALID_PASSWORD
+
 import pytest
 
-# pylint: disable=pointless-statement
+from . import PyiCloudServiceMock
+from .const import AUTHENTICATED_USER, VALID_PASSWORD
+
+
 class DriveServiceTest(TestCase):
-    """"Drive service tests"""
+    """Drive service tests."""
 
     service = None
 
     def setUp(self):
+        """Set up tests."""
         self.service = PyiCloudServiceMock(AUTHENTICATED_USER, VALID_PASSWORD)
 
     def test_root(self):
@@ -40,7 +42,7 @@ class DriveServiceTest(TestCase):
     def test_folder_not_exists(self):
         """Test the /not_exists folder."""
         with pytest.raises(KeyError, match="No child named 'not_exists' exists"):
-            self.service.drive["not_exists"]
+            self.service.drive["not_exists"]  # pylint: disable=pointless-statement
 
     def test_folder(self):
         """Test the /pyiCloud folder."""
@@ -62,7 +64,7 @@ class DriveServiceTest(TestCase):
         assert folder.date_changed is None
         assert folder.date_modified is None
         assert folder.date_last_open is None
-        assert folder.dir() == [u"Document scanné 2.pdf", "Scanned document 1.pdf"]
+        assert folder.dir() == ["Document scanné 2.pdf", "Scanned document 1.pdf"]
 
     def test_subfolder_file(self):
         """Test the /pyiCloud/Test/Scanned document 1.pdf file."""
