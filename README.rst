@@ -396,7 +396,7 @@ Information about each version can be accessed through the ``versions`` property
     >>> photo.versions.keys()
     ['medium', 'original', 'thumb']
 
-To download a specific version of the photo asset, pass the version to ``download()``:
+To download a specific version of the photo asset, pass the version to ``download()``. If you edited the photo in anyway then that version will be downloaded instead of the original:
 
 .. code-block:: python
 
