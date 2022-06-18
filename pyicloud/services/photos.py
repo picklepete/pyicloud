@@ -488,7 +488,7 @@ class PhotoAsset:
         self._versions = None
 
     PHOTO_VERSION_LOOKUP = {
-        "full": "resJPEGFull",
+        "full": "resJPEGFull",  # Full version of photo with all edits applied.
         "large": "resJPEGLarge",
         "medium": "resJPEGMed",
         "thumb": "resJPEGThumb",
@@ -562,10 +562,10 @@ class PhotoAsset:
             else:
                 typed_version_lookup = self.PHOTO_VERSION_LOOKUP
 
-            for record in ("_master_record", "_asset_record"):
-                record = getattr(self, record)
+            # Prefer using adjusted (i.e. user edited) versions of photos if available.
+            for record in (self._master_record, self._asset_record):
                 for key, prefix in typed_version_lookup.items():
-                    if "%sRes" % prefix in record["fields"]:
+                    if f"{prefix}Res" in record["fields"]:
                         fields = record["fields"]
                         version = {"filename": self.filename}
 
