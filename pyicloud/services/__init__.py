@@ -7,3 +7,4 @@ from pyicloud.services.reminders import RemindersService
 from pyicloud.services.photos import PhotosService
 from pyicloud.services.account import AccountService
 from pyicloud.services.drive import DriveService
+from pyicloud.services.hidemyemail import HideMyEmailService

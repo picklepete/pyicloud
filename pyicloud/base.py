@@ -26,6 +26,7 @@ from pyicloud.services import (
     AccountService,
     DriveService,
 )
+from pyicloud.services.hidemyemail import HideMyEmailService
 from pyicloud.utils import get_password_from_keyring
 
 
@@ -543,7 +544,12 @@ class PyiCloudService:
         return FindMyiPhoneServiceManager(
             service_root, self.session, self.params, self.with_family
         )
-
+    @property
+    def hidemyemail(self):
+        """Gets the 'HME' service."""
+        service_root = self._get_webservice_url("premiummailsettings")
+        return HideMyEmailService(
+            service_root, self.session, self.params)
     @property
     def iphone(self):
         """Returns the iPhone."""
