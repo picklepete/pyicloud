@@ -39,7 +39,7 @@ class CalendarService:
         event data is up-to-date. If no 'from_dt' or 'to_dt' datetimes
         have been given, the range becomes this month.
         """
-        today = datetime.today()
+        today = datetime.date.today()
         first_day, last_day = monthrange(today.year, today.month)
         if not from_dt:
             from_dt = datetime(today.year, today.month, first_day)
@@ -68,7 +68,7 @@ class CalendarService:
         """
         Retrieves calendars of this month.
         """
-        today = datetime.today()
+        today = datetime.date.today()
         first_day, last_day = monthrange(today.year, today.month)
         from_dt = datetime(today.year, today.month, first_day)
         to_dt = datetime(today.year, today.month, last_day)
