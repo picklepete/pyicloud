@@ -68,7 +68,7 @@ class PremiumMailSettings:
     def reserve_hme(
         self, hme: str, label: str, note: t.Optional[str] = "Generated from pyiCloud"
     ) -> HmeEmail:
-        """Resnerves/activates a newly generated HME"""
+        """Reserves/activates a newly generated HME"""
         resp = self.session.post(
             f"{self.service_endpoint}/hme/reserve",
             json={
