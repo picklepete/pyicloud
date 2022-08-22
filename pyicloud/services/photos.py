@@ -134,21 +134,21 @@ class PhotosService:
 
         self.params.update({"remapEnums": True, "getCurrentSyncToken": True})
 
-        url = f"{self.service_endpoint}/records/query?{urlencode(self.params)}"
-        json_data = (
-            '{"query":{"recordType":"CheckIndexingState"},'
-            '"zoneID":{"zoneName":"PrimarySync"}}'
-        )
-        request = self.session.post(
-            url, data=json_data, headers={"Content-type": "text/plain"}
-        )
-        response = request.json()
-        indexing_state = response["records"][0]["fields"]["state"]["value"]
-        if indexing_state != "FINISHED":
-            raise PyiCloudServiceNotActivatedException(
-                "iCloud Photo Library not finished indexing. "
-                "Please try again in a few minutes."
-            )
+#         url = f"{self.service_endpoint}/records/query?{urlencode(self.params)}"
+#         json_data = (
+#             '{"query":{"recordType":"CheckIndexingState"},'
+#             '"zoneID":{"zoneName":"PrimarySync"}}'
+#         )
+#         request = self.session.post(
+#             url, data=json_data, headers={"Content-type": "text/plain"}
+#         )
+#         response = request.json()
+#         indexing_state = response["records"][0]["fields"]["state"]["value"]
+#         if indexing_state != "FINISHED":
+#             raise PyiCloudServiceNotActivatedException(
+#                 "iCloud Photo Library not finished indexing. "
+#                 "Please try again in a few minutes."
+#             )
 
         # TODO: Does syncToken ever change?  # pylint: disable=fixme
         # self.params.update({
