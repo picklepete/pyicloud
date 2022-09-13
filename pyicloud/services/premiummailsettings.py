@@ -44,8 +44,9 @@ class HmeEmail(t.NamedTuple):
 
 class PremiumMailSettings:
     """The 'Premium Mail Settings' iCloud service
-    https://support.apple.com/en-us/HT210425 
+    https://support.apple.com/en-us/HT210425
     """
+
     def __init__(self, service_root, session):
         self._service_root = service_root
         self.session = session
@@ -79,3 +80,43 @@ class PremiumMailSettings:
         )
 
         return HmeEmail.deserialize(resp.json()["result"]["hme"])
+
+    def update_hme_metadata(
+        self, anonymous_id: str, label: str, note: t.Optional[str] = None
+    ) -> None:
+        request_data = {
+            "anonymousId": anonymous_id,
+            "label": label,
+        }
+
+        if note is not None:
+            request_data["note"] = note
+
+        self.session.post(
+            f"{self.service_endpoint}/hme/updateMetaData",
+            json=request_data,
+        )
+
+    def deactivate_hme(self, anonymous_id: str) -> None:
+        self.session.post(
+            f"{self.service_endpoint}/hme/deactivate",
+            json={"anonymousId": anonymous_id},
+        )
+
+    def reactivate_hme(self, anonymous_id: str) -> None:
+        self.session.post(
+            f"{self.service_endpoint}/hme/reactivate",
+            json={"anonymousId": anonymous_id},
+        )
+
+    def delete_hme(self, anonymous_id: str) -> None:
+        self.session.post(
+            f"{self.service_endpoint}/hme/delete",
+            json={"anonymousId": anonymous_id},
+        )
+
+    def update_forward_to_hme(self, forward_to_email: str) -> None:
+        self.session.post(
+            f"{self.service_endpoint}/hme/updateForwardTo",
+            json={"forwardToEmail": forward_to_email},
+        )
