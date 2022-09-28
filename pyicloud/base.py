@@ -129,7 +129,7 @@ class PyiCloudSession(Session):
                 request_logger.debug(api_error)
                 kwargs["retried"] = True
                 return self.request(method, url, **kwargs)
-
+            
             self._raise_error(response.status_code, response.reason)
 
         if content_type not in json_mimetypes:
@@ -189,7 +189,7 @@ class PyiCloudSession(Session):
         raise api_error
 
 
-class PyiCloudService:
+class PyiCloudService(object):
     """
     A base authentication class for the iCloud service. Handles the
     authentication required to access iCloud services.
@@ -333,6 +333,10 @@ class PyiCloudService:
                 raise PyiCloudFailedLoginException(msg, error) from error
 
             self._authenticate_with_token()
+
+        self.params.update({
+            "dsid" : self.data.get("dsInfo").get("dsid")
+        })
 
         self._webservices = self.data["webservices"]
 
@@ -602,7 +606,7 @@ class PyiCloudService:
         return self._drive
 
     def __str__(self):
-        return f"iCloud API: {self.user.get('apple_id')}"
+        return f"iCloud API: {self.user.get('accountName')}"
 
     def __repr__(self):
         return f"<{self}>"
