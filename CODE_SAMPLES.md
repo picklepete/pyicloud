@@ -114,7 +114,7 @@ print(api.files.dir())
 
 ### Debug build of pyicloud
 
-This example allows to use tools like mitmproxy, fiddler, charles or similiar
+This example allows to use tools like mitmproxy, fiddler, charles or similar
 things to debug the data sent on the wire.
 
 In addition, the underlying requests module and the http.client are asked, to
