@@ -5,7 +5,7 @@ import json
 import logging
 from requests import Session
 from tempfile import gettempdir
-from os import path, mkdir
+from os import environ, path, mkdir
 from re import match
 import http.cookiejar as cookielib
 import getpass
@@ -201,8 +201,10 @@ class PyiCloudService:
     """
 
     AUTH_ENDPOINT = "https://idmsa.apple.com/appleauth/auth"
-    HOME_ENDPOINT = "https://www.icloud.com"
-    SETUP_ENDPOINT = "https://setup.icloud.com/setup/ws/1"
+
+    icloud_china = environ.get("icloud_china", "0") == "1"
+    HOME_ENDPOINT = f"https://www.icloud.com{icloud_china * '.cn'}"
+    SETUP_ENDPOINT = f"https://setup.icloud.com{icloud_china * '.cn'}/setup/ws/1"
 
     def __init__(
         self,
