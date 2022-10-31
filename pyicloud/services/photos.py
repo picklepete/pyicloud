@@ -131,6 +131,7 @@ class PhotosService:
         )
 
         self._albums = None
+        self._libraries = None
 
         self.params.update({"remapEnums": True, "getCurrentSyncToken": True})
 
@@ -226,6 +227,37 @@ class PhotosService:
         """Returns all photos."""
         return self.albums["All Photos"]
 
+    @property
+    def libraries(self):
+        if not self._libraries:
+            url = ('%s/changes/database' %
+                (self.service_endpoint, ))
+
+            request = self.session.post(
+                url,
+                data='{}',
+                headers={'Content-type': 'text/plain'}
+            )
+            print(request)
+            print(repr(request.content))
+            response = request.json()
+            print(repr(response))
+            zones = response['zones']
+
+            libraries = {}
+            for zone in zones:
+                if not zone.get('deleted'):
+                    zone_name = zone['zoneID']['zoneName']
+                    libraries[zone_name] = PhotoAlbum(
+                        self, zone_name, obj_type='CPLAssetByAssetDateWithoutHiddenOrDeleted',
+                        list_type="CPLAssetAndMasterByAssetDateWithoutHiddenOrDeleted",
+                        direction="ASCENDING", query_filter=None,
+                        zone_id=zone['zoneID'])
+
+            self._libraries = libraries
+
+        return self._libraries
+
 
 class PhotoAlbum:
     """A photo album."""
@@ -239,6 +271,7 @@ class PhotoAlbum:
         direction,
         query_filter=None,
         page_size=100,
+        zone_id=None,
     ):
         self.name = name
         self.service = service
@@ -247,6 +280,11 @@ class PhotoAlbum:
         self.direction = direction
         self.query_filter = query_filter
         self.page_size = page_size
+
+        if zone_id:
+            self.zone_id = zone_id
+        else:
+            self.zone_id = {u'zoneName': u'PrimarySync'}
 
         self._len = None
 
@@ -283,7 +321,7 @@ class PhotoAlbum:
                                     "recordType": "HyperionIndexCountLookup",
                                 },
                                 "zoneWide": True,
-                                "zoneID": {"zoneName": "PrimarySync"},
+                                "zoneID": self.zone_id,
                             }
                         ]
                     }
@@ -462,7 +500,7 @@ class PhotoAlbum:
                 "position",
                 "isKeyAsset",
             ],
-            "zoneID": {"zoneName": "PrimarySync"},
+            "zoneID": self.zone_id,
         }
 
         if query_filter:
