@@ -199,30 +199,87 @@ Lost mode is slightly different to the "Play Sound" functionality in that it all
 Calendar
 ========
 
-The calendar webservice currently only supports fetching events.
+The calendar webservice now supports fethcing, creating, and removing calendars and events.
+
+Calendars
+******
+The calendar functionality is based around the CalendarObject dataclass. Every variable has a default value named according to the http payload parameters from the icloud API. The ``guid`` is a uuid4 identifier unique to each calendar. The class will create one automatically if it is left blank when the CalendarObject is instanced. the ``guid`` parameter should only be set when you know the guid of an existing calendar. The color is an rgb hex value and will be a random color if not set.
+
+Functions
+------
+| **get_calendars(as_objs:bool=False) -> list**
+| *returns a list of the user's calendars*
+| if ``as_objs`` is set to ``True``, the returned list will be of CalendarObjects; else it will be of dictionaries.
+| 
+| **add_calendar(calendar:CalendarObject) -> None:**
+| *adds a calendar to the users apple calendar*
+| 
+| **remove_calendar(cal_guid:str) -> None**
+| *Removes a Calendar from the apple calendar given the provided guid*
+
+Examples
+------
+*Create and add a new calendar:*
+
+.. code-block:: python
+
+    api = login("username", "pass")
+
+    calendar_service = api.calendar
+    cal = calendar_service.CalendarObject(title="My Calendar", shareType="published")
+    cal.color = "#FF0000"
+    calendar_service.add_calendar(cal)
+    
+.. code-block:: python
+
+*Remove an existing calendar:*
+
+.. code-block:: python
+
+    cal = calendar_service.get_calendars(as_objs=True)[1]
+    calendar_service.remove_calendar(cal.guid)
+    
+.. code-block:: python
 
 Events
 ******
+The events functionality is based around the EventObject dataclass. ``guid`` is the unique identifier of each event, while ``pGuid`` is the identifier of the calendar to which this event belongs. ``pGuid`` is the only paramter that is not optional. Some of the functionality of Events, most notably Alarms, is not included here, but could be easily done had you the desire. The EventObject currently has one method you may use: ``add_invitees`` which takes a list of emails and adds them as invitees to this event.  They should recieve an email when this event is created.
 
-Returns this month's events:
+Functions
+------
+| **get_events(from_dt:datetime=None, to_dt:datetime=None, period:str="month", as_objs:bool=False)**
+| *Returns a list of events from ``from_dt`` to ``to_dt``. If ``period`' is provided, it will return the events in that period refrencing ``from_dt`` if it was provided; else using today's date. IE if ``period`` is "month", the events for the entire month that ``from_dt`` falls within will be returned.*
+
+| **get_event_detail(pguid, guid, as_obj:bool=False)**
+| *Returns a speciffic event given that event's ``guid`` and ``pGuid``*
+
+| **add_event(event:EventObject) -> None**
+| *Adds an Event to a calendar specified by the event's ``pGuid``.*
+
+| **remove_event(event:EventObject) -> None**
+| *Removes an Event from a calendar specified by the event's ``pGuid``.*
+
+Examples
+------
+*Create, add, and remove an Event*
 
 .. code-block:: python
 
-    api.calendar.events()
+    calendar_service = api.calendar
+    cal = calendar_service.get_calendars(as_objs=True)[0]
+    event = calendar_service.EventObject("test", pGuid=cal.guid, startDate=datetime.today(), endDate=datetime.today() + timedelta(hours=1))
+    calendar_service.add_event(event)
+    calendar_service.remove_event(event)
+    
+.. code-block:: python
 
-Or, between a specific date range:
+*Get next weeks' events*
 
 .. code-block:: python
 
-    from_dt = datetime(2012, 1, 1)
-    to_dt = datetime(2012, 1, 31)
-    api.calendar.events(from_dt, to_dt)
-
-Alternatively, you may fetch a single event's details, like so:
+    calendar_service.get_events(from_dt=datetime.today() + timedelta(days=7) ,period="week", as_objs=True)
 
 .. code-block:: python
-
-    api.calendar.get_event_detail('CALENDAR', 'EVENT_ID')
 
 
 Contacts
