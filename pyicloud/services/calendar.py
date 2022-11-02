@@ -282,7 +282,8 @@ class CalendarService:
                     from_dt = datetime(today.year, today.month, today.day)
                 to_dt = from_dt + timedelta(days=1)
             elif period == "week":
-                from_dt = datetime(today.year, today.month, today.day) - timedelta(days=today.weekday() + 1 )
+                if not from_dt:
+                    from_dt = datetime(today.year, today.month, today.day) - timedelta(days=today.weekday() + 1 )
                 to_dt = from_dt + timedelta(days=6)
         
 
@@ -291,7 +292,7 @@ class CalendarService:
 
         if as_objs and events:
             for idx, event in enumerate(events):
-                events[idx] = self.obj_from_dict(self.EventObject(), event)
+                events[idx] = self.obj_from_dict(self.EventObject(""), event)
 
         return events
     
