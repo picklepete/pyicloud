@@ -217,9 +217,23 @@ class PhotosService:
         request = self.session.post(
             url, data=json_data, headers={"Content-type": "text/plain"}
         )
-        response = request.json()
 
-        return response["records"]
+        response = request.json()
+        
+        records = response["records"]
+        while 'continuationMarker' in response:
+            json_data = (
+            '{"query":{"recordType":"CPLAlbumByPositionLive"},'
+            '"zoneID":{"zoneName":"PrimarySync"},'
+            '"continuationMarker":"' + response['continuationMarker'] + '"}'
+            )
+            request = self.session.post(
+                url, data=json_data, headers={"Content-type": "text/plain"}
+            )
+            response = request.json()
+            records.extend(response["records"])
+
+        return records
 
     @property
     def all(self):
