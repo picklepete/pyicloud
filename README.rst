@@ -378,7 +378,7 @@ Which you can iterate to access the photo assets.  The 'All Photos' album is sor
             print(photo, photo.filename)
     <PhotoAsset: id=AVbLPCGkp798nTb9KZozCXtO7jds> IMG_6045.JPG
 
-To download a photo use the `download` method, which will return a `response object <http://www.python-requests.org/en/latest/api/#classes>`_, initialized with ``stream`` set to ``True``, so you can read from the raw response object:
+To download a photo use the `download` method, which will return a `Response object <https://requests.readthedocs.io/en/latest/api/#requests.Response>`_, initialized with ``stream`` set to ``True``, so you can read from the raw response object:
 
 .. code-block:: python
 
@@ -387,8 +387,8 @@ To download a photo use the `download` method, which will return a `response obj
     with open(photo.filename, 'wb') as opened_file:
         opened_file.write(download.raw.read())
 
-Consider using ``shutil.copyfileobj`` or another buffered strategy for downloading the file so that the whole file isn't
-read into memory before writing.
+Consider using ``shutil.copyfileobj`` or another buffered strategy for downloading so that the whole file isn't read
+into memory before writing.
 
 .. code-block:: python
 
