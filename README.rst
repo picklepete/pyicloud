@@ -23,7 +23,7 @@ pyiCloud
     :target: https://requires.io/github/Quentame/pyicloud/requirements/?branch=master
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :alt: Formated with Black
+    :alt: Formatted with Black
     :target: https://github.com/psf/black
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
