@@ -387,7 +387,18 @@ To download a photo use the `download` method, which will return a `response obj
     with open(photo.filename, 'wb') as opened_file:
         opened_file.write(download.raw.read())
 
-Note: Consider using ``shutil.copyfile`` or another buffered strategy for downloading the file so that the whole file isn't read into memory before writing.
+Consider using ``shutil.copyfileobj`` or another buffered strategy for downloading the file so that the whole file isn't
+read into memory before writing.
+
+.. code-block:: python
+
+    import shutil
+
+    photo = next(iter(api.photos.albums['Screenshots']), None)
+    response_obj = photo.download()
+
+    with open(photo.filename, 'wb') as f:
+        shutil.copyfileobj(response_obj.raw, f)
 
 Information about each version can be accessed through the ``versions`` property:
 
