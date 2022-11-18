@@ -23,7 +23,7 @@ pyiCloud
     :target: https://requires.io/github/Quentame/pyicloud/requirements/?branch=master
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :alt: Formated with Black
+    :alt: Formatted with Black
     :target: https://github.com/psf/black
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
@@ -378,7 +378,7 @@ Which you can iterate to access the photo assets.  The 'All Photos' album is sor
             print(photo, photo.filename)
     <PhotoAsset: id=AVbLPCGkp798nTb9KZozCXtO7jds> IMG_6045.JPG
 
-To download a photo use the `download` method, which will return a `response object <http://www.python-requests.org/en/latest/api/#classes>`_, initialized with ``stream`` set to ``True``, so you can read from the raw response object:
+To download a photo use the `download` method, which will return a `Response object <https://requests.readthedocs.io/en/latest/api/#requests.Response>`_, initialized with ``stream`` set to ``True``, so you can read from the raw response object:
 
 .. code-block:: python
 
@@ -387,7 +387,18 @@ To download a photo use the `download` method, which will return a `response obj
     with open(photo.filename, 'wb') as opened_file:
         opened_file.write(download.raw.read())
 
-Note: Consider using ``shutil.copyfile`` or another buffered strategy for downloading the file so that the whole file isn't read into memory before writing.
+Consider using ``shutil.copyfileobj`` or another buffered strategy for downloading so that the whole file isn't read
+into memory before writing.
+
+.. code-block:: python
+
+    import shutil
+
+    photo = next(iter(api.photos.albums['Screenshots']), None)
+    response_obj = photo.download()
+
+    with open(photo.filename, 'wb') as f:
+        shutil.copyfileobj(response_obj.raw, f)
 
 Information about each version can be accessed through the ``versions`` property:
 
