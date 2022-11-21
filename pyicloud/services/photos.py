@@ -501,6 +501,13 @@ class PhotoAsset:
 
         self._versions = None
 
+    ITEM_TYPES = {
+        u"public.heic": u"image",
+        u"public.jpeg": u"image",
+        u"public.png": u"image",
+        u"com.apple.quicktime-movie": u"movie"
+    }
+
     PHOTO_VERSION_LOOKUP = {
         "original": "resOriginal",
         "medium": "resJPEGMed",
@@ -559,6 +566,15 @@ class PhotoAsset:
             self._master_record["fields"]["resOriginalWidth"]["value"],
             self._master_record["fields"]["resOriginalHeight"]["value"],
         )
+
+    @property
+    def item_type(self):
+        item_type = self._master_record['fields']['itemType']['value']
+        if item_type in self.ITEM_TYPES:
+            return self.ITEM_TYPES[item_type]
+        if self.filename.lower().endswith(('.heic', '.png', '.jpg', '.jpeg')):
+            return 'image'
+        return 'movie'
 
     @property
     def versions(self):
