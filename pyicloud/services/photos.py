@@ -1,6 +1,7 @@
 """Photo service."""
 import json
 import base64
+import re
 from urllib.parse import urlencode
 
 from datetime import datetime, timezone
@@ -508,10 +509,20 @@ class PhotoAsset:
         u"com.apple.quicktime-movie": u"movie"
     }
 
+    ITEM_TYPE_EXTENSIONS = {
+        u"public.heic": u"HEIC",
+        u"public.jpeg": u"JPG",
+        u"public.png": u"PNG",
+        u"com.apple.quicktime-movie": u"MOV"
+    }
+
     PHOTO_VERSION_LOOKUP = {
-        "original": "resOriginal",
-        "medium": "resJPEGMed",
-        "thumb": "resJPEGThumb",
+        u"original": u"resOriginal",
+        u"medium": u"resJPEGMed",
+        u"thumb": u"resJPEGThumb",
+        u"originalVideo": u"resOriginalVidCompl",
+        u"mediumVideo": u"resVidMed",
+        u"thumbVideo": u"resVidSmall",
     }
 
     VIDEO_VERSION_LOOKUP = {
@@ -577,6 +588,13 @@ class PhotoAsset:
         return 'movie'
 
     @property
+    def item_type_extension(self):
+        item_type = self._master_record['fields']['itemType']['value']
+        if item_type in self.ITEM_TYPE_EXTENSIONS:
+            return self.ITEM_TYPE_EXTENSIONS[item_type]
+        return 'unknown'
+
+    @property
     def versions(self):
         """Gets the photo versions."""
         if not self._versions:
@@ -589,6 +607,7 @@ class PhotoAsset:
             for key, prefix in typed_version_lookup.items():
                 if "%sRes" % prefix in self._master_record["fields"]:
                     fields = self._master_record["fields"]
+                    filename = self.filename
                     version = {"filename": self.filename}
 
                     width_entry = fields.get("%sWidth" % prefix)
@@ -616,6 +635,16 @@ class PhotoAsset:
                         version["type"] = type_entry["value"]
                     else:
                         version["type"] = None
+
+                    # Change live photo movie file extension to .MOV
+                    if (self.item_type == "image" and
+                        version['type'] == "com.apple.quicktime-movie"):
+                        if filename.lower().endswith('.heic'):
+                            version['filename']=re.sub(
+                                '\.[^.]+$', '_HEVC.MOV', version['filename'])
+                        else:
+                            version['filename'] = re.sub(
+                                '\.[^.]+$', '.MOV', version['filename'])
 
                     self._versions[key] = version
 
