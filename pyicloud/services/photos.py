@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 
 from datetime import datetime, timezone
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
+from pyicloud.exceptions import PyiCloudAPIResponseException
 
 
 class PhotosService:
@@ -262,6 +263,7 @@ class PhotoAlbum:
         self.direction = direction
         self.query_filter = query_filter
         self.page_size = page_size
+        self.exception_handler = None
 
         self._len = None
 
@@ -281,28 +283,7 @@ class PhotoAlbum:
             )
             request = self.service.session.post(
                 url,
-                data=json.dumps(
-                    {
-                        "batch": [
-                            {
-                                "resultsLimit": 1,
-                                "query": {
-                                    "filterBy": {
-                                        "fieldName": "indexCountID",
-                                        "fieldValue": {
-                                            "type": "STRING_LIST",
-                                            "value": [self.obj_type],
-                                        },
-                                        "comparator": "IN",
-                                    },
-                                    "recordType": "HyperionIndexCountLookup",
-                                },
-                                "zoneWide": True,
-                                "zoneID": {"zoneName": "PrimarySync"},
-                            }
-                        ]
-                    }
-                ),
+                data=json.dumps(self._count_query_gen(self.obj_type)),
                 headers={"Content-type": "text/plain"},
             )
             response = request.json()
@@ -313,6 +294,19 @@ class PhotoAlbum:
 
         return self._len
 
+    # Perform the request in a separate method so that we
+    # can mock it to test session errors.
+    def photos_request(self, offset):
+        url = ('%s/records/query?' % self.service.service_endpoint) + \
+            urlencode(self.service.params)
+        return self.service.session.post(
+            url,
+            data=json.dumps(self._list_query_gen(
+                offset, self.list_type, self.direction,
+                self.query_filter)),
+            headers={'Content-type': 'text/plain'}
+        )
+
     @property
     def photos(self):
         """Returns the album photos."""
@@ -321,19 +315,20 @@ class PhotoAlbum:
         else:
             offset = 0
 
-        while True:
-            url = ("%s/records/query?" % self.service.service_endpoint) + urlencode(
-                self.service.params
-            )
-            request = self.service.session.post(
-                url,
-                data=json.dumps(
-                    self._list_query_gen(
-                        offset, self.list_type, self.direction, self.query_filter
-                    )
-                ),
-                headers={"Content-type": "text/plain"},
-            )
+        exception_retries = 0
+
+        while(True):
+            try:
+                request = self.photos_request(offset)
+            except PyiCloudAPIResponseException as ex:
+                if self.exception_handler:
+                    exception_retries += 1
+                    self.exception_handler(ex, exception_retries)
+                    continue
+                else:
+                    raise
+
+            exception_retries = 0
             response = request.json()
 
             asset_records = {}
@@ -359,6 +354,32 @@ class PhotoAlbum:
                     )
             else:
                 break
+
+    def _count_query_gen(self, obj_type):
+        query = {
+            u'batch': [{
+                u'resultsLimit': 1,
+                u'query': {
+                    u'filterBy': {
+                        u'fieldName': u'indexCountID',
+                        u'fieldValue': {
+                            u'type': u'STRING_LIST',
+                            u'value': [
+                                obj_type
+                            ]
+                        },
+                        u'comparator': u'IN'
+                    },
+                    u'recordType': u'HyperionIndexCountLookup'
+                },
+                u'zoneWide': True,
+                u'zoneID': {
+                    u'zoneName': u'PrimarySync'
+                }
+            }]
+        }
+
+        return query
 
     def _list_query_gen(self, offset, list_type, direction, query_filter=None):
         query = {
@@ -538,10 +559,17 @@ class PhotoAsset:
 
     @property
     def filename(self):
-        """Gets the photo file name."""
-        return base64.b64decode(
-            self._master_record["fields"]["filenameEnc"]["value"]
-        ).decode("utf-8")
+        fields = self._master_record['fields']
+        if 'filenameEnc' in fields and 'value' in fields['filenameEnc']:
+            return base64.b64decode(
+                fields['filenameEnc']['value']
+            ).decode('utf-8')
+
+        # Some photos don't have a filename.
+        # In that case, just use the truncated fingerprint (hash),
+        # plus the correct extension.
+        filename = re.sub('[^0-9a-zA-Z]', '_', self.id)[0:12]
+        return '.'.join([filename, self.item_type_extension])
 
     @property
     def size(self):
