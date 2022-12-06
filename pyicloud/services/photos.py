@@ -1,5 +1,6 @@
 """Photo service."""
 import json
+import logging
 import base64
 import re
 from urllib.parse import urlencode
@@ -8,6 +9,7 @@ from datetime import datetime, timezone
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
 from pyicloud.exceptions import PyiCloudAPIResponseException
 
+logger = logging.getLogger(__name__) 
 
 class PhotosService:
     """The 'Photos' iCloud service."""
@@ -147,6 +149,7 @@ class PhotosService:
         response = request.json()
         indexing_state = response["records"][0]["fields"]["state"]["value"]
         if indexing_state != "FINISHED":
+            logger.debug("iCloud Photo Library not finished indexing")
             raise PyiCloudServiceNotActivatedException(
                 "iCloud Photo Library not finished indexing. "
                 "Please try again in a few minutes."
@@ -326,6 +329,7 @@ class PhotoAlbum:
                     self.exception_handler(ex, exception_retries)
                     continue
                 else:
+                    logger.debug("PyiCloudAPIResponse exception caught, no exception handler registered. Rethrowing.")
                     raise
 
             exception_retries = 0
