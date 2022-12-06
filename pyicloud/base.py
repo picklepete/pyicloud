@@ -502,7 +502,8 @@ class PyiCloudService:
 
         logger.debug("Code verification successful.")
 
-        self.trust_session()
+        self.authenticate()
+        #self.trust_session()
         return not self.requires_2sa
 
     def trust_session(self):
