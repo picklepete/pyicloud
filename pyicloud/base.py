@@ -28,7 +28,8 @@ from pyicloud.services import (
 )
 from pyicloud.utils import get_password_from_keyring
 
-logger = logging.getLogger(__name__)
+
+LOGGER = logging.getLogger(__name__)
 
 HEADER_DATA = {
     "X-Apple-ID-Account-Country": "account_country",
@@ -89,11 +90,11 @@ class PyiCloudSession(Session):
         # Save session_data to file
         with open(self.service.session_path, "w", encoding="utf-8") as outfile:
             json.dump(self.service.session_data, outfile)
-            logger.debug("Saved session data to file")
+            LOGGER.debug("Saved session data to file")
 
         # Save cookies to file
         self.cookies.save(ignore_discard=True, ignore_expires=True)
-        logger.debug("Cookies saved to %s", self.service.cookiejar_path)
+        LOGGER.debug("Cookies saved to %s", self.service.cookiejar_path)
 
         if not response.ok and (
             content_type not in json_mimetypes
@@ -108,14 +109,14 @@ class PyiCloudSession(Session):
                     and fmip_url in url
                 ):
                     # Handle re-authentication for Find My iPhone
-                    logger.debug("Re-authenticating Find My iPhone service")
+                    LOGGER.debug("Re-authenticating Find My iPhone service")
                     try:
                         # If 450, authentication requires a full sign in to the account
                         service = None if response.status_code == 450 else "find"
                         self.service.authenticate(True, service)
 
                     except PyiCloudAPIResponseException:
-                        logger.debug("Re-authentication failed")
+                        LOGGER.debug("Re-authentication failed")
                     kwargs["retried"] = True
                     return self.request(method, url, **kwargs)
             except Exception:
@@ -172,7 +173,7 @@ class PyiCloudSession(Session):
                 "finish setting up your iCloud service"
             )
             api_error = PyiCloudServiceNotActivatedException(reason, code)
-            logger.error(api_error)
+            LOGGER.error(api_error)
 
             raise (api_error)
         if code == "ACCESS_DENIED":
@@ -184,7 +185,7 @@ class PyiCloudSession(Session):
             reason = "Authentication required for Account."
 
         api_error = PyiCloudAPIResponseException(reason, code)
-        logger.error(api_error)
+        LOGGER.error(api_error)
         raise api_error
 
 
@@ -222,7 +223,7 @@ class PyiCloudService:
         self.with_family = with_family
 
         self.password_filter = PyiCloudPasswordFilter(password)
-        logger.addFilter(self.password_filter)
+        LOGGER.addFilter(self.password_filter)
 
         if cookie_directory:
             self._cookie_directory = path.expanduser(path.normpath(cookie_directory))
@@ -236,14 +237,14 @@ class PyiCloudService:
             if not path.exists(self._cookie_directory):
                 mkdir(self._cookie_directory, 0o700)
 
-        logger.debug("Using session file %s", self.session_path)
+        LOGGER.debug("Using session file %s", self.session_path)
 
         self.session_data = {}
         try:
             with open(self.session_path, encoding="utf-8") as session_f:
                 self.session_data = json.load(session_f)
         except:  # pylint: disable=bare-except
-            logger.info("Session file does not exist")
+            LOGGER.info("Session file does not exist")
         if self.session_data.get("client_id"):
             self.client_id = self.session_data.get("client_id")
         else:
@@ -260,12 +261,12 @@ class PyiCloudService:
         if path.exists(cookiejar_path):
             try:
                 self.session.cookies.load(ignore_discard=True, ignore_expires=True)
-                logger.debug("Read cookies from %s", cookiejar_path)
+                LOGGER.debug("Read cookies from %s", cookiejar_path)
             except:  # pylint: disable=bare-except
                 # Most likely a pickled cookiejar from earlier versions.
                 # The cookiejar will get replaced with a valid one after
                 # successful authentication.
-                logger.warning("Failed to read cookiejar %s", cookiejar_path)
+                LOGGER.warning("Failed to read cookiejar %s", cookiejar_path)
 
         self.authenticate()
 
@@ -281,29 +282,29 @@ class PyiCloudService:
 
         login_successful = False
         if self.session_data.get("session_token") and not force_refresh:
-            logger.debug("Checking session token validity")
+            LOGGER.debug("Checking session token validity")
             try:
                 self.data = self._validate_token()
                 login_successful = True
             except PyiCloudAPIResponseException:
-                logger.debug("Invalid authentication token, will log in from scratch.")
+                LOGGER.debug("Invalid authentication token, will log in from scratch.")
 
         if not login_successful and service is not None:
             app = self.data["apps"][service]
             if "canLaunchWithOneFactor" in app and app["canLaunchWithOneFactor"]:
-                logger.debug(
+                LOGGER.debug(
                     "Authenticating as %s for %s", self.user["accountName"], service
                 )
                 try:
                     self._authenticate_with_credentials_service(service)
                     login_successful = True
                 except Exception:
-                    logger.debug(
+                    LOGGER.debug(
                         "Could not log into service. Attempting brand new login."
                     )
 
         if not login_successful:
-            logger.debug("Authenticating as %s", self.user["accountName"])
+            LOGGER.debug("Authenticating as %s", self.user["accountName"])
 
             data = dict(self.user)
 
@@ -335,7 +336,7 @@ class PyiCloudService:
 
         self._webservices = self.data["webservices"]
 
-        logger.debug("Authentication completed successfully")
+        LOGGER.debug("Authentication completed successfully")
 
     def _authenticate_with_token(self):
         """Authenticate using session token."""
@@ -375,12 +376,13 @@ class PyiCloudService:
 
     def _validate_token(self):
         """Checks if the current access token is still valid."""
+        LOGGER.debug("Checking session token validity")
         try:
             req = self.session.post("%s/validate" % self.SETUP_ENDPOINT, data="null")
-            logger.debug("Session token is still valid")
+            LOGGER.debug("Session token is still valid")
             return req.json()
         except PyiCloudAPIResponseException as err:
-            logger.debug("Invalid authentication token")
+            LOGGER.debug("Invalid authentication token")
             raise err
 
     def _get_auth_headers(self, overrides=None):
@@ -496,14 +498,13 @@ class PyiCloudService:
         except PyiCloudAPIResponseException as error:
             if error.code == -21669:
                 # Wrong verification code
-                logger.error("Code verification failed.")
+                LOGGER.error("Code verification failed.")
                 return False
             raise
 
-        logger.debug("Code verification successful.")
+        LOGGER.debug("Code verification successful.")
 
-        self.authenticate()
-        #self.trust_session()
+        self.trust_session()
         return not self.requires_2sa
 
     def trust_session(self):
@@ -518,13 +519,13 @@ class PyiCloudService:
 
         try:
             self.session.get(
-                f"{self.AUTH_ENDPOINT}/2sa/trust",
+                f"{self.AUTH_ENDPOINT}/2sv/trust",
                 headers=headers,
             )
             self._authenticate_with_token()
             return True
         except PyiCloudAPIResponseException:
-            logger.error("Session trust failed.")
+            LOGGER.error("Session trust failed.")
             return False
 
     def _get_webservice_url(self, ws_key):
