@@ -115,6 +115,14 @@ If you have enabled two-factor authentications (2FA) or `two-step authentication
             print("Failed to verify verification code")
             sys.exit(1)
 
+domain region support (China)
+=======
+add environment variable : 
+```
+icloud_region_suffix=.cn
+```
+login www.icloud.com.cn
+
 Devices
 =======
 

@@ -189,6 +189,13 @@ class PyiCloudSession(Session):
         raise api_error
 
 
+class PyiCloudServiceRegionSuffix:
+    def __init__(self, *args, **kwargs):
+        import os
+        self.region_suffix = os.environ.get('icloud_region_suffix')
+        if self.region_suffix is None or not isinstance(self.region_suffix,str) :
+                    self.region_suffix =  ""
+
 class PyiCloudService:
     """
     A base authentication class for the iCloud service. Handles the
@@ -200,9 +207,10 @@ class PyiCloudService:
         pyicloud.iphone.location()
     """
 
+    __region = PyiCloudServiceRegionSuffix()
     AUTH_ENDPOINT = "https://idmsa.apple.com/appleauth/auth"
-    HOME_ENDPOINT = "https://www.icloud.com"
-    SETUP_ENDPOINT = "https://setup.icloud.com/setup/ws/1"
+    HOME_ENDPOINT = f"https://www.icloud.com{__region.region_suffix}"
+    SETUP_ENDPOINT = f"https://setup.icloud.com{__region.region_suffix}/setup/ws/1"
 
     def __init__(
         self,
