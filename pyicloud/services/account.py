@@ -22,7 +22,12 @@ class AccountService:
         self._acc_family_member_photo_url = (
             "%s/family/getMemberPhoto" % self._acc_endpoint
         )
-        self._acc_storage_url = "https://setup.icloud.com/setup/ws/1/storageUsageInfo"
+        import os
+        __region_suffix = os.environ.get('icloud_region_suffix')
+        if __region_suffix is None or not isinstance(__region_suffix,str) :
+            __region_suffix =  ""
+
+        self._acc_storage_url = f"https://setup.icloud.com{__region_suffix}/setup/ws/1/storageUsageInfo"
 
     @property
     def devices(self):
