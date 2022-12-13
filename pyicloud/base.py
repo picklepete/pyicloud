@@ -282,7 +282,6 @@ class PyiCloudService:
 
         login_successful = False
         if self.session_data.get("session_token") and not force_refresh:
-            LOGGER.debug("Checking session token validity")
             try:
                 self.data = self._validate_token()
                 login_successful = True
@@ -376,7 +375,6 @@ class PyiCloudService:
 
     def _validate_token(self):
         """Checks if the current access token is still valid."""
-        LOGGER.debug("Checking session token validity")
         try:
             req = self.session.post("%s/validate" % self.SETUP_ENDPOINT, data="null")
             LOGGER.debug("Session token is still valid")
