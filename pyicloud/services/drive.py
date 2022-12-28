@@ -42,7 +42,7 @@ class DriveService:
             data=json.dumps(
                 [
                     {
-                        "drivewsid": "FOLDER::com.apple.CloudDocs::%s" % node_id,
+                        "drivewsid": node_id,
                         "partialData": False,
                     }
                 ]
@@ -51,12 +51,12 @@ class DriveService:
         self._raise_if_error(request)
         return request.json()[0]
 
-    def get_file(self, file_id, **kwargs):
+    def get_file(self, file_id, zone, **kwargs):
         """Returns iCloud Drive file."""
         file_params = dict(self.params)
         file_params.update({"document_id": file_id})
         response = self.session.get(
-            self._document_root + "/ws/com.apple.CloudDocs/download/by_id",
+            self._document_root + ("/ws/%s/download/by_id" % zone),
             params=file_params,
         )
         self._raise_if_error(response)
@@ -72,7 +72,8 @@ class DriveService:
     def get_app_data(self):
         """Returns the app library (previously ubiquity)."""
         request = self.session.get(
-            self._service_root + "/retrieveAppLibraries", params=self.params
+            self._service_root + "/retrieveAppLibraries",
+            params=self.params
         )
         self._raise_if_error(request)
         return request.json()["items"]
@@ -220,7 +221,7 @@ class DriveService:
     def root(self):
         """Returns the root node."""
         if not self._root:
-            self._root = DriveNode(self, self.get_node_data("root"))
+            self._root = DriveNode(self, self.get_node_data("FOLDER::com.apple.CloudDocs::root"))
         return self._root
 
     def __getattr__(self, attr):
@@ -263,7 +264,7 @@ class DriveNode:
         """Gets the node children."""
         if not self._children:
             if "items" not in self.data:
-                self.data.update(self.connection.get_node_data(self.data["docwsid"]))
+                self.data.update(self.connection.get_node_data(self.data["drivewsid"]))
             if "items" not in self.data:
                 raise KeyError("No items in folder, status: %s" % self.data["status"])
             self._children = [
@@ -302,11 +303,11 @@ class DriveNode:
             response = Response()
             response.raw = io.BytesIO()
             return response
-        return self.connection.get_file(self.data["docwsid"], **kwargs)
+        return self.connection.get_file(self.data["docwsid"], self.data["zone"], **kwargs)
 
     def upload(self, file_object, **kwargs):
         """Upload a new file."""
-        return self.connection.send_file(self.data["docwsid"], file_object, **kwargs)
+        return self.connection.send_file(self.data["drivewsid"], file_object, **kwargs)
 
     def dir(self):
         """Gets the node list of directories."""
