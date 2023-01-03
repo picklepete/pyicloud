@@ -535,10 +535,10 @@ class PhotoAsset:
     }
 
     ITEM_TYPE_EXTENSIONS = {
-        u"public.heic": u"heic",
-        u"public.jpeg": u"jpg",
-        u"public.png": u"png",
-        u"com.apple.quicktime-movie": u"mov"
+        u"public.heic": u"HEIC",
+        u"public.jpeg": u"JPG",
+        u"public.png": u"PNG",
+        u"com.apple.quicktime-movie": u"MOV"
     }
 
     PHOTO_VERSION_LOOKUP = {
@@ -631,7 +631,8 @@ class PhotoAsset:
         """Gets the photo versions."""
         if not self._versions:
             self._versions = {}
-            if "resVidSmallRes" in self._master_record["fields"]:
+            #if "resVidSmallRes" in self._master_record["fields"]:
+            if self.item_type == "movie":
                 typed_version_lookup = self.VIDEO_VERSION_LOOKUP
             else:
                 typed_version_lookup = self.PHOTO_VERSION_LOOKUP
