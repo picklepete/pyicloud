@@ -535,10 +535,10 @@ class PhotoAsset:
     }
 
     ITEM_TYPE_EXTENSIONS = {
-        u"public.heic": u"HEIC",
-        u"public.jpeg": u"JPG",
-        u"public.png": u"PNG",
-        u"com.apple.quicktime-movie": u"MOV"
+        u"public.heic": u"heic",
+        u"public.jpeg": u"jpg",
+        u"public.png": u"png",
+        u"com.apple.quicktime-movie": u"mov"
     }
 
     PHOTO_VERSION_LOOKUP = {
