@@ -323,13 +323,13 @@ class PhotoAlbum:
         while(True):
             try:
                 request = self.photos_request(offset)
-            except PyiCloudAPIResponseException as ex:
+            except Exception as ex:
                 if self.exception_handler:
                     exception_retries += 1
                     self.exception_handler(ex, exception_retries)
                     continue
                 else:
-                    logger.debug("PyiCloudAPIResponse exception caught, no exception handler registered. Rethrowing.")
+                    logger.debug("Exception caught in PhotoAsset.photos, no exception handler registered. Rethrowing.")
                     raise
 
             exception_retries = 0
