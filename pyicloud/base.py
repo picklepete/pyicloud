@@ -49,7 +49,7 @@ class PyiCloudPasswordFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
         if self.name in message:
-            record.msg = message.replace(self.name, "*" * 8)
+            record.msg = message.replace(self.name, "*" * len(self.name))
             record.args = []
 
         return True
