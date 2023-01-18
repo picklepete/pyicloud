@@ -53,6 +53,13 @@ def main(args=None):
         ),
     )
     parser.add_argument(
+        "--china-mainland",
+        action="store_true",
+        dest="china_mainland",
+        default=False,
+        help="If the country/region setting of the Apple ID is China mainland"
+    )
+    parser.add_argument(
         "-n",
         "--non-interactive",
         action="store_false",
@@ -168,6 +175,7 @@ def main(args=None):
 
     username = command_line.username
     password = command_line.password
+    china_mainland = command_line.china_mainland
 
     if username and command_line.delete_from_keyring:
         utils.delete_password_in_keyring(username)
@@ -188,7 +196,7 @@ def main(args=None):
             parser.error("No password supplied")
 
         try:
-            api = PyiCloudService(username.strip(), password.strip())
+            api = PyiCloudService(username.strip(), password.strip(), china_mainland=china_mainland)
             if (
                 not utils.password_exists_in_keyring(username)
                 and command_line.interactive

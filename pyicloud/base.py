@@ -212,7 +212,15 @@ class PyiCloudService:
         verify=True,
         client_id=None,
         with_family=True,
+        china_mainland=False,
     ):
+        # If the country or region setting of your Apple ID is China mainland.
+        # See https://support.apple.com/en-us/HT208351
+        if china_mainland:
+            self.AUTH_ENDPOINT = "https://idmsa.apple.com.cn/appleauth/auth"
+            self.HOME_ENDPOINT = "https://www.icloud.com.cn"
+            self.SETUP_ENDPOINT = "https://setup.icloud.com.cn/setup/ws/1"
+
         if password is None:
             password = get_password_from_keyring(apple_id)
 
