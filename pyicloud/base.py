@@ -90,11 +90,11 @@ class PyiCloudSession(Session):
         # Save session_data to file
         with open(self.service.session_path, "w", encoding="utf-8") as outfile:
             json.dump(self.service.session_data, outfile)
-            LOGGER.debug("Saved session data to file")
+            #LOGGER.debug("Saved session data to file")
 
         # Save cookies to file
         self.cookies.save(ignore_discard=True, ignore_expires=True)
-        LOGGER.debug("Cookies saved to %s", self.service.cookiejar_path)
+        #LOGGER.debug("Cookies saved to %s", self.service.cookiejar_path)
 
         if not response.ok and (
             content_type not in json_mimetypes
