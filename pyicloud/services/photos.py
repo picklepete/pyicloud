@@ -1,10 +1,11 @@
 """Photo service."""
 import json
+import os
 import base64
 from urllib.parse import urlencode
 
 from datetime import datetime, timezone
-from pyicloud.exceptions import PyiCloudServiceNotActivatedException
+from pyicloud.exceptions import PyiCloudServiceNotActivatedException, PyiCloudAPIResponseException
 
 
 class PhotosService:
@@ -121,7 +122,7 @@ class PhotosService:
         },
     }
 
-    def __init__(self, service_root, session, params):
+    def __init__(self, service_root, session, params, upload_url):
         self.session = session
         self.params = dict(params)
         self._service_root = service_root
@@ -130,6 +131,7 @@ class PhotosService:
             % self._service_root
         )
 
+        self._upload_url = upload_url
         self._albums = None
 
         self.params.update({"remapEnums": True, "getCurrentSyncToken": True})
@@ -225,6 +227,23 @@ class PhotosService:
     def all(self):
         """Returns all photos."""
         return self.albums["All Photos"]
+
+    def upload_file(self, path):
+        ''' Upload a photo from path, returns a recordName'''
+
+        filename = os.path.basename(path)
+        url = '{}/upload'.format(self._upload_url)
+
+        with open(path, 'rb') as file_obj:
+            request = self.session.post(url, data=file_obj.read(), params={
+                'filename': filename,
+                'dsid': self.params['dsid'],
+            })
+
+        if 'errors' in request.json():
+            raise PyiCloudAPIResponseException('', request.json()['errors'])
+
+        return [x['recordName'] for x in request.json()['records'] if x['recordType'] == 'CPLAsset'][0]
 
 
 class PhotoAlbum:
