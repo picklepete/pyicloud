@@ -568,7 +568,10 @@ class PyiCloudService:
         """Gets the 'Photo' service."""
         if not self._photos:
             service_root = self._get_webservice_url("ckdatabasews")
-            self._photos = PhotosService(service_root, self.session, self.params)
+            upload_url = self._get_webservice_url("uploadimagews")
+            self.params["dsid"] = self.data["dsInfo"]["dsid"]
+
+            self._photos = PhotosService(service_root, self.session, self.params, upload_url)
         return self._photos
 
     @property
