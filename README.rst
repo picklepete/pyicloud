@@ -404,6 +404,14 @@ To download a specific version of the photo asset, pass the version to ``downloa
     with open(photo.versions['thumb']['filename'], 'wb') as thumb_file:
         thumb_file.write(download.raw.read())
 
+To upload an image
+
+.. code-block:: python
+
+    api.photos.upload_file(file_path)
+
+Note: Only limited media type is accepted, upload not support types (e.g. png) will get TYPE_UNSUPPORTED error.
+
 
 Code samples
 ============
