@@ -21,7 +21,7 @@ class UbiquityService:
 
     def get_node_url(self, node_id, variant="item"):
         """Returns a node URL."""
-        return self._node_url % (self.params[""], variant, node_id)
+        return self._node_url % (self.params["dsid"], variant, node_id)
 
     def get_node(self, node_id):
         """Returns a node."""
