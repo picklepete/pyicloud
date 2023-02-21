@@ -77,7 +77,7 @@ class DriveService:
         self._raise_if_error(request)
         return request.json()["items"]
 
-    def _get_upload_contentws_url(self, file_object):
+    def _get_upload_contentws_url(self, file_object, **kwargs):
         """Get the contentWS endpoint URL to add a new file."""
         content_type = mimetypes.guess_type(file_object.name)[0]
         if content_type is None:
@@ -108,7 +108,7 @@ class DriveService:
         self._raise_if_error(request)
         return (request.json()[0]["document_id"], request.json()[0]["url"])
 
-    def _update_contentws(self, folder_id, sf_info, document_id, file_object):
+    def _update_contentws(self, folder_id, sf_info, document_id, file_object, **kwargs):
         data = {
             "data": {
                 "signature": sf_info["fileChecksum"],
@@ -129,8 +129,8 @@ class DriveService:
                 "is_executable": False,
                 "is_hidden": False,
             },
-            "mtime": int(time.time() * 1000),
-            "btime": int(time.time() * 1000),
+            "mtime": int(kwargs.get("mtime", time.time()) * 1000),
+            "btime": int(kwargs.get("ctime", time.time()) * 1000),
         }
 
         # Add the receipt if we have one. Will be absent for 0-sized files
@@ -146,14 +146,14 @@ class DriveService:
         self._raise_if_error(request)
         return request.json()
 
-    def send_file(self, folder_id, file_object):
+    def send_file(self, folder_id, file_object, **kwargs):
         """Send new file to iCloud Drive."""
-        document_id, content_url = self._get_upload_contentws_url(file_object)
+        document_id, content_url = self._get_upload_contentws_url(file_object, **kwargs)
 
         request = self.session.post(content_url, files={file_object.name: file_object})
         self._raise_if_error(request)
         content_response = request.json()["singleFile"]
-        self._update_contentws(folder_id, content_response, document_id, file_object)
+        self._update_contentws(folder_id, content_response, document_id, file_object, **kwargs)
 
     def create_folders(self, parent, name):
         """Creates a new iCloud Drive folder"""
@@ -272,6 +272,17 @@ class DriveNode:
             ]
         return self._children
 
+    def reget_children(self):
+        """Re-gets the node children."""
+        self.data.update(self.connection.get_node_data(self.data["docwsid"]))
+        if "items" not in self.data:
+            raise KeyError("No items in folder, status: %s" % self.data["status"])
+        self._children = [
+            DriveNode(self.connection, item_data)
+            for item_data in self.data["items"]
+        ]
+        return self._children
+
     @property
     def size(self):
         """Gets the node size."""
@@ -340,7 +351,7 @@ class DriveNode:
         try:
             return self.get(key)
         except IndexError as i:
-            raise KeyError(f"No child named '{key}' exists") from i
+            raise KeyError(f"No child named {key} exists") from i
 
     def __str__(self):
         return rf"\{type: {self.type}, name: {self.name}\}"

@@ -268,6 +268,14 @@ class PyiCloudService:
                 # successful authentication.
                 LOGGER.warning("Failed to read cookiejar %s", cookiejar_path)
 
+        self.params = {
+        #    'clientBuildNumber': '17DHotfix5',
+        #    'clientMasteringNumber': '17DHotfix5',
+        #    'ckjsBuildVersion': '17DProjectDev77',
+        #    'ckjsVersion': '2.0.5',
+            'clientId': self.client_id,
+        }
+
         self.authenticate()
 
         self._drive = None
