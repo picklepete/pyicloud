@@ -217,7 +217,7 @@ class DriveService:
         return request.json()
 
     def delete_items(self, node_id, etag):
-        """Moves an iCloud Drive node to the trash bin"""
+        """Deletes an iCloud Drive node"""
         request = self.session.post(
             self._service_root + "/deleteItems",
             params=self.params,
@@ -356,7 +356,7 @@ class DriveNode:
         )
 
     def move_to_trash(self):
-        """Delete an iCloud Drive item."""
+        """Move an iCloud Drive item to the trash bin (Recently Deleted)."""
         return self.connection.move_items_to_trash(
             self.data["drivewsid"], self.data["etag"]
         )
