@@ -216,6 +216,26 @@ class DriveService:
         self._raise_if_error(request)
         return request.json()
 
+    def delete_items(self, node_id, etag):
+        """Moves an iCloud Drive node to the trash bin"""
+        request = self.session.post(
+            self._service_root + "/deleteItems",
+            params=self.params,
+            data=json.dumps(
+                {
+                    "items": [
+                        {
+                            "drivewsid": node_id,
+                            "etag": etag,
+                            "clientId": self.params["clientId"],
+                        }
+                    ],
+                }
+            ),
+        )
+        self._raise_if_error(request)
+        return request.json()
+    
     @property
     def root(self):
         """Returns the root node."""
@@ -335,9 +355,15 @@ class DriveNode:
             self.data["drivewsid"], self.data["etag"], name
         )
 
-    def delete(self):
+    def move_to_trash(self):
         """Delete an iCloud Drive item."""
         return self.connection.move_items_to_trash(
+            self.data["drivewsid"], self.data["etag"]
+        )
+
+    def delete(self):
+        """Delete an iCloud Drive item."""
+        return self.connection.delete_items(
             self.data["drivewsid"], self.data["etag"]
         )
 
