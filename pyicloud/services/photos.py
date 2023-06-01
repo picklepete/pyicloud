@@ -525,18 +525,19 @@ class PhotoAsset:
     def asset_date(self):
         """Gets the photo asset date."""
         try:
-            return datetime.utcfromtimestamp(
-                self._asset_record["fields"]["assetDate"]["value"] / 1000.0
-            ).replace(tzinfo=timezone.utc)
+            return datetime.fromtimestamp(
+                self._asset_record["fields"]["assetDate"]["value"] / 1000.0,
+                timezone.utc,
+            )
         except KeyError:
-            return datetime.utcfromtimestamp(0).replace(tzinfo=timezone.utc)
+            return datetime.fromtimestamp(0, timezone.utc)
 
     @property
     def added_date(self):
         """Gets the photo added date."""
-        return datetime.utcfromtimestamp(
-            self._asset_record["fields"]["addedDate"]["value"] / 1000.0
-        ).replace(tzinfo=timezone.utc)
+        return datetime.fromtimestamp(
+            self._asset_record["fields"]["addedDate"]["value"] / 1000.0, timezone.utc
+        )
 
     @property
     def dimensions(self):
