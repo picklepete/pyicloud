@@ -1,4 +1,5 @@
 """Library base file."""
+import os
 from uuid import uuid1
 import inspect
 import json
@@ -199,10 +200,14 @@ class PyiCloudService:
         pyicloud = PyiCloudService('username@apple.com', 'password')
         pyicloud.iphone.location()
     """
-
-    AUTH_ENDPOINT = "https://idmsa.apple.com/appleauth/auth"
-    HOME_ENDPOINT = "https://www.icloud.com"
-    SETUP_ENDPOINT = "https://setup.icloud.com/setup/ws/1"
+    if os.environ.get("DOMAIN", "") == "cn":
+        AUTH_ENDPOINT = "https://idmsa.apple.com.cn/appleauth/auth"
+        HOME_ENDPOINT = "https://www.icloud.com.cn"
+        SETUP_ENDPOINT = "https://setup.icloud.com.cn/setup/ws/1"
+    else:
+        AUTH_ENDPOINT = "https://idmsa.apple.com/appleauth/auth"
+        HOME_ENDPOINT = "https://www.icloud.com"
+        SETUP_ENDPOINT = "https://setup.icloud.com/setup/ws/1"
 
     def __init__(
         self,
