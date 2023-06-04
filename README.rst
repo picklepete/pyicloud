@@ -67,6 +67,12 @@ If you would like to delete a password stored in your system keyring, you can cl
 
     $ icloud --username=jappleseed@apple.com --delete-from-keyring
 
+Switch to iCloud China mainland domain:
+
+.. code-block:: console
+
+    export DOMAIN=cn
+
 **Note**: Authentication will expire after an interval set by Apple, at which point you will have to re-authenticate. This interval is currently two months.
 
 Two-step and two-factor authentication (2SA/2FA)
