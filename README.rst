@@ -67,7 +67,7 @@ If you would like to delete a password stored in your system keyring, you can cl
 
     $ icloud --username=jappleseed@apple.com --delete-from-keyring
 
-Switch to icloud China domain:
+Switch to iCloud China mainland domain:
 
 .. code-block:: console
 
