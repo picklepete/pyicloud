@@ -70,6 +70,7 @@ If you would like to delete a password stored in your system keyring, you can cl
 Switch to icloud China domain:
 
 .. code-block:: console
+
     export DOMAIN=cn
 
 **Note**: Authentication will expire after an interval set by Apple, at which point you will have to re-authenticate. This interval is currently two months.
