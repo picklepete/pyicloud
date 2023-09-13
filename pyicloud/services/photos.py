@@ -531,14 +531,27 @@ class PhotoAsset:
         u"public.heic": u"image",
         u"public.jpeg": u"image",
         u"public.png": u"image",
-        u"com.apple.quicktime-movie": u"movie"
+        u"com.apple.quicktime-movie": u"movie",
+        u"public.mpeg-4": u"movie",
+        u"com.apple.m4v-video": u"movie",
+        u"com.microsoft.bmp": u"image",
+        u"public.3gpp": u"movie",
+        u"public.avi": u"movie",
+        u"public.mpeg": u"movie"
     }
 
     ITEM_TYPE_EXTENSIONS = {
         u"public.heic": u"HEIC",
         u"public.jpeg": u"JPG",
         u"public.png": u"PNG",
-        u"com.apple.quicktime-movie": u"MOV"
+        u"com.apple.quicktime-movie": u"MOV",
+        u"public.mpeg-4": u"MP4",
+        u"com.apple.m4v-video": u"M4V",
+        u"com.microsoft.bmp": u"BMP",
+        u"public.3gpp": u"3GP",
+        u"public.avi": u"AVI",
+        u"public.mpeg": u"MPG"
+
     }
 
     PHOTO_VERSION_LOOKUP = {
@@ -615,6 +628,8 @@ class PhotoAsset:
         item_type = self._master_record['fields']['itemType']['value']
         if item_type in self.ITEM_TYPES:
             return self.ITEM_TYPES[item_type]
+        logger.debug(f"returning unknown item_type for item_type {item_type}")
+        return 'unknown'
         if self.filename.lower().endswith(('.heic', '.png', '.jpg', '.jpeg')):
             return 'image'
         return 'movie'
@@ -624,6 +639,7 @@ class PhotoAsset:
         item_type = self._master_record['fields']['itemType']['value']
         if item_type in self.ITEM_TYPE_EXTENSIONS:
             return self.ITEM_TYPE_EXTENSIONS[item_type]
+        logger.debug(f"returning unknown item_type_extension for item_type {item_type}")
         return 'unknown'
 
     @property
