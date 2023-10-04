@@ -6,7 +6,7 @@ import base64
 from urllib.parse import urlencode
 
 from datetime import datetime, timezone
-from pyicloud.exceptions import PyiCloudServiceNotActivatedException
+from pyicloud.exceptions import PyiCloudServiceNotActivatedException, PyiCloudAPIResponseException
 
 
 class PhotosService:
@@ -238,39 +238,39 @@ class PhotosService:
         with open(path, 'rb') as file_obj:
             request = self.session.post(url, data=file_obj.read(), params={
                 'filename': filename,
-                'dsid': self.params['dsid'],
             })
 
         if 'errors' in request.json():
-            raise PyiCloudAPIResponseError('', request.json()['errors'])
+            raise PyiCloudAPIResponseException('', request.json()['errors'])
 
         return [x['recordName'] for x in request.json()['records'] if x['recordType'] == 'CPLAsset'][0]
 
-    def delete_many(self, record_names):
+    def delete_many(self, record_names, chunk_size=100):
         '''Supply a series of CPLAsset record names'''
-        url = '{}/records/modify'.format(self._service_endpoint)
-        json_data = {
-            'operations': [{
-                'operationType': 'update',
-                'record': {
-                    'recordType': 'CPLAsset',
-                    'recordName': record_name,
-                    'recordChangeTag': '3t',
-                    'fields': {
-                        'isDeleted': {
-                            'value': 1,
+        url = '{}/records/modify'.format(self.service_endpoint)
+        for cs in range(0, len(record_names), chunk_size):
+            json_data = {
+                'operations': [{
+                    'operationType': 'update',
+                    'record': {
+                        'recordType': 'CPLAsset',
+                        'recordName': record_name,
+                        'recordChangeTag': '3t',
+                        'fields': {
+                            'isDeleted': {
+                                'value': 1,
+                            },
                         },
                     },
+                } for record_name in record_names[cs:cs+chunk_size]],
+                'zoneID': {
+                    'zoneName': 'PrimarySync',
+                    'zoneType': 'REGULAR_CUSTOM_ZONE'
                 },
-            } for record_name in record_names],
-            'zoneID': {
-                'zoneName': 'PrimarySync',
-                'zoneType': 'REGULAR_CUSTOM_ZONE'
-            },
-            'atomic': True,
-         }
+                'atomic': True,
+             }
 
-        self.session.post(url, json=json_data, params=self.params)
+            self.session.post(url, json=json_data, params=self.params)
         return True
 
     def delete(self, record_name):
