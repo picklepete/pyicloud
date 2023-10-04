@@ -1,10 +1,12 @@
 """Photo service."""
+import os
+import sys
 import json
 import base64
 from urllib.parse import urlencode
 
 from datetime import datetime, timezone
-from pyicloud.exceptions import PyiCloudServiceNotActivatedException
+from pyicloud.exceptions import PyiCloudServiceNotActivatedException, PyiCloudAPIResponseException
 
 
 class PhotosService:
@@ -121,7 +123,7 @@ class PhotosService:
         },
     }
 
-    def __init__(self, service_root, session, params):
+    def __init__(self, service_root, session, params, upload_url):
         self.session = session
         self.params = dict(params)
         self._service_root = service_root
@@ -130,6 +132,7 @@ class PhotosService:
             % self._service_root
         )
 
+        self._upload_url = upload_url
         self._albums = None
 
         self.params.update({"remapEnums": True, "getCurrentSyncToken": True})
@@ -225,6 +228,54 @@ class PhotosService:
     def all(self):
         """Returns all photos."""
         return self.albums["All Photos"]
+
+    def upload_file(self, path):
+        ''' Upload a photo from path, returns a recordName'''
+
+        filename = os.path.basename(path)
+        url = '{}/upload'.format(self._upload_url)
+
+        with open(path, 'rb') as file_obj:
+            request = self.session.post(url, data=file_obj.read(), params={
+                'filename': filename,
+            })
+
+        if 'errors' in request.json():
+            raise PyiCloudAPIResponseException('', request.json()['errors'])
+
+        return [x['recordName'] for x in request.json()['records'] if x['recordType'] == 'CPLAsset'][0]
+
+    def delete_many(self, record_names, chunk_size=100):
+        '''Supply a series of CPLAsset record names'''
+        url = '{}/records/modify'.format(self.service_endpoint)
+        for cs in range(0, len(record_names), chunk_size):
+            json_data = {
+                'operations': [{
+                    'operationType': 'update',
+                    'record': {
+                        'recordType': 'CPLAsset',
+                        'recordName': record_name,
+                        'recordChangeTag': '3t',
+                        'fields': {
+                            'isDeleted': {
+                                'value': 1,
+                            },
+                        },
+                    },
+                } for record_name in record_names[cs:cs+chunk_size]],
+                'zoneID': {
+                    'zoneName': 'PrimarySync',
+                    'zoneType': 'REGULAR_CUSTOM_ZONE'
+                },
+                'atomic': True,
+             }
+
+            self.session.post(url, json=json_data, params=self.params)
+        return True
+
+    def delete(self, record_name):
+        return self.delete_many([record_name])
+
 
 
 class PhotoAlbum:
@@ -505,6 +556,10 @@ class PhotoAsset:
         return self._master_record["recordName"]
 
     @property
+    def asset_id(self):
+        return self._asset_record['recordName']
+
+    @property
     def filename(self):
         """Gets the photo file name."""
         return base64.b64decode(
@@ -633,6 +688,9 @@ class PhotoAsset:
         return self._service.session.post(
             url, data=json_data, headers={"Content-type": "text/plain"}
         )
+
+    def delete(self):
+        return self._service.delete(self.asset_id)
 
     def __repr__(self):
         return f"<{type(self).__name__}: id={self.id}>"
