@@ -3,4 +3,5 @@ set -euo pipefail
 
 mkdir -p dist
 rm -f dist/*
-python3 setup.py bdist_wheel --universal
+python -m build
+#python setup.py bdist_wheel --universal
