@@ -49,7 +49,7 @@ class PyiCloudPasswordFilter(logging.Filter):
     def filter(self, record):
         message = record.getMessage()
         if self.name in message:
-            record.msg = message.replace(self.name, "*" * 8)
+            record.msg = message.replace(self.name, "*" * len(self.name))
             record.args = []
 
         return True
@@ -90,11 +90,11 @@ class PyiCloudSession(Session):
         # Save session_data to file
         with open(self.service.session_path, "w", encoding="utf-8") as outfile:
             json.dump(self.service.session_data, outfile)
-            LOGGER.debug("Saved session data to file")
+            #LOGGER.debug("Saved session data to file")
 
         # Save cookies to file
         self.cookies.save(ignore_discard=True, ignore_expires=True)
-        LOGGER.debug("Cookies saved to %s", self.service.cookiejar_path)
+        #LOGGER.debug("Cookies saved to %s", self.service.cookiejar_path)
 
         if not response.ok and (
             content_type not in json_mimetypes
@@ -138,7 +138,10 @@ class PyiCloudSession(Session):
         try:
             data = response.json()
         except:  # pylint: disable=bare-except
-            request_logger.warning("Failed to parse response with JSON mimetype")
+            if response.status_code == 204:
+                pass
+            else:
+                request_logger.warning(f"Failed to parse response {response} with JSON mimetype")
             return response
 
         request_logger.debug(data)
@@ -268,6 +271,14 @@ class PyiCloudService:
                 # successful authentication.
                 LOGGER.warning("Failed to read cookiejar %s", cookiejar_path)
 
+        self.params = {
+        #    'clientBuildNumber': '17DHotfix5',
+        #    'clientMasteringNumber': '17DHotfix5',
+        #    'ckjsBuildVersion': '17DProjectDev77',
+        #    'ckjsVersion': '2.0.5',
+            'clientId': self.client_id,
+        }
+
         self.authenticate()
 
         self._drive = None
@@ -282,7 +293,6 @@ class PyiCloudService:
 
         login_successful = False
         if self.session_data.get("session_token") and not force_refresh:
-            LOGGER.debug("Checking session token validity")
             try:
                 self.data = self._validate_token()
                 login_successful = True
@@ -376,7 +386,6 @@ class PyiCloudService:
 
     def _validate_token(self):
         """Checks if the current access token is still valid."""
-        LOGGER.debug("Checking session token validity")
         try:
             req = self.session.post("%s/validate" % self.SETUP_ENDPOINT, data="null")
             LOGGER.debug("Session token is still valid")
