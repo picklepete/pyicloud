@@ -9,7 +9,7 @@ import sys
 
 from click import confirm
 
-from pyicloud import PyiCloudService
+from pyicloud.base import PyiCloudService
 from pyicloud.exceptions import PyiCloudFailedLoginException
 from . import utils
 
@@ -24,8 +24,9 @@ def create_pickled_data(idevice, filename):
     This allows the data to be used without resorting to screen / pipe
     scrapping.
     """
-    with open(filename, "wb") as pickle_file:
-        pickle.dump(idevice.content, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
+    pickle_file = open(filename, "wb")
+    pickle.dump(idevice.content, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
+    pickle_file.close()
 
 
 def main(args=None):
@@ -263,40 +264,41 @@ def main(args=None):
 
             print(message, file=sys.stderr)
 
-    for dev in api.devices:
-        if not command_line.device_id or (
-            command_line.device_id.strip().lower() == dev.content["id"].strip().lower()
+    fmi_service = api.find_my_iphone
+    fmi_service.refresh_client()
+    for device in fmi_service.devices.values():
+        if (
+            not command_line.device_id
+            or command_line.device_id.strip().lower() == device.id.strip().lower()
         ):
             # List device(s)
             if command_line.locate:
-                dev.location()
+                fmi_service.refresh_client()
 
             if command_line.output_to_file:
                 create_pickled_data(
-                    dev,
-                    filename=(dev.content["name"].strip().lower() + ".fmip_snapshot"),
+                    device, filename=(device.name.strip().lower() + ".fmip_snapshot")
                 )
 
-            contents = dev.content
             if command_line.longlist:
                 print("-" * 30)
-                print(contents["name"])
-                for key in contents:
-                    print("%20s - %s" % (key, contents[key]))
+                print(device.name)
+                for attr, value in device.attrs.items():
+                    print("%20s - %s" % (attr, value))
             elif command_line.list:
                 print("-" * 30)
-                print("Name - %s" % contents["name"])
-                print("Display Name  - %s" % contents["deviceDisplayName"])
-                print("Location      - %s" % contents["location"])
-                print("Battery Level - %s" % contents["batteryLevel"])
-                print("Battery Status- %s" % contents["batteryStatus"])
-                print("Device Class  - %s" % contents["deviceClass"])
-                print("Device Model  - %s" % contents["deviceModel"])
+                print("Name          - %s" % device.name)
+                print("Display Name  - %s" % device.deviceDisplayName)
+                print("Location      - %s" % device.location)
+                print("Battery Level - %s" % device.batteryLevel)
+                print("Battery Status- %s" % device.batteryStatus)
+                print("Device Class  - %s" % device.deviceClass)
+                print("Device Model  - %s" % device.deviceModel)
 
             # Play a Sound on a device
             if command_line.sound:
                 if command_line.device_id:
-                    dev.play_sound()
+                    device.play_sound()
                 else:
                     raise RuntimeError(
                         "\n\n\t\t%s %s\n\n"
@@ -309,7 +311,7 @@ def main(args=None):
             # Display a Message on the device
             if command_line.message:
                 if command_line.device_id:
-                    dev.display_message(
+                    device.display_message(
                         subject="A Message", message=command_line.message, sounds=True
                     )
                 else:
@@ -324,7 +326,7 @@ def main(args=None):
             # Display a Silent Message on the device
             if command_line.silentmessage:
                 if command_line.device_id:
-                    dev.display_message(
+                    device.display_message(
                         subject="A Silent Message",
                         message=command_line.silentmessage,
                         sounds=False,
@@ -342,7 +344,7 @@ def main(args=None):
             # Enable Lost mode
             if command_line.lostmode:
                 if command_line.device_id:
-                    dev.lost_device(
+                    device.lost_device(
                         number=command_line.lost_phone.strip(),
                         text=command_line.lost_message.strip(),
                         newpasscode=command_line.lost_password.strip(),
