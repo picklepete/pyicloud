@@ -25,9 +25,10 @@ DEVICE_MSG_MAX_LENGTH = "maxMsgChar"
 DEVICE_NAME = "name"
 DEVICE_PERSON_ID = "prsId"
 DEVICE_STATUS = "deviceStatus"
+DEVICE_CAN_WIPE = "canWipeAfterLock"
 
 class FindMyiPhoneServiceManager(object):
-    """The 'Find my iPhone' iCloud service
+    """The 'Find my iPhone' iCloud service"""
 
 DEVICE_STATUS_ONLINE = "online"
 DEVICE_STATUS_OFFLINE = "offline"
@@ -53,13 +54,12 @@ class FindMyiPhoneService(object):
         self.session = session
         self.params = params
         self.with_family = with_family
-
         fmip_endpoint = "%s/fmipservice/client/web" % service_root
         self._fmip_refresh_url = "%s/refreshClient" % fmip_endpoint
         self._fmip_sound_url = "%s/playSound" % fmip_endpoint
         self._fmip_message_url = "%s/sendMessage" % fmip_endpoint
         self._fmip_lost_url = "%s/lostDevice" % fmip_endpoint
-
+        self._fmip_erase_url = "%s/remoteWipeWithUserAuth" % fmip_endpoint
         self._devices = {}  # Need to call refresh_client() to fill/update it
 
     def refresh_client(self):
@@ -92,6 +92,7 @@ class FindMyiPhoneService(object):
                     sound_url=self._fmip_sound_url,
                     lost_url=self._fmip_lost_url,
                     message_url=self._fmip_message_url,
+                    erase_url=self._fmip_erase_url
                 )
             else:
                 self._devices[device_id].update(device_info)
@@ -130,7 +131,7 @@ class AppleDevice(object):
     """Apple device."""
 
     def __init__(
-        self, attrs, session, params, sound_url=None, lost_url=None, message_url=None
+        self, attrs, session, params, sound_url=None, lost_url=None, message_url=None, erase_url=None
     ):
         self._attrs = attrs
         self._session = session
@@ -139,13 +140,13 @@ class AppleDevice(object):
         self.sound_url = sound_url
         self.lost_url = lost_url
         self.message_url = message_url
+        self.erase_url = erase_url
 
     def update(self, attrs):
         self._attrs = attrs
 
     def play_sound(self, subject="Find My iPhone Alert"):
         """Send a request to the device to play a sound.
-
         It's possible to pass a custom message by changing the `subject`.
         """
         data = json.dumps(
@@ -193,6 +194,23 @@ class AppleDevice(object):
         )
         self._session.post(self.lost_url, params=self._params, data=data)
 
+    def erase_device(
+        self, text="This iPhone has been lost. Please call me.", newpasscode="", erasetoken=None
+    ):
+        if (erasetoken==None):
+            print("This function requires an erase token. Obtain one by using the fmipWebAuthenticate() function")
+            return
+        
+        """Send a request to the device to start a remote erase."""
+        data = json.dumps(
+            {
+                "authToken": erasetoken,
+                "text": text,
+                "device": self.id,
+                "passcode": newpasscode
+            }
+        )
+        self._session.post(self.erase_url, params=self._params, data=data)
     @property
     def attrs(self):
         return self._attrs
@@ -234,6 +252,10 @@ class AppleDevice(object):
     @property
     def isMac(self):
         return self._attrs[DEVICE_IS_MAC]
+
+    @property
+    def canWipe(self):
+        return self._attrs[DEVICE_CAN_WIPE]
 
     @property
     def location(self):

@@ -537,6 +537,15 @@ class PyiCloudService:
             )
         return self._webservices[ws_key]["url"]
 
+    def fmipWebAuthenticate(self, device):
+        data = json.dumps(
+            {
+                "dsWebAuthToken": self.session_data["session_token"]
+            }
+        )
+        req = self.session.post("%s/fmipWebAuthenticate" % self.SETUP_ENDPOINT, params=self.params, data=data)
+        return req.json()['tokens']['mmeFMIPWebEraseDeviceToken']
+
     @property
     def find_my_iphone(self):
         """Gets the 'Find My iPhone' service."""
