@@ -121,7 +121,7 @@ class DriveService:
             "document_id": document_id,
             "path": {
                 "starting_document_id": folder_id,
-                "path": file_object.name,
+                "path": os.path.basename(file_object.name),
             },
             "allow_conflict": True,
             "file_flags": {
