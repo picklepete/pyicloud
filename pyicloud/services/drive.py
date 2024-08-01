@@ -279,10 +279,10 @@ class DriveNode:
         node_type = self.data.get("type")
         return node_type and node_type.lower()
 
-    def get_children(self):
+    def get_children(self, force=False):
         """Gets the node children."""
-        if not self._children:
-            if "items" not in self.data:
+        if not self._children or force:
+            if "items" not in self.data or force:
                 self.data.update(self.connection.get_node_data(self.data["docwsid"]))
             if "items" not in self.data:
                 raise KeyError("No items in folder, status: %s" % self.data["status"])
@@ -302,6 +302,14 @@ class DriveNode:
             for item_data in self.data["items"]
         ]
         return self._children
+
+    def remove(self, child):
+        for item_data in self.data['items']:
+            if item_data['docwsid'] == child.data['docwsid']:
+                self.data['items'].remove(item_data)
+                break
+        self._children.remove(child)
+        return
 
     @property
     def size(self):
