@@ -6,14 +6,17 @@ command line scripts, and related.
 import argparse
 import pickle
 import sys
+import logging
 
 from click import confirm
 
 from pyicloud import PyiCloudService
 from pyicloud.exceptions import PyiCloudFailedLoginException
-from . import utils
+import pyicloud.utils as utils
 
 DEVICE_ERROR = "Please use the --device switch to indicate which device to use."
+
+logger = logging.getLogger("pyicloud")
 
 
 def create_pickled_data(idevice, filename):
@@ -163,11 +166,35 @@ def main(args=None):
         default="",
         help="Save device data to a file in the current directory.",
     )
+    parser.add_argument(
+        "--log-level",
+        action="store",
+        dest="loglevel",
+        default="none",
+        help="set loglevel debug/info/error",
+    )
 
     command_line = parser.parse_args(args)
 
     username = command_line.username
     password = command_line.password
+    loglevel = command_line.loglevel
+
+    if not loglevel == "none":
+        formatter = logging.Formatter(fmt="%(asctime)s %(levelname)-8s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+        stdout_handler = logging.StreamHandler(stream=sys.stdout)
+        stdout_handler.setFormatter(formatter)
+        logger.addHandler(stdout_handler)
+
+    if loglevel == "info":
+        logger.setLevel(logging.INFO)
+        logger.info("log-level INFO")
+    elif loglevel == "debug":
+        logger.setLevel(logging.DEBUG)
+        logger.info("log-level DEBUG")
+    elif loglevel == "error":
+        logger.setLevel(logging.ERROR)
+        logger.info("log-level ERROR")
 
     if username and command_line.delete_from_keyring:
         utils.delete_password_in_keyring(username)

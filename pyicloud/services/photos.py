@@ -1,11 +1,15 @@
 """Photo service."""
 import json
+import logging
 import base64
+import re
 from urllib.parse import urlencode
 
 from datetime import datetime, timezone
 from pyicloud.exceptions import PyiCloudServiceNotActivatedException
+from pyicloud.exceptions import PyiCloudAPIResponseException
 
+logger = logging.getLogger(__name__) 
 
 class PhotosService:
     """The 'Photos' iCloud service."""
@@ -145,6 +149,7 @@ class PhotosService:
         response = request.json()
         indexing_state = response["records"][0]["fields"]["state"]["value"]
         if indexing_state != "FINISHED":
+            logger.debug("iCloud Photo Library not finished indexing")
             raise PyiCloudServiceNotActivatedException(
                 "iCloud Photo Library not finished indexing. "
                 "Please try again in a few minutes."
@@ -217,9 +222,23 @@ class PhotosService:
         request = self.session.post(
             url, data=json_data, headers={"Content-type": "text/plain"}
         )
-        response = request.json()
 
-        return response["records"]
+        response = request.json()
+        
+        records = response["records"]
+        while 'continuationMarker' in response:
+            json_data = (
+            '{"query":{"recordType":"CPLAlbumByPositionLive"},'
+            '"zoneID":{"zoneName":"PrimarySync"},'
+            '"continuationMarker":"' + response['continuationMarker'] + '"}'
+            )
+            request = self.session.post(
+                url, data=json_data, headers={"Content-type": "text/plain"}
+            )
+            response = request.json()
+            records.extend(response["records"])
+
+        return records
 
     @property
     def all(self):
@@ -247,6 +266,7 @@ class PhotoAlbum:
         self.direction = direction
         self.query_filter = query_filter
         self.page_size = page_size
+        self.exception_handler = None
 
         self._len = None
 
@@ -266,28 +286,7 @@ class PhotoAlbum:
             )
             request = self.service.session.post(
                 url,
-                data=json.dumps(
-                    {
-                        "batch": [
-                            {
-                                "resultsLimit": 1,
-                                "query": {
-                                    "filterBy": {
-                                        "fieldName": "indexCountID",
-                                        "fieldValue": {
-                                            "type": "STRING_LIST",
-                                            "value": [self.obj_type],
-                                        },
-                                        "comparator": "IN",
-                                    },
-                                    "recordType": "HyperionIndexCountLookup",
-                                },
-                                "zoneWide": True,
-                                "zoneID": {"zoneName": "PrimarySync"},
-                            }
-                        ]
-                    }
-                ),
+                data=json.dumps(self._count_query_gen(self.obj_type)),
                 headers={"Content-type": "text/plain"},
             )
             response = request.json()
@@ -298,6 +297,19 @@ class PhotoAlbum:
 
         return self._len
 
+    # Perform the request in a separate method so that we
+    # can mock it to test session errors.
+    def photos_request(self, offset):
+        url = ('%s/records/query?' % self.service.service_endpoint) + \
+            urlencode(self.service.params)
+        return self.service.session.post(
+            url,
+            data=json.dumps(self._list_query_gen(
+                offset, self.list_type, self.direction,
+                self.query_filter)),
+            headers={'Content-type': 'text/plain'}
+        )
+
     @property
     def photos(self):
         """Returns the album photos."""
@@ -306,19 +318,21 @@ class PhotoAlbum:
         else:
             offset = 0
 
-        while True:
-            url = ("%s/records/query?" % self.service.service_endpoint) + urlencode(
-                self.service.params
-            )
-            request = self.service.session.post(
-                url,
-                data=json.dumps(
-                    self._list_query_gen(
-                        offset, self.list_type, self.direction, self.query_filter
-                    )
-                ),
-                headers={"Content-type": "text/plain"},
-            )
+        exception_retries = 0
+
+        while(True):
+            try:
+                request = self.photos_request(offset)
+            except Exception as ex:
+                if self.exception_handler:
+                    exception_retries += 1
+                    self.exception_handler(ex, exception_retries)
+                    continue
+                else:
+                    logger.debug("Exception caught in PhotoAsset.photos, no exception handler registered. Rethrowing.")
+                    raise
+
+            exception_retries = 0
             response = request.json()
 
             asset_records = {}
@@ -344,6 +358,32 @@ class PhotoAlbum:
                     )
             else:
                 break
+
+    def _count_query_gen(self, obj_type):
+        query = {
+            u'batch': [{
+                u'resultsLimit': 1,
+                u'query': {
+                    u'filterBy': {
+                        u'fieldName': u'indexCountID',
+                        u'fieldValue': {
+                            u'type': u'STRING_LIST',
+                            u'value': [
+                                obj_type
+                            ]
+                        },
+                        u'comparator': u'IN'
+                    },
+                    u'recordType': u'HyperionIndexCountLookup'
+                },
+                u'zoneWide': True,
+                u'zoneID': {
+                    u'zoneName': u'PrimarySync'
+                }
+            }]
+        }
+
+        return query
 
     def _list_query_gen(self, offset, list_type, direction, query_filter=None):
         query = {
@@ -487,10 +527,40 @@ class PhotoAsset:
 
         self._versions = None
 
+    ITEM_TYPES = {
+        u"public.heic": u"image",
+        u"public.jpeg": u"image",
+        u"public.png": u"image",
+        u"com.apple.quicktime-movie": u"movie",
+        u"public.mpeg-4": u"movie",
+        u"com.apple.m4v-video": u"movie",
+        u"com.microsoft.bmp": u"image",
+        u"public.3gpp": u"movie",
+        u"public.avi": u"movie",
+        u"public.mpeg": u"movie"
+    }
+
+    ITEM_TYPE_EXTENSIONS = {
+        u"public.heic": u"HEIC",
+        u"public.jpeg": u"JPG",
+        u"public.png": u"PNG",
+        u"com.apple.quicktime-movie": u"MOV",
+        u"public.mpeg-4": u"MP4",
+        u"com.apple.m4v-video": u"M4V",
+        u"com.microsoft.bmp": u"BMP",
+        u"public.3gpp": u"3GP",
+        u"public.avi": u"AVI",
+        u"public.mpeg": u"MPG"
+
+    }
+
     PHOTO_VERSION_LOOKUP = {
-        "original": "resOriginal",
-        "medium": "resJPEGMed",
-        "thumb": "resJPEGThumb",
+        u"original": u"resOriginal",
+        u"medium": u"resJPEGMed",
+        u"thumb": u"resJPEGThumb",
+        u"originalVideo": u"resOriginalVidCompl",
+        u"mediumVideo": u"resVidMed",
+        u"thumbVideo": u"resVidSmall",
     }
 
     VIDEO_VERSION_LOOKUP = {
@@ -506,10 +576,17 @@ class PhotoAsset:
 
     @property
     def filename(self):
-        """Gets the photo file name."""
-        return base64.b64decode(
-            self._master_record["fields"]["filenameEnc"]["value"]
-        ).decode("utf-8")
+        fields = self._master_record['fields']
+        if 'filenameEnc' in fields and 'value' in fields['filenameEnc']:
+            return base64.b64decode(
+                fields['filenameEnc']['value']
+            ).decode('utf-8')
+
+        # Some photos don't have a filename.
+        # In that case, just use the truncated fingerprint (hash),
+        # plus the correct extension.
+        filename = re.sub('[^0-9a-zA-Z]', '_', self.id)[0:12]
+        return '.'.join([filename, self.item_type_extension])
 
     @property
     def size(self):
@@ -547,11 +624,31 @@ class PhotoAsset:
         )
 
     @property
+    def item_type(self):
+        item_type = self._master_record['fields']['itemType']['value']
+        if item_type in self.ITEM_TYPES:
+            return self.ITEM_TYPES[item_type]
+        logger.debug(f"returning unknown item_type for item_type {item_type}")
+        return 'unknown'
+        if self.filename.lower().endswith(('.heic', '.png', '.jpg', '.jpeg')):
+            return 'image'
+        return 'movie'
+
+    @property
+    def item_type_extension(self):
+        item_type = self._master_record['fields']['itemType']['value']
+        if item_type in self.ITEM_TYPE_EXTENSIONS:
+            return self.ITEM_TYPE_EXTENSIONS[item_type]
+        logger.debug(f"returning unknown item_type_extension for item_type {item_type}")
+        return 'unknown'
+
+    @property
     def versions(self):
         """Gets the photo versions."""
         if not self._versions:
             self._versions = {}
-            if "resVidSmallRes" in self._master_record["fields"]:
+            #if "resVidSmallRes" in self._master_record["fields"]:
+            if self.item_type == "movie":
                 typed_version_lookup = self.VIDEO_VERSION_LOOKUP
             else:
                 typed_version_lookup = self.PHOTO_VERSION_LOOKUP
@@ -559,6 +656,7 @@ class PhotoAsset:
             for key, prefix in typed_version_lookup.items():
                 if "%sRes" % prefix in self._master_record["fields"]:
                     fields = self._master_record["fields"]
+                    filename = self.filename
                     version = {"filename": self.filename}
 
                     width_entry = fields.get("%sWidth" % prefix)
@@ -586,6 +684,16 @@ class PhotoAsset:
                         version["type"] = type_entry["value"]
                     else:
                         version["type"] = None
+
+                    # Change live photo movie file extension to .MOV
+                    if (self.item_type == "image" and
+                        version['type'] == "com.apple.quicktime-movie"):
+                        if filename.lower().endswith('.heic'):
+                            version['filename']=re.sub(
+                                '\.[^.]+$', '_HEVC.MOV', version['filename'])
+                        else:
+                            version['filename'] = re.sub(
+                                '\.[^.]+$', '.MOV', version['filename'])
 
                     self._versions[key] = version
 
