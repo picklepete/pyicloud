@@ -292,17 +292,6 @@ class DriveNode:
             ]
         return self._children
 
-    def reget_children(self):
-        """Re-gets the node children."""
-        self.data.update(self.connection.get_node_data(self.data["docwsid"]))
-        if "items" not in self.data:
-            raise KeyError("No items in folder, status: %s" % self.data["status"])
-        self._children = [
-            DriveNode(self.connection, item_data)
-            for item_data in self.data["items"]
-        ]
-        return self._children
-
     def remove(self, child):
         for item_data in self.data['items']:
             if item_data['docwsid'] == child.data['docwsid']:
