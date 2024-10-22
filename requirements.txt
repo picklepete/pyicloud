@@ -4,3 +4,4 @@ keyrings.alt>=3.5.2
 click>=7.1.2
 tzlocal>=4.0
 certifi>=2020.6.20
+srp>=1.0.21
