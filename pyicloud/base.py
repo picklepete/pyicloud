@@ -9,6 +9,9 @@ from os import path, mkdir
 from re import match
 import http.cookiejar as cookielib
 import getpass
+import srp
+import base64
+import hashlib
 
 from pyicloud.exceptions import (
     PyiCloudFailedLoginException,
@@ -36,6 +39,8 @@ HEADER_DATA = {
     "X-Apple-ID-Session-Id": "session_id",
     "X-Apple-Session-Token": "session_token",
     "X-Apple-TwoSV-Trust-Token": "trust_token",
+    "X-Apple-I-Rscd": "apple_rscd",
+    "X-Apple-I-Ercd": "apple_ercd",
     "scnt": "scnt",
 }
 
@@ -200,14 +205,11 @@ class PyiCloudService:
         pyicloud.iphone.location()
     """
 
-    AUTH_ENDPOINT = "https://idmsa.apple.com/appleauth/auth"
-    HOME_ENDPOINT = "https://www.icloud.com"
-    SETUP_ENDPOINT = "https://setup.icloud.com/setup/ws/1"
-
     def __init__(
         self,
         apple_id,
         password=None,
+        domain="com",
         cookie_directory=None,
         verify=True,
         client_id=None,
@@ -224,6 +226,19 @@ class PyiCloudService:
 
         self.password_filter = PyiCloudPasswordFilter(password)
         LOGGER.addFilter(self.password_filter)
+
+        if (domain == 'com'):
+            self.AUTH_ENDPOINT = "https://idmsa.apple.com/appleauth/auth"
+            self.HOME_ENDPOINT = "https://www.icloud.com"
+            self.SETUP_ENDPOINT = "https://setup.icloud.com/setup/ws/1"
+        elif (domain == 'cn'):
+            self.AUTH_ENDPOINT = "https://idmsa.apple.com.cn/appleauth/auth"
+            self.HOME_ENDPOINT = "https://www.icloud.com.cn"
+            self.SETUP_ENDPOINT = "https://setup.icloud.com.cn/setup/ws/1"
+        else:
+            raise NotImplementedError(f"Domain '{domain}' is not supported yet")
+        
+        self.domain = domain
 
         if cookie_directory:
             self._cookie_directory = path.expanduser(path.normpath(cookie_directory))
@@ -253,7 +268,9 @@ class PyiCloudService:
         self.session = PyiCloudSession(self)
         self.session.verify = verify
         self.session.headers.update(
-            {"Origin": self.HOME_ENDPOINT, "Referer": "%s/" % self.HOME_ENDPOINT}
+            {"Origin": self.HOME_ENDPOINT, 
+             "Referer": "%s/" % self.HOME_ENDPOINT,
+             'User-Agent': 'Opera/9.52 (X11; Linux i686; U; en)'}
         )
 
         cookiejar_path = self.cookiejar_path
@@ -267,6 +284,15 @@ class PyiCloudService:
                 # The cookiejar will get replaced with a valid one after
                 # successful authentication.
                 LOGGER.warning("Failed to read cookiejar %s", cookiejar_path)
+        
+        # Unsure if this is still needed
+        self.params = {
+            'clientBuildNumber': '17DHotfix5',
+            'clientMasteringNumber': '17DHotfix5',
+            'ckjsBuildVersion': '17DProjectDev77',
+            'ckjsVersion': '2.0.5',
+            'clientId': self.client_id,
+        }
 
         self.authenticate()
 
@@ -306,13 +332,6 @@ class PyiCloudService:
         if not login_successful:
             LOGGER.debug("Authenticating as %s", self.user["accountName"])
 
-            data = dict(self.user)
-
-            data["rememberMe"] = True
-            data["trustTokens"] = []
-            if self.session_data.get("trust_token"):
-                data["trustTokens"] = [self.session_data.get("trust_token")]
-
             headers = self._get_auth_headers()
 
             if self.session_data.get("scnt"):
@@ -320,10 +339,55 @@ class PyiCloudService:
 
             if self.session_data.get("session_id"):
                 headers["X-Apple-ID-Session-Id"] = self.session_data.get("session_id")
-
+            class SrpPassword():
+                def __init__(self, password: str):
+                    self.password = password
+                def set_encrypt_info(self, salt: bytes, iterations: int, key_length: int):
+                    self.salt = salt
+                    self.iterations = iterations
+                    self.key_length = key_length
+                def encode(self):
+                    password_hash = hashlib.sha256(self.password.encode('utf-8')).digest()
+                    return hashlib.pbkdf2_hmac('sha256', password_hash, salt, iterations, key_length)
+            srp_password = SrpPassword(self.user["password"])
+            srp.rfc5054_enable()
+            srp.no_username_in_x()
+            usr = srp.User(self.user["accountName"], srp_password, hash_alg=srp.SHA256, ng_type=srp.NG_2048)
+            uname, A = usr.start_authentication()
+            data = {
+                'a': base64.b64encode(A).decode(),
+                'accountName': uname,
+                'protocols': ['s2k', 's2k_fo']
+            }
+            try:
+                response = self.session.post("%s/signin/init" % self.AUTH_ENDPOINT, data=json.dumps(data), headers=headers)
+                response.raise_for_status()
+            except PyiCloudAPIResponseException as error:
+                msg = "Failed to initiate srp authentication."
+                raise PyiCloudFailedLoginException(msg, error) from error
+            body = response.json()
+            salt = base64.b64decode(body['salt'])
+            b = base64.b64decode(body['b'])
+            c = body['c']
+            iterations = body['iteration']
+            key_length = 32
+            srp_password.set_encrypt_info(salt, iterations, key_length)
+            m1 = usr.process_challenge( salt, b )
+            m2 = usr.H_AMK
+            data = {
+                "accountName": uname,
+                "c": c,
+                "m1": base64.b64encode(m1).decode(),
+                "m2": base64.b64encode(m2).decode(),
+                "rememberMe": True,
+                "trustTokens": [],
+            }
+            if self.session_data.get("trust_token"):
+                data["trustTokens"] = [self.session_data.get("trust_token")]
+            
             try:
                 self.session.post(
-                    "%s/signin" % self.AUTH_ENDPOINT,
+                    "%s/signin/complete" % self.AUTH_ENDPOINT,
                     params={"isRememberMeEnabled": "true"},
                     data=json.dumps(data),
                     headers=headers,
@@ -334,6 +398,8 @@ class PyiCloudService:
 
             self._authenticate_with_token()
 
+        self.params.update({'dsid': self.data['dsInfo']['dsid']})
+        
         self._webservices = self.data["webservices"]
 
         LOGGER.debug("Authentication completed successfully")
@@ -387,7 +453,7 @@ class PyiCloudService:
 
     def _get_auth_headers(self, overrides=None):
         headers = {
-            "Accept": "*/*",
+            "Accept": "application/json, text/javascript",
             "Content-Type": "application/json",
             "X-Apple-OAuth-Client-Id": "d39ba9916b7251055b22c7f910e2ea796ee65e98b2ddecea8f5dde8d9d1a815d",
             "X-Apple-OAuth-Client-Type": "firstPartyAuth",
