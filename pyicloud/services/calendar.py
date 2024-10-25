@@ -52,6 +52,7 @@ class CalendarService:
                 "usertz": get_localzone_name(),
                 "startDate": from_dt.strftime("%Y-%m-%d"),
                 "endDate": to_dt.strftime("%Y-%m-%d"),
+                "dsid": self.session.service.data["dsInfo"]["dsid"],
             }
         )
         req = self.session.get(self._calendar_refresh_url, params=params)
@@ -79,6 +80,7 @@ class CalendarService:
                 "usertz": get_localzone_name(),
                 "startDate": from_dt.strftime("%Y-%m-%d"),
                 "endDate": to_dt.strftime("%Y-%m-%d"),
+                "dsid": self.session.service.data["dsInfo"]["dsid"],
             }
         )
         req = self.session.get(self._calendars, params=params)
