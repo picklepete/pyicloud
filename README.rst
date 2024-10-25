@@ -360,6 +360,25 @@ The ``upload`` method can be used to send a file-like object to the iCloud Drive
 It is strongly suggested to open file handles as binary rather than text to prevent decoding errors
 further down the line.
 
+iCloud Drive Sync
+=======================
+
+The command line utility ``iclouddrivesync`` uses the ``api.drive`` described above to keep a local directory in sync with the files in the iCloud Drive.
+
+First, set up `authentication <#authentication>`_ and run ``iclouddrivesync`` in interactive mode:
+
+.. code-block:: console
+
+    $ iclouddrivesync --username jappleseed@apple.com --destionation /home/jappleseed/icloud-backup
+
+This will do an initial download to the local ``/home/jappleseed/icloud-backup`` directory. This directory can then be kept in sync using a crontab entry calling ``iclouddrivesync`` in non-interactive mode with the ``remove`` option enabled as well:
+
+.. code-block:: console
+
+    $ iclouddrivesync --username jappleseed@apple.com --destionation /home/jappleseed/icloud-backup --non-interactive --remove
+
+See ``iclouddrivesync -h`` for more command line options. Uploading files from the local directory to the iCloud Drive has not been implemtented yet.
+
 Photo Library
 =======================
 

@@ -38,6 +38,6 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Libraries",
     ],
-    entry_points={"console_scripts": ["icloud = pyicloud.cmdline:main"]},
+    entry_points={"console_scripts": ["icloud = pyicloud.cmdline:main", "iclouddrivesync = pyicloud.drivesync:main"]},
     keywords=["icloud", "find-my-iphone"],
 )
