@@ -47,6 +47,13 @@ Authentication without using a saved password is as simple as passing your usern
 
 In the event that the username/password combination is invalid, a ``PyiCloudFailedLoginException`` exception is thrown.
 
+If the country/region setting of your Apple ID is China mainland, you should pass ``china_mainland=True`` to the ``PyiCloudService`` class:
+
+.. code-block:: python
+
+    from pyicloud import PyiCloudService
+    api = PyiCloudService('jappleseed@apple.com', 'password', china_mainland=True)
+
 You can also store your password in the system keyring using the command-line tool:
 
 .. code-block:: console
