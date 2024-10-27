@@ -25,6 +25,7 @@ from pyicloud.services import (
     PhotosService,
     AccountService,
     DriveService,
+    PremiumMailSettings,
 )
 from pyicloud.utils import get_password_from_keyring
 
@@ -608,6 +609,12 @@ class PyiCloudService:
                 params=self.params,
             )
         return self._drive
+
+    @property
+    def premiummailsettings(self) -> PremiumMailSettings:
+        """Gets the 'Premium Mail Settings' service."""
+        service_root = self._get_webservice_url("premiummailsettings")
+        return PremiumMailSettings(service_root, self.session)
 
     def __str__(self):
         return f"iCloud API: {self.user.get('apple_id')}"
